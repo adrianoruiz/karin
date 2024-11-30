@@ -4,6 +4,13 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Aloe-Medium';
+  src: url('/fonts/Aloe-Medium.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 :root {
   font-family: 'Inter', sans-serif;
   line-height: 1.5;

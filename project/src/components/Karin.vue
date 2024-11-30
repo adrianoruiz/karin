@@ -7,7 +7,9 @@ defineProps<{
 <template>
   <section class="relative bg-[#F5E6D3] py-20">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="text-4xl font-bold text-gray-900 mb-12">Quem é a Dra. Karin Boldarini?</h2>
+      <h2 class="font-aloe text-4xl text-[#000000] mb-4">
+        Quem é a Dra. Karin Boldarini?
+      </h2>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         <div class="space-y-8">

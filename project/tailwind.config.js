@@ -6,6 +6,11 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        'aloe': ['Aloe-Medium', 'serif'],
+        'serif': ['Playfair Display', 'serif'],
+        'sans': ['Inter', 'sans-serif'],
+      },
       colors: {
         'primary': '#8B7355',  // Main brown color
         'secondary': '#A39081', // Lighter brown
@@ -22,10 +27,6 @@ export default {
           900: '#322920',
         }
       },
-      fontFamily: {
-        'serif': ['Playfair Display', 'serif'],
-        'sans': ['Inter', 'sans-serif'],
-      }
     },
   },
   plugins: [],

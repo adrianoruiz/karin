@@ -12,7 +12,7 @@ defineProps<{
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
         <!-- Texto -->
         <div class="space-y-4 text-center lg:text-left">
-          <h1 class="font-serif italic text-[#2D2D2D] leading-tight">
+          <h1 class="font-aloe text-[#000000]">
             <span class="block text-5xl md:text-6xl">Dra. Karin</span>
             <span class="block text-5xl md:text-6xl">Boldarini</span>
           </h1>
@@ -20,8 +20,7 @@ defineProps<{
           <p class="text-gray-700 text-lg leading-relaxed mt-4">
             {{ description }}
           </p>
-          <a href="https://wa.me/5547991175005?text=Olá!%20Gostaria%20de%20agendar%20uma%20consulta."
-            target="_blank"
+          <a href="https://wa.me/5547991175005?text=Olá!%20Gostaria%20de%20agendar%20uma%20consulta." target="_blank"
             class="inline-flex items-center mt-6 bg-[#7B736C] text-white px-10 py-3 rounded-full text-lg hover:bg-[#635C57] transition-colors animate-shake hover:animate-shake">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
               <path
@@ -42,13 +41,24 @@ defineProps<{
 
 <style scoped>
 @keyframes shake {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateX(0);
   }
-  10%, 30%, 50%, 70%, 90% {
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
     transform: translateX(-2px);
   }
-  20%, 40%, 60%, 80% {
+
+  20%,
+  40%,
+  60%,
+  80% {
     transform: translateX(2px);
   }
 }
