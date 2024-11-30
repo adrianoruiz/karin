@@ -23,18 +23,6 @@ import {
   faUser
 } from '@fortawesome/free-solid-svg-icons'
 
-/* Import AOS */
-import AOS from 'aos'
-import 'aos/dist/aos.css'
-
-/* Initialize AOS */
-AOS.init({
-  duration: 800,
-  easing: 'ease-out-cubic',
-  once: true,
-  offset: 50
-})
-
 /* Add icons to the library */
 library.add(
   faUserDoctor, 
@@ -54,8 +42,6 @@ library.add(
 )
 
 const app = createApp(App)
-
 /* Register Font Awesome component globally */
 app.component('font-awesome-icon', FontAwesomeIcon)
-
 app.mount('#app')

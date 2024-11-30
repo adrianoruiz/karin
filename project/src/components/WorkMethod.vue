@@ -37,7 +37,7 @@ const methods = [
         <!-- Right side timeline -->
 
         <div class="relative">
-          <h2 class="text-4xl font-serif text-[#4A4744] mb-16">Como trabalho.</h2>
+          <h2 class="text-4xl font-serif  text-[#4A4744] mb-16">Como trabalho</h2>
           <div class="relative">
             <div class="absolute left-6 top-0 h-full w-0.5 bg-white"></div>
 

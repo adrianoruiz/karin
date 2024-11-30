@@ -28,13 +28,20 @@ const scrollToSection = (href: string) => {
     });
   }
 };
+
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+};
 </script>
 
 <template>
   <nav class="fixed w-full top-0 bg-[#6B5E57]/95 backdrop-blur-sm z-50 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
-        <div class="flex-shrink-0 transition-transform hover:scale-105 duration-300">
+        <div class="flex-shrink-0 flex items-center cursor-pointer" @click="scrollToTop">
           <img class="h-12 w-12" src="../assets/logobranca.svg" alt="Logo" />
         </div>
         

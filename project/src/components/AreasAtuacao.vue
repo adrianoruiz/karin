@@ -1,7 +1,7 @@
 <template>
   <section class="py-16 bg-[#8B8178]">
     <div class="container mx-auto px-4">
-      <h2 class="text-4xl font-bold text-center mb-16 text-white">
+      <h2 class="text-4xl font-serif  text-center mb-16 text-white">
         Áreas de atuação
       </h2>
       <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
