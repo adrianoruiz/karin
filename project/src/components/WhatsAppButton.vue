@@ -1,5 +1,6 @@
 <template>
   <a href="https://api.whatsapp.com/send?phone=5547991259577&text=Ol%C3%A1,%20gostaria%20de%20agendar%20uma%20consulta"
+    target="_blank"
     class="fixed right-6 bottom-6 z-50 bg-[#25D366] w-16 h-16 flex items-center justify-center rounded-full shadow-lg hover:bg-[#20bd5a] transition-colors duration-300 hover:scale-110">
     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="currentColor" viewBox="0 0 24 24">
       <path

@@ -35,9 +35,7 @@ const methods = [
         <!-- Left side illustration -->
         <div class="relative">
           <div class="aspect-square rounded-full bg-[#8B8379]/20 p-8">
-            <img
-              src="https://pages.greatpages.com.br/www.draalessandragobbi.com/1728584050/imagens/desktop/467635_1_23056.png"
-              alt="Therapy session illustration" class="w-full h-full object-contain" />
+            <img src="/images/consulta.webp" alt="Therapy session illustration" class="w-full h-full object-contain" />
           </div>
         </div>
 
