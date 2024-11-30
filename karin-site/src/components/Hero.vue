@@ -7,7 +7,7 @@ defineProps<{
 </script>
 
 <template>
-  <section class="relative min-h-screen bg-[#F5E6D3] pt-16 flex items-center justify-center">
+  <section class="relative bg-[#F5E6D3] pt-16 flex items-center justify-center">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
         <!-- Texto -->
@@ -31,7 +31,7 @@ defineProps<{
         </div>
         <!-- Imagem -->
         <div class="flex justify-center lg:justify-end">
-          <img src="/images/karin.png" alt="Dra. Karin Boldarini"
+          <img src="/images/karin-psiq.png" alt="Dra. Karin Boldarini"
             class="max-w-xs md:max-w-md lg:max-w-lg object-contain" />
         </div>
       </div>
