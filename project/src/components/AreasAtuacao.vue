@@ -4,11 +4,11 @@
       <h2 class="text-4xl font-bold text-center mb-16 text-white">
         Áreas de atuação
       </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
         <div v-for="area in areasAtuacao" :key="area.title"
-          class="bg-white rounded-[32px] p-8 flex flex-col items-center text-center hover:shadow-lg transition-shadow">
-          <div class="w-16 h-16 mb-4" v-html="area.icon"></div>
-          <h3 class="text-xl font-semibold text-[#2D2D2D]">{{ area.title }}</h3>
+          class="bg-white rounded-[32px] p-4 sm:p-6 md:p-8 flex flex-col items-center text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+          <div class="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 mb-3 sm:mb-4" v-html="area.icon"></div>
+          <h3 class="text-lg sm:text-xl font-semibold text-[#2D2D2D] leading-tight">{{ area.title }}</h3>
         </div>
       </div>
     </div>

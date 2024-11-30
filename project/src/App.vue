@@ -16,9 +16,9 @@ import AreasAtuacao from './components/AreasAtuacao.vue';
     <NavBar />
     <Hero name="Dra. Karin Boldarini" title="CRM XX-XXXXX - MÉDICA PSIQUIATRA"
       description="Conheça a Psiquiatria Funcional Integrativa Multifatorial e veja como é possível alcançar o bem-estar emocional que você procura." />
-    <Consultation />
     <WorkMethod />
     <Testimonials />
+    <Consultation />
     <Karin title="Quem é a Dra. Karin Boldarini?" />
 
     <AreasAtuacao />

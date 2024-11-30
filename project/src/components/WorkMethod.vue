@@ -29,7 +29,7 @@ const methods = [
 </script>
 
 <template>
-  <section class="py-20 bg-[#8B8379]/10">
+  <section id="metodo" class="py-20 bg-[#8B8379]/10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-16">
         <!-- Left side illustration -->
