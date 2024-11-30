@@ -5,6 +5,9 @@ import Consultation from './components/Consultation.vue';
 import WorkMethod from './components/WorkMethod.vue';
 import Footer from './components/Footer.vue';
 import WhatsAppButton from './components/WhatsAppButton.vue';
+import Testimonials from './components/Testimonials.vue';
+import Karin from './components/Karin.vue';
+
 </script>
 
 <template>
@@ -14,6 +17,9 @@ import WhatsAppButton from './components/WhatsAppButton.vue';
       description="Conheça a Psiquiatria Funcional Integrativa Multifatorial e veja como é possível alcançar o bem-estar emocional que você procura." />
     <Consultation />
     <WorkMethod />
+    <Testimonials />
+    <Karin title="Quem é a Dra. Karin Boldarini?" />
+
     <Footer />
     <WhatsAppButton />
   </div>
