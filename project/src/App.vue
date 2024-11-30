@@ -7,6 +7,7 @@ import Footer from './components/Footer.vue';
 import WhatsAppButton from './components/WhatsAppButton.vue';
 import Testimonials from './components/Testimonials.vue';
 import Karin from './components/Karin.vue';
+import AreasAtuacao from './components/AreasAtuacao.vue';
 
 </script>
 
@@ -19,6 +20,8 @@ import Karin from './components/Karin.vue';
     <WorkMethod />
     <Testimonials />
     <Karin title="Quem é a Dra. Karin Boldarini?" />
+
+    <AreasAtuacao />
 
     <Footer />
     <WhatsAppButton />
