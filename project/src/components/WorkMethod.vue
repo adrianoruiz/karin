@@ -1,29 +1,24 @@
 <script setup lang="ts">
 const methods = [
   {
-    title: 'Visão 360 graus',
-    description: 'Considero a saúde mental como resultado de uma interação complexa entre os diversos sistemas do organismo, não se limitando apenas ao funcionamento do cérebro. Avalio o corpo em sua totalidade, incluindo sistema hormonal, gastrointestinal, estilo de vida e nutrição.',
-    icon: '/icons/icon-360.svg'
+    title: 'Dedicação e Escuta Atenta',
+    description: 'Durante as consultas, meu foco está em ouvir você com atenção e acolhimento, entendendo sua história para oferecer o melhor cuidado possível.',
+    icon: 'user-doctor'
   },
   {
-    title: 'Tratamento Personalizado',
-    description: 'Cada paciente é único, com sua história, genética e hábitos de vida.',
-    icon: '/icons/icon-personal.svg'
+    title: 'Foco na Qualidade de Vida',
+    description: 'Mais do que tratar sintomas, busco ajudar você a recuperar bem-estar e autonomia, promovendo uma vida com mais equilíbrio e saúde.',
+    icon: 'hand-holding-heart'
   },
   {
-    title: 'Uso de fitoterápicos, suplementos e Canabidiol',
-    description: 'Dependendo da avaliação individual, o tratamento proposto pode incluir fitoterápicos (plantas medicinais) e canabidiol.',
-    icon: '/icons/icon-phyto.svg'
-  },
-  {
-    title: 'Regulação do Estilo de Vida',
-    description: 'Hábitos alimentares, prática de atividade física, gestão do estresse e qualidade do sono são fatores importantes para o sucesso do processo terapêutico.',
-    icon: '/icons/icon-lifestyle.svg'
+    title: 'Avaliação Integral do Paciente',
+    description: 'Analiso a saúde como um todo, incluindo aspectos físicos, emocionais e hábitos de vida, para entender e cuidar de todas as suas necessidades.',
+    icon: 'clipboard-list'
   },
   {
     title: 'Tratamento Medicamentoso',
-    description: 'O uso de medicamentos psicotrópicos, como antidepressivos e ansiolíticos, pode ser necessário, de acordo com os sintomas apresentados.',
-    icon: '/icons/icon-meds.svg'
+    description: 'Quando necessário, utilizo medicamentos de forma cuidadosa, avaliando sempre o momento certo para iniciar, ajustar ou reduzir o uso.',
+    icon: 'pills'
   }
 ];
 </script>
@@ -52,7 +47,7 @@ const methods = [
 
               <!-- Icon -->
               <div class="absolute left-0 top-0 bg-white rounded-full p-2 w-12 h-12 flex items-center justify-center">
-                <img :src="method.icon" :alt="method.title" class="w-6 h-6" />
+                <font-awesome-icon :icon="method.icon" class="text-[#8B8379] text-2xl" />
               </div>
 
               <!-- Content -->

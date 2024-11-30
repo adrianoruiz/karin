@@ -7,7 +7,7 @@
           <h1 class="text-white font-serif">
             <span class="block text-lg">Dra.</span>
             <span class="block text-2xl">Karin Boldarini</span>
-            <span class="block text-sm mt-1">PSIQUIATRIA</span>
+            <span class="block text-sm mt-1">Saúde Mental</span>
           </h1>
         </div>
 
