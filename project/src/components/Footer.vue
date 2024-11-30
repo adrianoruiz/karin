@@ -23,7 +23,7 @@
                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             <p class="leading-relaxed">
-              Rua Marechal Floriano Peixoto, 354, Sala 306<br />
+              Rua Jaragua, 273 <br />
               Centro - Blumenau, SC
             </p>
           </div>

@@ -29,9 +29,9 @@ const methods = [
       <div class="grid grid-cols-1 md:grid-cols-2 gap-16">
         <!-- Left side illustration -->
         <div class="relative">
-          <div class="aspect-square rounded-full bg-[#8B8379]/20 p-8">
-            <img src="/images/consulta.webp" alt="Therapy session illustration" class="w-full h-full object-contain" />
-          </div>
+
+          <img src="/images/consulta.webp" alt="Therapy session illustration" class="w-full h-full object-contain" />
+
         </div>
 
         <!-- Right side timeline -->
