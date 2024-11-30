@@ -15,17 +15,16 @@
         <div>
           <h3 class="text-2xl font-medium text-white mb-4">Flexibilidade:</h3>
           <p class="text-lg text-white/90 leading-relaxed">
-            Atendimento que se adapta a sua rotina, eliminando a necessidade de deslocamentos e permitindo
-            manter o acompanhamento regular, mesmo em situações adversas ou morando em outra cidade.
+            Consultas adaptadas à sua rotina, sem a necessidade de deslocamentos, permitindo acompanhamento constante,
+            mesmo em situações desafiadoras ou à distância.
           </p>
         </div>
 
         <div>
           <h3 class="text-2xl font-medium text-white mb-4">Comodidade:</h3>
           <p class="text-lg text-white/90 leading-relaxed">
-            Realize a consulta em um ambiente calmo e com privacidade, onde você se sinta mais à vontade.
-            Apesar da distância física, estarei totalmente presente com acolhimento e escuta empática,
-            para construirmos um forte vínculo terapêutico.
+            Realize sua consulta em um ambiente acolhedor e privado, onde você se sinta à vontade. Mesmo online, estarei
+            presente para escutar e acolher, construindo um vínculo terapêutico forte e de confiança.
           </p>
         </div>
 

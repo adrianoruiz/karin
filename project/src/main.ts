@@ -5,10 +5,40 @@ import './style.css'
 /* Import Font Awesome */
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faUserDoctor, faHandHoldingHeart, faClipboardList, faPills } from '@fortawesome/free-solid-svg-icons'
+import { 
+  faUserDoctor, 
+  faHandHoldingHeart, 
+  faClipboardList, 
+  faPills,
+  faBrain,
+  faSadTear,
+  faScaleBalanced,
+  faBolt,
+  faMoon,
+  faTriangleExclamation,
+  faUtensils,
+  faMask,
+  faInfinity,
+  faUser
+} from '@fortawesome/free-solid-svg-icons'
 
 /* Add icons to the library */
-library.add(faUserDoctor, faHandHoldingHeart, faClipboardList, faPills)
+library.add(
+  faUserDoctor, 
+  faHandHoldingHeart, 
+  faClipboardList, 
+  faPills,
+  faBrain,
+  faSadTear,
+  faScaleBalanced,
+  faBolt,
+  faMoon,
+  faTriangleExclamation,
+  faUtensils,
+  faMask,
+  faInfinity,
+  faUser
+)
 
 const app = createApp(App)
 
