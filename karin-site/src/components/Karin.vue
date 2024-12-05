@@ -14,29 +14,27 @@ defineProps<{
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         <div class="space-y-8">
           <p class="text-gray-700 text-lg leading-relaxed">
-            Desde pequena, Dra. Karin Boldarini sempre teve um sonho: ajudar as pessoas a encontrarem equilíbrio e
-            felicidade em suas vidas. Formada pela renomada Escola de Medicina de Joinville e com uma pós-graduação em
-            Psiquiatria, ela se dedicou a se tornar uma das melhores medicas do Brasil.
+            Desde cedo, Dra. Karin Boldarini cultivou o sonho de ajudar as pessoas a alcançarem equilíbrio e bem-estar
+            em suas vidas. Formada pela Escola de Medicina de Joinville e com pós-graduação em Psiquiatria, ela se
+            destacou ao longo de sua carreira por sua dedicação e excelência no cuidado com seus pacientes.
           </p>
 
           <p class="text-gray-700 text-lg leading-relaxed">
-            A jornada de Dra. Karin é inspiradora. Ela enfrentou desafios e superou obstáculos para entender
-            profundamente as mentes e os corações de seus pacientes. Especializada em TDAH, depressão e diversos outros
-            transtornos, ela utiliza uma abordagem integrativa que combina a ciência da psiquiatria moderna com terapias
-            complementares.
+            Se dedica ao tratamento de TDAH, depressão e diversos outros transtornos, e utiliza uma abordagem
+            integrativa que combina a ciência da psiquiatria moderna com terapias complementares.
           </p>
 
           <p class="text-gray-700 text-lg leading-relaxed">
-            Dra. Karin acredita que cada pessoa é única e merece um tratamento personalizado. Ela não apenas trata os
-            sintomas, mas também ouve atentamente, compreendendo as emoções e os estilos de vida de seus pacientes. Com
-            técnicas avançadas de gestão do estresse e estratégias personalizadas de saúde, ela proporciona um cuidado
-            completo e eficaz.
+            Dra. Karin acredita que cada pessoa é única e merece um tratamento personalizado. Mais do que tratar
+            sintomas, ela ouve atentamente, compreendendo as emoções e os estilos de vida de seus pacientes. Com
+            técnicas avançadas de gestão do estresse e estratégias de saúde adaptadas a cada indivíduo, ela oferece um
+            cuidado completo e eficaz.
           </p>
 
           <p class="text-gray-700 text-lg leading-relaxed">
-            Sua missão é clara: guiar cada paciente em uma jornada de autodescoberta e cura, ajudando-os a superar seus
-            desafios e alcançar seu pleno potencial. Dra. Karin é mais do que uma médica; ela é uma verdadeira parceira
-            na busca pelo bem-estar mental e emocional.
+            Sua missão é clara: guiar cada paciente em uma jornada de autodescoberta e cura, ajudando-os a superar
+            desafios e alcançar seu pleno potencial. Mais do que uma médica, Dra. Karin é uma parceira dedicada à busca
+            pelo bem-estar mental e emocional.
           </p>
 
           <a href="https://api.whatsapp.com/send?phone=5547991259577&text=Ol%C3%A1,%20gostaria%20de%20agendar%20uma%20consulta"
@@ -51,7 +49,7 @@ defineProps<{
         </div>
 
         <div class="relative">
-          <img src="/images/karin.png" alt="Dra. Karin Boldarini" class="w-full h-auto rounded-lg shadow-xl" />
+          <img src="/images/karin-com-fundo.png" alt="Dra. Karin Boldarini" class="h-auto" />
         </div>
       </div>
     </div>
