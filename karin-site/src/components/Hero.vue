@@ -23,7 +23,7 @@ defineProps<{
             {{ description }}
           </p>
           <a
-            href="https://wa.me/5547991259577?text=Olá!%20Gostaria%20de%20agendar%20uma%20consulta."
+            href="/conversion/consulta-online.html"
             target="_blank"
             class="inline-flex items-center mt-6 bg-[#7B736C] text-white px-10 py-3 rounded-full text-lg hover:bg-[#635C57] transition-colors animate-shake hover:animate-shake"
           >

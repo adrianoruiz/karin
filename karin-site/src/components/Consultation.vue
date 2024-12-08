@@ -47,7 +47,7 @@
 
             <div class="pt-4 text-center lg:text-left">
               <a
-                href="https://wa.me/5547991259577?text=Olá!%20Gostaria%20de%20agendar%20uma%20consulta%20online."
+                href="/conversion/consulta-online.html"
                 target="_blank"
                 class="inline-flex items-center bg-[#7B736C] text-white px-8 py-3 rounded-full text-lg hover:bg-[#635C57] transition-colors animate-shake hover:animate-shake"
               >
@@ -82,7 +82,7 @@
 
             <div class="pt-4 text-center lg:text-left">
               <a
-                href="https://wa.me/5547991259577?text=Olá!%20Gostaria%20de%20agendar%20uma%20consulta%20presencial%20em%20Blumenau."
+                href="/conversion/consulta-presencial.html"
                 target="_blank"
                 class="inline-flex items-center bg-[#7B736C] text-white px-8 py-3 rounded-full text-lg hover:bg-[#635C57] transition-colors animate-shake hover:animate-shake"
               >
