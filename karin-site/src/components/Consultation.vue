@@ -47,7 +47,7 @@
 
             <div class="pt-4 text-center lg:text-left">
               <a
-                href="https://wa.me/5547991175005?text=Olá!%20Gostaria%20de%20agendar%20uma%20consulta%20online."
+                href="https://wa.me/5547991259577?text=Olá!%20Gostaria%20de%20agendar%20uma%20consulta%20online."
                 target="_blank"
                 class="inline-flex items-center bg-[#7B736C] text-white px-8 py-3 rounded-full text-lg hover:bg-[#635C57] transition-colors animate-shake hover:animate-shake"
               >
@@ -82,23 +82,11 @@
 
             <div class="pt-4 text-center lg:text-left">
               <a
-                href="https://wa.me/5547991175005?text=Olá!%20Gostaria%20de%20agendar%20uma%20consulta%20presencial%20em%20Blumenau."
+                href="https://wa.me/5547991259577?text=Olá!%20Gostaria%20de%20agendar%20uma%20consulta%20presencial%20em%20Blumenau."
                 target="_blank"
                 class="inline-flex items-center bg-[#7B736C] text-white px-8 py-3 rounded-full text-lg hover:bg-[#635C57] transition-colors animate-shake hover:animate-shake"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-5 w-5 mr-2"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M17.414 7H20a1 1 0 011 1v11a1 1 0 01-1 1H4a1 1 0 01-1-1V8a1 1 0 011-1h2.586l1-1H3c-1.654 0-3 1.346-3 3v11c0 1.654 1.346 3 3 3h17c1.654 0 3-1.346 3-3V9c0-1.654-1.346-3-3-3h-3.586l1 1zM21 9l-1-1h-2.586l-1-1H18a1 1 0 011 1v11a1 1 0 01-1 1H4a1 1 0 01-1-1V8c0-.551.449-1 1-1h2.586l1 1H4v11h16V9z"
-                  />
-                  <path
-                    d="M13 14a1 1 0 011-1h2V8.414l-6-6L5.414 6H8a1 1 0 011 1v2h2a1 1 0 011 1z"
-                  />
-                </svg>
+                <i class="far fa-address-book mr-2"></i>
                 Agendar Consulta Presencial
               </a>
             </div>
