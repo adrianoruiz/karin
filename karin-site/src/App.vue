@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import NavBar from './components/NavBar.vue';
-import Hero from './components/Hero.vue';
-import Consultation from './components/Consultation.vue';
-import WorkMethod from './components/WorkMethod.vue';
-import Footer from './components/Footer.vue';
-import WhatsAppButton from './components/WhatsAppButton.vue';
-import Testimonials from './components/Testimonials.vue';
-import Karin from './components/Karin.vue';
-import AreasAtuacao from './components/AreasAtuacao.vue';
+import AreasAtuacao from "./components/AreasAtuacao.vue";
+import Consultation from "./components/Consultation.vue";
+import Footer from "./components/Footer.vue";
+import Hero from "./components/Hero.vue";
+import Karin from "./components/Karin.vue";
+import NavBar from "./components/NavBar.vue";
+import Testimonials from "./components/Testimonials.vue";
+import WhatsAppButton from "./components/WhatsAppButton.vue";
+import WorkMethod from "./components/WorkMethod.vue";
 </script>
 
 <template>
@@ -21,8 +21,11 @@ import AreasAtuacao from './components/AreasAtuacao.vue';
     <main class="pt-16">
       <!-- Hero Section with fade-in animation -->
       <div data-aos="fade-up">
-        <Hero name="Dra. Karin Boldarini" title="CRM XX-XXXXX - MÉDICA PSIQUIATRA"
-          description="Ofereco, uma abordagem em psiquiatria integrativa e personalizada, focada no equilíbrio entre mente, corpo e emoções." />
+        <Hero
+          name="Dra. Karin Boldarini"
+          title="CRM XX-XXXXX - MÉDICA PSIQUIATRA"
+          description="Ofereco atenção em saúde mental, focada no equilíbrio entre mente, corpo e emoções."
+        />
       </div>
 
       <!-- Work Method with slide-in animation -->
@@ -69,35 +72,36 @@ export default {
     return {
       showNav: true,
       lastScrollPosition: 0,
-    }
+    };
   },
   mounted() {
-    window.addEventListener('scroll', this.onScroll)
+    window.addEventListener("scroll", this.onScroll);
   },
   unmounted() {
-    window.removeEventListener('scroll', this.onScroll)
+    window.removeEventListener("scroll", this.onScroll);
   },
   methods: {
     onScroll() {
-      const currentScrollPosition = window.pageYOffset || document.documentElement.scrollTop
+      const currentScrollPosition =
+        window.pageYOffset || document.documentElement.scrollTop;
 
       // Show/hide navbar based on scroll direction
       if (currentScrollPosition < 0) {
-        return
+        return;
       }
 
       // Show navbar at the top
       if (currentScrollPosition < 50) {
-        this.showNav = true
-        return
+        this.showNav = true;
+        return;
       }
 
       // Determine scroll direction and show/hide navbar
-      this.showNav = currentScrollPosition < this.lastScrollPosition
-      this.lastScrollPosition = currentScrollPosition
-    }
-  }
-}
+      this.showNav = currentScrollPosition < this.lastScrollPosition;
+      this.lastScrollPosition = currentScrollPosition;
+    },
+  },
+};
 </script>
 
 <style>
@@ -138,14 +142,13 @@ html {
   }
 
   /* Adjust spacing for mobile */
-  .section-spacing>*+* {
+  .section-spacing > * + * {
     margin-top: 2rem;
   }
 }
 
 /* Improve tap targets on mobile */
 @media (max-width: 768px) {
-
   button,
   a {
     min-height: 44px;
