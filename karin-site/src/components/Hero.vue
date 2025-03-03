@@ -1,9 +1,22 @@
 <script setup lang="ts">
+import { ref } from 'vue';
+import AppointmentModal from './AppointmentModal.vue';
+
 defineProps<{
   name: string;
   title: string;
   description: string;
 }>();
+
+const showAppointmentModal = ref(false);
+
+const openAppointmentModal = () => {
+  showAppointmentModal.value = true;
+};
+
+const closeAppointmentModal = () => {
+  showAppointmentModal.value = false;
+};
 </script>
 
 <template>
@@ -22,9 +35,8 @@ defineProps<{
           <p class="text-gray-700 text-lg leading-relaxed mt-4">
             {{ description }}
           </p>
-          <a
-            href="/conversion/consulta-online.html"
-            target="_blank"
+          <button
+            @click="openAppointmentModal"
             class="inline-flex items-center mt-6 bg-[#7B736C] text-white px-10 py-3 rounded-full text-lg hover:bg-[#635C57] transition-colors animate-shake hover:animate-shake"
           >
             <svg
@@ -38,7 +50,7 @@ defineProps<{
               />
             </svg>
             Agendar minha consulta
-          </a>
+          </button>
         </div>
         <!-- Imagem -->
         <div class="flex justify-center lg:justify-end">
@@ -50,6 +62,12 @@ defineProps<{
         </div>
       </div>
     </div>
+    
+    <!-- Modal de Agendamento -->
+    <AppointmentModal 
+      :is-open="showAppointmentModal" 
+      @close="closeAppointmentModal" 
+    />
   </section>
 </template>
 
