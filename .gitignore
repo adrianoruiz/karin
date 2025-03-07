@@ -1,1 +1,46 @@
+# Dependências
 node_modules/
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.*.local
+
+# Arquivos de IDE
+.idea/
+.vscode/
+
+# Logs e arquivos temporários
+*.log
+*.tmp
+*.temp
+
+# Builds
+dist/
+build/
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Arquivos de cache
+.cache/
+
+# Arquivos de configuração local
+local.config.*
+
+# Arquivos de teste
+coverage/
+.nyc_output/
+
+# Arquivos de pacote
+*.tgz
+
+# Arquivos de editor
+*.swp
+*.swo
+
+# Arquivos de lock
+yarn.lock
+package-lock.json
+pnpm-lock.yaml
