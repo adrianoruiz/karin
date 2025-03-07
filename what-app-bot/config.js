@@ -1,18 +1,13 @@
 // config.js
-const desenv = false;
+const desenv = true;
 
 module.exports = {
-    desenv,
-    urlIntegration: desenv
-        ? "https://api.petfy.ai/integration/"
-        : "https://api.petfy.app/integration/",
+    desenv,    
     port: desenv ? 3001 : 3000,
-    apiUrl: desenv
-        ? 'https://api.petfy.ai/api/'
-        : 'https://api.petfy.app/api/',
+    apiUrl: 'https://api.drakarin.com.br/api/',
     disableGreeting: false,
     reactLink: desenv
-        ? 'petfy.ai'
-        : 'petfy.app',
+        ? 'drakarin.com.br'
+        : 'drakarin.com.br',
     greetingCacheTTL: 86400 // TTL de 24 horas
 };
