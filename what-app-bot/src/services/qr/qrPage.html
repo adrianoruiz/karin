@@ -1,0 +1,137 @@
+<!-- qrPage.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QR Code - Login no WhatsApp</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f0f2f5;
+        font-family: Arial, sans-serif;
+      }
+
+      #container {
+        text-align: center;
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        max-width: 400px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #loader {
+        margin: 20px auto;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      #qrCodeImage {
+        display: none;
+        margin: 20px 0;
+        max-width: 100%;
+        height: auto;
+      }
+
+      #instructions {
+        font-size: 14px;
+        color: #333;
+        line-height: 1.6;
+      }
+
+      #retryMessage {
+        display: none;
+        color: #e74c3c;
+        margin-top: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="loader"></div>
+      <img id="qrCodeImage" src="" alt="QR Code para petshop" />
+      <div id="instructions">
+        <p>Fazer login no WhatsApp usando o código QR</p>
+        <ol>
+          <li>Abra o WhatsApp no seu telefone.</li>
+          <li>
+            Toque em <b>Menu</b> ou <b>Configurações</b> e selecione
+            <b>Dispositivos Conectados</b>.
+          </li>
+          <li>
+            Aponte o seu telefone para esta tela para capturar o código QR.
+          </li>
+        </ol>
+      </div>
+      <div id="retryMessage">
+        O QR Code está sendo gerado. <br />
+        Por favor, aguarde...
+      </div>
+    </div>
+
+    <script>
+      let reloadTimer;
+
+      async function loadQRCode() {
+        const petshopId = window.location.pathname.split("/").pop();
+        const qrEndpoint = `/qr-code/${petshopId}`;
+
+        try {
+          const response = await fetch(qrEndpoint);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.authenticated) {
+              document.getElementById("loader").style.display = "none";
+              document.getElementById("qrCodeImage").style.display = "none";
+              document.getElementById("retryMessage").style.display = "none";
+              document.getElementById("instructions").innerHTML =
+                "<p>O cliente já está autenticado. Você já pode usar o WhatsApp!</p>";
+              clearTimeout(reloadTimer);
+            } else if (data.qrCodeUrl) {
+              document.getElementById("loader").style.display = "none";
+              document.getElementById("qrCodeImage").src = data.qrCodeUrl;
+              document.getElementById("qrCodeImage").style.display = "block";
+              document.getElementById("retryMessage").style.display = "none";
+            } else {
+              document.getElementById("retryMessage").style.display = "block";
+            }
+          } else {
+            throw new Error("Resposta não ok");
+          }
+        } catch (error) {
+          console.error("Erro ao carregar QR Code:", error);
+          document.getElementById("retryMessage").innerText =
+            "Erro ao carregar QR Code. Tentando novamente...";
+          document.getElementById("retryMessage").style.display = "block";
+        }
+
+        // Agendar próxima recarga
+        reloadTimer = setTimeout(loadQRCode, 5000);
+      }
+
+      // Carregar o QR Code assim que a página carregar
+      window.onload = loadQRCode;
+    </script>
+  </body>
+</html>

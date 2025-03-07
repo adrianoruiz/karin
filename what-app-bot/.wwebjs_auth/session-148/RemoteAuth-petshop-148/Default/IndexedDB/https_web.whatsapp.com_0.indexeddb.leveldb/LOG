@@ -1,0 +1,17 @@
+2025/02/20-02:00:11.113 8603 Creating DB /Users/adrianoboldarini/7clicks/petfy/whatsapp-bot/whatsapp-bot/.wwebjs_auth/session-148/RemoteAuth-petshop-148/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb since it was missing.
+2025/02/20-02:00:11.131 8603 Reusing MANIFEST /Users/adrianoboldarini/7clicks/petfy/whatsapp-bot/whatsapp-bot/.wwebjs_auth/session-148/RemoteAuth-petshop-148/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2025/02/24-14:36:08.752 8b03 Level-0 table #5: started
+2025/02/24-14:36:08.783 8b03 Level-0 table #5: 1086810 bytes OK
+2025/02/24-14:36:08.786 8b03 Delete type=0 #3
+2025/02/25-19:05:25.274 8b03 Level-0 table #7: started
+2025/02/25-19:05:25.287 8b03 Level-0 table #7: 493799 bytes OK
+2025/02/25-19:05:25.292 8b03 Delete type=0 #4
+2025/02/25-19:05:25.297 8b03 Manual compaction at level-0 from (begin) .. (end); will stop at (end)
+2025/02/25-19:05:25.298 8b03 Manual compaction at level-1 from (begin) .. (end); will stop at '\x00\x02\x05\x1f\x03\x00\x00\x00\x00\x00\x00\xf0?\x00\x01\x01\x001' @ 78376 : 1
+2025/02/25-19:05:25.298 8b03 Compacting 1@1 + 1@2 files
+2025/02/25-19:05:25.315 8b03 Generated table #8@1: 19527 keys, 804899 bytes
+2025/02/25-19:05:25.315 8b03 Compacted 1@1 + 1@2 files => 804899 bytes
+2025/02/25-19:05:25.317 8b03 compacted to: files[ 0 0 1 0 0 0 0 ]
+2025/02/25-19:05:25.317 8b03 Delete type=2 #7
+2025/02/25-19:05:25.317 8b03 Delete type=2 #5
+2025/02/25-19:05:25.323 8b03 Manual compaction at level-1 from '\x00\x02\x05\x1f\x03\x00\x00\x00\x00\x00\x00\xf0?\x00\x01\x01\x001' @ 78376 : 1 .. (end); will stop at (end)
