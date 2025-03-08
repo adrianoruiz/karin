@@ -5,6 +5,7 @@ import AppointmentCalendar from "./AppointmentCalendar.vue";
 import AppointmentConfirmation from "./AppointmentConfirmation.vue";
 import AppointmentDetails from "./AppointmentDetails.vue";
 import AppointmentForm from "./AppointmentForm.vue";
+import TermosModais from "./termos_modais.vue";
 
 const props = defineProps<{
   isOpen: boolean;
@@ -83,13 +84,20 @@ watch(
         </div>
 
         <!-- Passo 2: Formulário de dados -->
-        <AppointmentForm v-if="store.step === 2" />
+        <AppointmentForm 
+          v-if="store.step === 2" 
+          @open-terms-of-use="store.showTermsOfUseModal = true"
+          @open-privacy-policy="store.showPrivacyPolicyModal = true"
+        />
 
         <!-- Passo 3: Confirmação do agendamento -->
         <AppointmentConfirmation v-if="store.step === 3" />
       </div>
     </div>
   </div>
+  
+  <!-- Modais de Termos e Política de Privacidade -->
+  <TermosModais />
 </template>
 
 <style scoped>

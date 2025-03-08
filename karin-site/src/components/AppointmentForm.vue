@@ -1,41 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useAppointmentStore } from "../stores/appointment_store";
+import { validateCPF } from "../utils/validation";
 
 const store = useAppointmentStore();
 const emit = defineEmits(["open-privacy-policy", "open-terms-of-use"]);
-
-// Função para validar CPF
-const validateCPF = (cpf: string): boolean => {
-  // Remove caracteres não numéricos
-  cpf = cpf.replace(/[^\d]/g, "");
-
-  // Verifica se tem 11 dígitos
-  if (cpf.length !== 11) return false;
-
-  // Verifica se todos os dígitos são iguais (caso inválido)
-  if (/^(\d)\1+$/.test(cpf)) return false;
-
-  // Validação do primeiro dígito verificador
-  let sum = 0;
-  for (let i = 0; i < 9; i++) {
-    sum += parseInt(cpf.charAt(i)) * (10 - i);
-  }
-  let remainder = sum % 11;
-  let digit1 = remainder < 2 ? 0 : 11 - remainder;
-
-  if (parseInt(cpf.charAt(9)) !== digit1) return false;
-
-  // Validação do segundo dígito verificador
-  sum = 0;
-  for (let i = 0; i < 10; i++) {
-    sum += parseInt(cpf.charAt(i)) * (11 - i);
-  }
-  remainder = sum % 11;
-  let digit2 = remainder < 2 ? 0 : 11 - remainder;
-
-  return parseInt(cpf.charAt(10)) === digit2;
-};
 
 // Validação do formulário
 const isFormValid = computed(() => {
@@ -69,11 +38,6 @@ const isFormValid = computed(() => {
 
   return cpfValid && birthDateValid && store.formData.agreeToTerms;
 });
-
-const openTermsOfUse = (event: Event) => {
-  event.preventDefault();
-  emit("open-terms-of-use");
-};
 
 // Formatar CPF enquanto o usuário digita
 const formatCPF = (event: Event) => {
@@ -209,12 +173,20 @@ const formatCPF = (event: Event) => {
           v-model="store.formData.agreeToTerms"
           class="mt-1 mr-2"
           id="termsCheckbox"
+          @change="
+            () => console.log('Checkbox alterado:', store.formData.agreeToTerms)
+          "
         />
         <span class="text-gray-700">
           Ao prosseguir, você confirma que leu e concorda com os
           <a
             href="#"
-            @click="openTermsOfUse"
+            @click.prevent="
+              () => {
+                store.formData.agreeToTerms = true;
+                emit('open-terms-of-use');
+              }
+            "
             class="text-blue-600 hover:underline"
             >Termos de Uso</a
           >.
@@ -229,7 +201,7 @@ const formatCPF = (event: Event) => {
       >
         Voltar
       </button>
-
+      valido: {{ isFormValid }}
       <button
         @click="store.scheduleAppointment"
         class="bg-[#7B736C] text-white px-6 py-3 rounded-md hover:bg-[#635C57] transition-colors"

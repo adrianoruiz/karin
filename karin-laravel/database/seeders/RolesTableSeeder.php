@@ -28,6 +28,11 @@ class RolesTableSeeder extends Seeder
         ]);
 
         Role::create([
+            "description" => "patient",
+            "slug" => ValidRoles::PATIENT,
+        ]);
+
+        Role::create([
             "description" => "Clinic",
             "slug" => ValidRoles::CLINIC,
         ]);

@@ -84,7 +84,7 @@ class AppointmentController extends Controller
                         'name' => $request->name,
                         'email' => $request->email,
                         'phone' => $phone,
-                        'is_whatsapp_user' => $request->is_whatsapp_user ?? true,
+                        'is_whatsapp_user' => $request->is_whatsapp_user ?? false,
                         'status' => true,
                         'password' => bcrypt(substr($cpf, -4)) // Usa os 4 últimos dígitos do CPF como senha inicial
                     ]);

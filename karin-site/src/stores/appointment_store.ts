@@ -328,21 +328,38 @@ export const useAppointmentStore = defineStore('appointment', () => {
       formData.value.email &&
       formData.value.phone &&
       formData.value.cpf &&
-      formData.value.birthDate &&
-      formData.value.agreeToTerms;
+      formData.value.birthDate;
     
     // Se os campos básicos não estão preenchidos, retorna false
-    if (!fieldsValid) return false;
+    if (!fieldsValid) {
+      console.log("Campos básicos não preenchidos");
+      return false;
+    }
     
     // Validação do CPF
     const cpfValid = validateCPF(formData.value.cpf);
+    if (!cpfValid) {
+      console.log("CPF inválido");
+      return false;
+    }
     
     // Validação da data de nascimento (deve ser uma data no passado)
     const birthDate = new Date(formData.value.birthDate);
     const today = new Date();
     const birthDateValid = birthDate < today;
+    if (!birthDateValid) {
+      console.log("Data de nascimento inválida");
+      return false;
+    }
+
+    // Verificação explícita do checkbox de termos
+    if (!formData.value.agreeToTerms) {
+      console.log("Termos não aceitos");
+      return false;
+    }
     
-    return cpfValid && birthDateValid && formData.value.agreeToTerms;
+    console.log("Formulário válido!");
+    return true;
   });
 
   return {
