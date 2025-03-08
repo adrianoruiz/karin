@@ -19,7 +19,7 @@ class WhatsappController extends Controller
     public function listWhatsappUsers()
     {
         $whatsappUsers = User::where('is_whatsapp_user', true)
-                            ->whereNotNull('whatsapp')
+                            ->whereNotNull('phone')
                             ->get();
 
         return response()->json([

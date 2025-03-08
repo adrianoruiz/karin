@@ -3,10 +3,19 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use App\Enum\ValidRoles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+
+use Illuminate\Database\Eloquent\Relations\{
+    HasOne,
+    MorphMany
+};
+
+
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -22,7 +31,7 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
-        'whatsapp',
+        'phone',
         'is_whatsapp_user',
     ];
 
@@ -68,5 +77,80 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    /**
+     * Verifica se o usuário possui um determinado papel.
+     *
+     * @param string|ValidRoles $role
+     * @return bool
+     * @throws \InvalidArgumentException
+     */
+    public function hasRole($role)
+    {
+        if ($role instanceof ValidRoles) {
+            $roleSlug = $role;
+        } elseif (is_string($role)) {
+            $roleSlug = $role;
+        } else {
+            throw new \InvalidArgumentException("Invalid role type");
+        }
+
+        $roles = $this->roles->pluck('slug');
+        return $roles->contains($roleSlug);
+    }
+
+    /**
+     * Obtém o endereço padrão do usuário.
+     *
+     * @return \App\Models\Address|null
+     */
+    public function getDefaultAddress()
+    {
+        $defaultAddress = $this->addresses()->where('default', true)->first();
+
+        // Se não houver endereço marcado como padrão
+        if (!$defaultAddress) {
+            // Pega o primeiro endereço da lista
+            $defaultAddress = $this->addresses()->first();
+
+            // Se houver um endereço, marca-o como padrão
+            if ($defaultAddress) {
+                $defaultAddress->default = true;
+                $defaultAddress->save();
+            }
+        }
+
+        return $defaultAddress;
+    }
+
+    /**
+     * Relacionamento com endereços.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
+     */
+    public function addresses(): MorphMany
+    {
+        return $this->morphMany(Address::class, 'addressable');
+    }
+
+    /**
+     * Relacionamento com dados do usuário.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function userData(): HasOne
+    {
+        return $this->hasOne(UserData::class);
+    }
+
+    /**
+     * Relacionamento com papéis.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class);
     }
 }
