@@ -1,43 +1,10 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { toast } from "../services/toast_service";
 import { useAppointmentStore } from "../stores/appointment_store";
 import { validateCPF } from "../utils/validation";
 
 const store = useAppointmentStore();
 const emit = defineEmits(["open-privacy-policy", "open-terms-of-use"]);
-
-// Validação do formulário
-const isFormValid = computed(() => {
-  // Verifica se todos os campos obrigatórios estão preenchidos
-  const fieldsValid =
-    store.formData.firstName &&
-    store.formData.lastName &&
-    store.formData.email &&
-    store.formData.phone &&
-    store.formData.cpf &&
-    store.formData.birthDate;
-
-  // Se os campos básicos não estão preenchidos, retorna false
-  if (!fieldsValid) return false;
-
-  // Validação do CPF
-  const cpfValid = validateCPF(store.formData.cpf);
-
-  // Validação da data de nascimento (deve ser uma data no passado)
-  const birthDate = new Date(store.formData.birthDate);
-  const today = new Date();
-  const birthDateValid = birthDate < today;
-
-  // Adicionar log para debugging
-  console.log("Validação do formulário:", {
-    fieldsValid,
-    cpfValid,
-    birthDateValid,
-    agreeToTerms: store.formData.agreeToTerms,
-  });
-
-  return cpfValid && birthDateValid && store.formData.agreeToTerms;
-});
 
 // Formatar CPF enquanto o usuário digita
 const formatCPF = (event: Event) => {
@@ -57,6 +24,76 @@ const formatCPF = (event: Event) => {
   }
 
   store.formData.cpf = value;
+};
+
+// Formatar telefone enquanto o usuário digita
+const formatPhone = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  let value = input.value.replace(/\D/g, "");
+
+  if (value.length > 11) {
+    value = value.substring(0, 11);
+  }
+
+  // Formata o telefone com parênteses, espaço e hífen
+  if (value.length > 6) {
+    value = value.replace(/^(\d{2})(\d{5})(\d{1,4})$/, "($1) $2-$3");
+  } else if (value.length > 2) {
+    value = value.replace(/^(\d{2})(\d{1,})$/, "($1) $2");
+  }
+
+  store.formData.phone = value;
+};
+
+// Função para lidar com a confirmação do agendamento
+const handleConfirmation = () => {
+  // Verifica se todos os campos obrigatórios estão preenchidos
+  const fieldsValid =
+    store.formData.firstName &&
+    store.formData.lastName &&
+    store.formData.email &&
+    store.formData.phone &&
+    store.formData.cpf &&
+    store.formData.birthDate;
+
+  if (!fieldsValid) {
+    toast.error(
+      "Por favor, preencha todos os campos obrigatórios.",
+      "Campos Incompletos"
+    );
+    return;
+  }
+
+  // Validação do CPF
+  const cpfValid = validateCPF(store.formData.cpf);
+  if (!cpfValid) {
+    toast.error("O CPF informado é inválido.", "CPF Inválido");
+    return;
+  }
+
+  // Validação da data de nascimento (deve ser uma data no passado)
+  const birthDate = new Date(store.formData.birthDate);
+  const today = new Date();
+  const birthDateValid = birthDate < today;
+  if (!birthDateValid) {
+    toast.error(
+      "A data de nascimento deve ser anterior à data atual.",
+      "Data Inválida"
+    );
+    return;
+  }
+
+  // Verificação do checkbox de termos
+  if (!store.formData.agreeToTerms) {
+    toast.error(
+      "É necessário concordar com os Termos de Uso para prosseguir.",
+      "Termos de Uso"
+    );
+    return;
+  }
+
+  // Se tudo estiver válido, prossegue com o agendamento
+  store.scheduleAppointment();
 };
 </script>
 
@@ -115,6 +152,9 @@ const formatCPF = (event: Event) => {
         type="tel"
         id="phone"
         v-model="store.formData.phone"
+        @input="formatPhone"
+        placeholder="(00) 00000-0000"
+        maxlength="14"
         class="w-full p-3 border border-gray-300 rounded-md"
         required
       />
@@ -201,14 +241,9 @@ const formatCPF = (event: Event) => {
       >
         Voltar
       </button>
-      valido: {{ isFormValid }}
       <button
-        @click="store.scheduleAppointment"
+        @click="handleConfirmation"
         class="bg-[#7B736C] text-white px-6 py-3 rounded-md hover:bg-[#635C57] transition-colors"
-        :disabled="!isFormValid"
-        :class="{
-          'opacity-50 cursor-not-allowed': !isFormValid,
-        }"
       >
         Confirmar Agendamento
       </button>
