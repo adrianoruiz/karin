@@ -47,3 +47,4 @@ coverage/
 yarn.lock
 package-lock.json
 pnpm-lock.yaml
+what-app-bot/.env

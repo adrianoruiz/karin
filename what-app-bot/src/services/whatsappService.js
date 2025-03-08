@@ -3,8 +3,10 @@ const axios = require('axios');
 const NodeCache = require('node-cache');
 const config = require('../../config');
 const { formatPhoneNumber } = require('./formattedNumber');
+const { getChatGPTResponse } = require('./gpt');
 
 const greetingCache = new NodeCache({ stdTTL: config.greetingCacheTTL });
+const conversationCache = new NodeCache({ stdTTL: 3600 }); // Cache para armazenar histórico de conversas (1 hora)
 
 // Função para normalizar texto
 function normalizeText(text) {
@@ -18,6 +20,11 @@ function normalizeText(text) {
 // Função para criar chave composta
 function createCacheKey(petshopId, phoneNumber) {
     return `${petshopId}:${phoneNumber}`;
+}
+
+// Função para criar chave de conversa
+function createConversationKey(petshopId, phoneNumber) {
+    return `conv:${petshopId}:${phoneNumber}`;
 }
 
 async function getMessageType(messageType, nome, avatar, phoneNumber, petshopId) {
@@ -34,6 +41,52 @@ async function getMessageType(messageType, nome, avatar, phoneNumber, petshopId)
     } catch (error) {
         console.error('Erro ao chamar a API Laravel:', error);
         return null;
+    }
+}
+
+// Função para processar mensagem com ChatGPT
+async function processMessageWithGPT(message, nome, phoneNumber, petshopId) {
+    try {
+        const conversationKey = createConversationKey(petshopId, phoneNumber);
+        let conversation = conversationCache.get(conversationKey) || [];
+        
+        // Adicionar mensagem do usuário ao histórico
+        conversation.push({
+            role: "user",
+            content: message
+        });
+        
+        // Limitar o histórico para as últimas 10 mensagens para evitar tokens excessivos
+        if (conversation.length > 10) {
+            conversation = conversation.slice(conversation.length - 10);
+        }
+        
+        // Adicionar contexto inicial se for uma nova conversa
+        if (conversation.length <= 1) {
+            conversation.unshift({
+                role: "system",
+                content: `Você é uma assistente virtual da clínica VIVAH. Seu nome é Maria. Seja sempre cordial e prestativa. 
+                Você está falando com ${nome}. Mantenha suas respostas concisas e diretas, limitando-se a no máximo 3 parágrafos.
+                Não mencione que é uma IA. Aja como se fosse uma pessoa real da equipe de atendimento.`
+            });
+        }
+        
+        // Obter resposta do ChatGPT
+        const response = await getChatGPTResponse(conversation);
+        
+        // Adicionar resposta ao histórico
+        conversation.push({
+            role: "assistant",
+            content: response
+        });
+        
+        // Salvar conversa atualizada no cache
+        conversationCache.set(conversationKey, conversation);
+        
+        return response;
+    } catch (error) {
+        console.error('Erro ao processar mensagem com GPT:', error);
+        return "Desculpe, estou com dificuldades técnicas no momento. Por favor, tente novamente mais tarde ou entre em contato diretamente com nossa equipe.";
     }
 }
 
@@ -137,9 +190,20 @@ function setupWhatsAppListeners(client, petshopId) {
                 }
             } else {
                 console.log(`Cliente já foi saudado hoje: ${phoneNumber} (petshop ${petshopId})`);
+                
+                // Processar a mensagem com o ChatGPT e enviar resposta
+                try {
+                    console.log(`Processando mensagem com ChatGPT: "${message.body}"`);
+                    const gptResponse = await processMessageWithGPT(message.body, nome, phoneNumber, petshopId);
+                    console.log(`Resposta do ChatGPT: "${gptResponse}"`);
+                    
+                    // Enviar resposta ao usuário
+                    await client.sendMessage(message.from, gptResponse);
+                    console.log(`Resposta enviada para ${phoneNumber}`);
+                } catch (error) {
+                    console.error('Erro ao processar mensagem com ChatGPT:', error);
+                }
             }
-
-            // Lógica adicional para processar mensagens após a saudação
 
         } catch (error) {
             console.error('Erro ao processar mensagem:', error);
@@ -167,6 +231,23 @@ function setupWhatsAppListeners(client, petshopId) {
                     const cacheKey = createCacheKey(petshopId, phoneNumber);
                     console.log(`Desativando saudações para o dia para este contato (petshop ${petshopId})`);
                     greetingCache.set(cacheKey, true);
+                    
+                    // Adicionar mensagem do atendente ao histórico da conversa
+                    const conversationKey = createConversationKey(petshopId, phoneNumber);
+                    let conversation = conversationCache.get(conversationKey) || [];
+                    
+                    conversation.push({
+                        role: "assistant",
+                        content: message.body
+                    });
+                    
+                    // Limitar o histórico para as últimas 10 mensagens
+                    if (conversation.length > 10) {
+                        conversation = conversation.slice(conversation.length - 10);
+                    }
+                    
+                    // Salvar conversa atualizada no cache
+                    conversationCache.set(conversationKey, conversation);
                 }
 
             } catch (err) {
