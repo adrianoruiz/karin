@@ -1,0 +1,165 @@
+/* eslint-disable */
+/* @import "tailwindcss/base";
+ * @import "tailwindcss/components";
+ * @import "tailwindcss/utilities";
+ */
+
+/* Google Fonts - Nunito */
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Configuração global para usar Nunito como fonte padrão */
+@layer base {
+  html {
+    font-family: "Nunito", system-ui, sans-serif;
+  }
+}
+
+:root {
+  --primary: #005085;
+  /* Main Colors */
+  --roxo-petshop: #6A3B74;
+  --secondary: #1E3244;
+  --text-light: #575555;
+  --lighten: #E4F7FE;
+  --roxo-azul: #4753A6;
+
+  /* App Colors */
+  --whatsapp-green: #DCF8C7;
+  --odonto-green: #67D386;
+  --info: #0071BC;
+  --answer: #2E70E8;
+  --lightblue: #E2F8FF;
+
+  /* Status Colors */
+  --positive: #33D16E;
+  --warning: #FFB319;
+  --text-default: #404040;
+  --negative: #d10000;
+  --dark: #041619;
+  --dark2: #424242;
+
+  /* UI Colors */
+  --accent: #67D386;
+  --text-light-gray: #6A666B;
+  --delivery-icon: #4A855E;
+  --pickup-icon: #4753A6;
+  --side-menu: #005085;
+  --selected-options: #0071BC;
+  --status3-bg: #5BBAD4;
+
+  /* Basic Colors */
+  --orange: #F0835C;
+  --white: #FFFFFF;
+  --white-ice: #E1E7F1;
+  --bg-gray: #E9ECEF;
+
+  /* Gray Scale */
+  --gray: #D3D3D3;
+  --gray-text: #707070;
+  --gray82: #828282;
+  --darklight: #636363;
+  --gray5: #E0E0E0;
+  --gray-bg: #F5F5F5;
+  --text-gray: #202224;
+  --grayc6: #C6C6C6;
+
+  /* Special Colors */
+  --red-trash: #BD2F3F;
+
+  /* Chat Colors */
+  --chat-green-bg: #00A59A;
+  --chat-bg-light: #F2F5FA;
+  --scaffold-bg: #343541;
+  --card-color: #444654;
+
+  /* Divider Colors */
+  --drawer-divider: #D4D4D4;
+  --drawer-divider-clean: #F5F5F5;
+  --product-divider: #C1C1C1;
+  --drawer-divider2: #C8C8C8;
+  --drawer-divider3: #F1F1F1;
+
+  /* Gradient Colors */
+  --gradient1: #33D16E;
+  --gradient2: #5398BF;
+}
+
+/* Gradient utility classes */
+.gradient-primary {
+  background: linear-gradient(to right, var(--gradient1), var(--gradient2));
+}
+
+/* Adiciona as cores ao Tailwind */
+@layer base {
+  :root {
+    --color-roxo-petshop: 106, 59, 116;
+    --color-secondary: 30, 50, 68;
+    --color-text-light: 87, 85, 85;
+    --color-lighten: 228, 247, 254;
+    --color-roxo-azul: 71, 83, 166;
+    --color-whatsapp-green: 220, 248, 199;
+    --color-odonto-green: 103, 211, 134;
+    --color-info: 58, 132, 247;
+    --color-answer: 46, 112, 232;
+    --color-lightblue: 226, 248, 255;
+    --color-positive: 51, 209, 110;
+    --color-warning: 255, 179, 25;
+    --color-negative: 209, 0, 0;
+    --color-dark: 4, 22, 25;
+    --color-dark2: 66, 66, 66;
+  }
+}
+
+body {
+  @apply bg-gray-50;
+}
+.bg-sidebar {
+  background-color: #005085;
+}
+.bg-primary {
+  background-color: #005085;
+}
+
+.text-primary {
+  color: #0071BC;
+}
+
+.bg-active {
+  background-color: #186ca3;
+}
+
+.bg-primary-hover {
+  background-color: #1f2c33;
+}
+
+.bg-whatsapp-dark {
+  background-color: #1f2c33;
+}
+
+.bg-whatsapp-secondary {
+  background-color: #2a3942;
+}
+
+.btn {
+  @apply px-4 py-2 rounded-lg font-medium transition-colors;
+}
+
+.btn-primary {
+  @apply bg-primary-600 text-white hover:bg-primary-700;
+}
+
+.btn-secondary {
+  @apply bg-white text-gray-700 border border-gray-300 hover:bg-gray-50;
+}
+
+.input {
+  @apply block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:ring-primary-500;
+}
+
+.label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
