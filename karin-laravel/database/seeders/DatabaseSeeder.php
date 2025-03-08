@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             CitiesTableSeeder::class,
             RootSeeder::class,
             UsersTableSeeder::class,
+            ChatbotsTableSeeder::class,
         ]);
     }
 }

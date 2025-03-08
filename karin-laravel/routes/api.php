@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\{
     AuthController,
     WhatsappController
 };
+use App\Http\Controllers\ChatbotController;
 
 
 
@@ -45,4 +46,18 @@ Route::group([
    
 ], function () {
     Route::get('list-whats-users', [WhatsappController::class, 'listWhatsappUsers']);
+});
+
+// Rotas de Chatbot
+Route::group([
+    'prefix' => 'chatbots',
+    'middleware' => 'auth:api'
+], function () {
+    Route::get('/', [ChatbotController::class, 'index']);
+    Route::post('/', [ChatbotController::class, 'store']);
+    Route::get('/type/{type}', [ChatbotController::class, 'getByType']);
+    Route::get('/default/{type}', [ChatbotController::class, 'getDefaultByType']);
+    Route::get('/{id}', [ChatbotController::class, 'show']);
+    Route::put('/{id}', [ChatbotController::class, 'update']);
+    Route::delete('/{id}', [ChatbotController::class, 'destroy']);
 });
