@@ -1,6 +1,5 @@
 # Dependências
 node_modules/
-
 # Variáveis de ambiente
 .env
 .env.local
@@ -9,6 +8,10 @@ node_modules/
 # Arquivos de IDE
 .idea/
 .vscode/
+
+# Arquivos do WhatsApp
+.wwebjs_auth/
+.wwebjs_cache/
 
 # Logs e arquivos temporários
 *.log

@@ -1,9 +1,13 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\WhatsappController;
+
+use App\Http\Controllers\Api\{
+    AuthController,
+    WhatsappController
+};
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -31,6 +35,14 @@ Route::group([
 Route::group([
     'prefix' => 'whatsapp',
     'middleware' => 'auth:api'
+], function () {
+    // Route::get('list-whats-users', [WhatsappController::class, 'listWhatsappUsers']);
+});
+
+
+Route::group([
+    'prefix' => 'whatsapp',
+   
 ], function () {
     Route::get('list-whats-users', [WhatsappController::class, 'listWhatsappUsers']);
 });

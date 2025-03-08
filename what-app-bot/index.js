@@ -23,24 +23,29 @@ app.use(cors()); // Permite todas as origens
 
 app.use(bodyParser.json());
 
-// Função para buscar petshops da API e inicializar clientes
-async function loadPetshops() {
+// Função para buscar clinicas da API e inicializar clientes
+async function loadClinicas() {
     try {
-        const response = await axios.get(`${config.apiUrl}whatsapp/list-whats-petshop`);
-        const petshops = response.data;
+        const response = await axios.get(`${config.apiUrl}whatsapp/list-whats-users`);
+        const clinicas = response.data.data; // Corrigido para acessar response.data.data
 
-        console.log(`Iniciando clientes para ${petshops.length} petshops`);
-        petshops.forEach(petshop => {
-            console.log(`Inicializando cliente para petshop ${petshop.id}`);
-            initializeClient(petshop.id);
-        });
+        console.log(`Iniciando clientes para ${clinicas ? clinicas.length : 0} clinicas`);
+        
+        if (Array.isArray(clinicas) && clinicas.length > 0) {
+            clinicas.forEach(clinica => {
+                console.log(`Inicializando cliente para clinica ${clinica.id}`);
+                initializeClient(clinica.id);
+            });
+        } else {
+            console.log('Nenhuma clínica encontrada ou formato de resposta inválido');
+        }
     } catch (error) {
-        console.error('Erro ao buscar petshops:', error);
+        console.error('Erro ao buscar clinicas:', error);
     }
 }
 
-// Chame a função para carregar os petshops
-loadPetshops();
+// Chame a função para carregar os clinicas
+loadClinicas();
 
 // Use o roteador importado
 app.use('/', routes);

@@ -3,20 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\User;
+
+
 
 class WhatsappController extends Controller
 {
-    /**
-     * Cria uma nova instância do controlador.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        // Removendo o middleware daqui, será aplicado nas rotas
-    }
+     
 
     /**
      * Listar todos os usuários do WhatsApp.
