@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'whatsapp' => [
+        'base_url' => env('WHATSAPP_ENV', 'production') === 'production'
+            ? 'https://whatsapp.drakarin.com.br'
+            : 'http://localhost:3001'
+    ],
+
 ];

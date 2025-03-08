@@ -44,7 +44,8 @@ class RootSeeder extends Seeder
         $userData = [
             'birthday' => '2000-04-04',
             'rg' => '000000',
-            'cpf' => '00000000000'
+            'cpf' => '00000000000',
+            'fantasy' => '7clicks'
         ];
 
         $user->userData()->create($userData);
@@ -53,7 +54,8 @@ class RootSeeder extends Seeder
         $userData2 = [
             'birthday' => '2000-04-04',
             'rg' => '000001',
-            'cpf' => '00000000001'
+            'cpf' => '00000000001',
+            'fantasy' => 'Dra. Karin'
         ];
         
         $user2->userData()->create($userData2);

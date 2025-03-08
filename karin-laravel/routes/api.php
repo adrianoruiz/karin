@@ -2,11 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\Api\{
-    AuthController,
-    WhatsappController
+use App\Http\Controllers\{
+    Api\AuthController,
+    Api\WhatsappController,
+    ChatbotController,
+    ChatbotCrudController
 };
-use App\Http\Controllers\ChatbotController;
 
 
 
@@ -40,7 +41,6 @@ Route::group([
     // Route::get('list-whats-users', [WhatsappController::class, 'listWhatsappUsers']);
 });
 
-
 Route::group([
     'prefix' => 'whatsapp',
    
@@ -48,16 +48,36 @@ Route::group([
     Route::get('list-whats-users', [WhatsappController::class, 'listWhatsappUsers']);
 });
 
-// Rotas de Chatbot
+// Rotas de Chatbot - CRUD
+Route::group([
+    'prefix' => 'chatbots-crud',
+    'middleware' => 'auth:api'
+], function () {
+    // Rotas específicas primeiro
+    Route::get('/type/{type}', [ChatbotCrudController::class, 'getByType']);
+    Route::get('/default/{type}', [ChatbotCrudController::class, 'getDefaultByType']);
+    
+    // Rotas genéricas depois
+    Route::get('/', [ChatbotCrudController::class, 'index']);
+    Route::post('/', [ChatbotCrudController::class, 'store']);
+    Route::get('/{id}', [ChatbotCrudController::class, 'show']);
+    Route::put('/{id}', [ChatbotCrudController::class, 'update']);
+    Route::delete('/{id}', [ChatbotCrudController::class, 'destroy']);
+});
+
+// Rotas de Chatbot - Mensagens personalizadas
 Route::group([
     'prefix' => 'chatbots',
     'middleware' => 'auth:api'
 ], function () {
-    Route::get('/', [ChatbotController::class, 'index']);
-    Route::post('/', [ChatbotController::class, 'store']);
-    Route::get('/type/{type}', [ChatbotController::class, 'getByType']);
-    Route::get('/default/{type}', [ChatbotController::class, 'getDefaultByType']);
-    Route::get('/{id}', [ChatbotController::class, 'show']);
-    Route::put('/{id}', [ChatbotController::class, 'update']);
-    Route::delete('/{id}', [ChatbotController::class, 'destroy']);
+    Route::post('/message-type', [ChatbotController::class, 'getPersonalizedMessageByType']);
+    Route::post('/update-message', [ChatbotController::class, 'updateMessage']);
+    Route::post('/reset-default', [ChatbotController::class, 'resetToDefault']);
+});
+
+Route::group([
+    'prefix' => 'chatbots',
+], function () {
+    Route::post('/message-type', [ChatbotController::class, 'getPersonalizedMessageByType']);
+        
 });
