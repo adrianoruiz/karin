@@ -26,14 +26,13 @@ class UsersTableSeeder extends Seeder
         $user =  User::create([
             'name' => 'Amanda Lube',
             'email' => 'amanda@gmail.com',
-            'password' => Hash::make('petfy007'), 
+            'password' => Hash::make('kar3fy007'), 
             'status' => 1,
             'avatar' => $faker->imageUrl(200, 200, 'people'),
             'phone' => $faker->phoneNumber,
-            'is_whatsapp_user' => true
+            'is_whatsapp_user' => false
         ]);
         $userData = [
-            'image_id' => null,
             'birthday' => '2000-12-04',
             'rg' => $faker->unique()->numerify('######'), // unique 6 digit rg
             'cpf' => $faker->unique()->numerify('###########') // unique 11 digit cpf
@@ -46,14 +45,13 @@ class UsersTableSeeder extends Seeder
             $user =  User::create([
                 'name' => $faker->name,
                 'email' => $faker->unique()->safeEmail,
-                'password' => Hash::make('petfy007'), // all users will have the same password
+                'password' => Hash::make('kar3fy007'), // all users will have the same password
                 'status' => $faker->randomElement(['0', '1']),
                 'avatar' => $faker->imageUrl(200, 200, 'people'),
                 'phone' => $faker->phoneNumber,
-                'is_whatsapp_user' => true
+                'is_whatsapp_user' => false
             ]);
             $userData = [
-                'image_id' => null,
                 'birthday' => '2000-04-04',
                 'rg' => $faker->unique()->numerify('######'), // unique 6 digit rg
                 'cpf' => $faker->unique()->numerify('###########') // unique 11 digit cpf

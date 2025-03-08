@@ -13,7 +13,6 @@ class UserData extends Model
     
     protected $fillable = [
         'user_id',
-        'image_id',
         'birthday',
         'rg',
         'cpf',

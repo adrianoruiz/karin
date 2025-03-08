@@ -22,21 +22,26 @@ class RootSeeder extends Seeder
         $role = RoleService::findSlug(ValidRoles::ADMIN);
 
         $user = User::create([
-            "name" => "Super Adriano",
+            "name" => "Adriano Boldarini",
             "email" => "ruiz@7cliques.com.br",
             "password" => Hash::make("admin#94007"),
-            'phone' => '0909340192',
+            'phone' => '45999110509',
+            'avatar'=> 'https://media.licdn.com/dms/image/v2/D4D03AQFQTIh0FmPebw/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1673705998921?e=2147483647&v=beta&t=Tm8gjYgyLYsaWaMozUaosoAc1OSrDWJD9_W8csZi0qc',
+            'status' => 1,
+            'is_whatsapp_user' => true
         ]);
 
         $user2 = User::create([
-            "name" => "Super karin",
+            "name" => "Dra. karin",
             "email" => "karin@drakarin.com.br",
-            "password" => Hash::make("admin#94007"),
-            'phone' => '0909340193',
+            "password" => Hash::make("admin#94008"),
+            'phone' => '47996947825',
+            'status' => 1,
+            'avatar' => "https://drakarin.com.br/images/karin-psiq.png",
+            'is_whatsapp_user' => true
         ]);
 
         $userData = [
-            'image_id' => null,
             'birthday' => '2000-04-04',
             'rg' => '000000',
             'cpf' => '00000000000'
@@ -46,7 +51,6 @@ class RootSeeder extends Seeder
         $user->roles()->sync([$role]);
         
         $userData2 = [
-            'image_id' => null,
             'birthday' => '2000-04-04',
             'rg' => '000001',
             'cpf' => '00000000001'
