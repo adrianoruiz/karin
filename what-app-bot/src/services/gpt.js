@@ -1,4 +1,3 @@
-
 // services/gpt.js
 const axios = require('axios');
 require('dotenv').config();
@@ -12,7 +11,7 @@ async function getChatGPTResponse(messages) {
             {
                 model: "gpt-4o-mini", 
                 messages: messages,
-                max_tokens: 150
+                max_tokens: 200
             },
             {
                 headers: {
