@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\{
+    Api\AppointmentController,
     Api\AuthController,
     Api\WhatsappController,
     ChatbotController,
@@ -47,6 +48,11 @@ Route::group([
 ], function () {
     Route::get('list-whats-users', [WhatsappController::class, 'listWhatsappUsers']);
 });
+
+
+// Rotas de agendamentos
+Route::apiResource('appointments', AppointmentController::class);
+
 
 // Rotas de Chatbot - CRUD
 Route::group([

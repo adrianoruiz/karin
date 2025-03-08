@@ -21,7 +21,7 @@ class UsersTableSeeder extends Seeder
     public function run()
     {
         $faker = Faker::create();
-        $role = RoleService::findSlug(ValidRoles::CLIENT);
+        $role = RoleService::findSlug(ValidRoles::PATIENT);
 
         $user =  User::create([
             'name' => 'Amanda Lube',

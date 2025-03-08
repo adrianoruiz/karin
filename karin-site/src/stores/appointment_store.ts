@@ -1,5 +1,7 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { defineStore } from 'pinia';
+import { ref, computed } from 'vue';
+import { validateCPF } from '../utils/validation';
+import { AppointmentService, AppointmentPayload } from '../services/appointment_service';
 
 export interface Day {
   date: Date;
@@ -18,9 +20,17 @@ export interface AppointmentForm {
   lastName: string;
   email: string;
   phone: string;
+  cpf: string;
+  birthDate: string;
   notes: string;
   agreeToTerms: boolean;
   appointmentType: 'online' | 'presencial';
+}
+
+export interface AppointmentResult {
+  success: boolean;
+  message: string;
+  data?: any;
 }
 
 export const useAppointmentStore = defineStore('appointment', () => {
@@ -29,6 +39,10 @@ export const useAppointmentStore = defineStore('appointment', () => {
   const selectedDate = ref<Date | null>(null);
   const selectedTime = ref("");
   const step = ref(1);
+  const isLoading = ref(false);
+  const appointmentResult = ref<AppointmentResult | null>(null);
+  const showTermsOfUseModal = ref(false);
+  const showPrivacyPolicyModal = ref(false);
 
   // Dados do formulário em um único objeto reativo
   const formData = ref<AppointmentForm>({
@@ -36,6 +50,8 @@ export const useAppointmentStore = defineStore('appointment', () => {
     lastName: "",
     email: "",
     phone: "",
+    cpf: "",
+    birthDate: "",
     notes: "",
     agreeToTerms: false,
     appointmentType: 'online'
@@ -228,19 +244,106 @@ export const useAppointmentStore = defineStore('appointment', () => {
       lastName: "",
       email: "",
       phone: "",
+      cpf: "",
+      birthDate: "",
       notes: "",
       agreeToTerms: false,
       appointmentType: 'online'
     };
+    appointmentResult.value = null;
   }
 
-  function scheduleAppointment() {
-    // Aqui você enviaria os dados do agendamento para seu backend
-    alert(
-      `Consulta ${formData.value.appointmentType} agendada para ${formattedSelectedDate.value} às ${selectedTime.value}\nPaciente: ${formData.value.firstName} ${formData.value.lastName}`
+  // Preparar payload para a API
+  function prepareAppointmentPayload(): AppointmentPayload {
+    if (!selectedDate.value || !selectedTime.value) {
+      throw new Error("Data e hora não selecionadas");
+    }
+
+    // Formatar a data e hora para o formato aceito pela API
+    const appointmentDateTime = AppointmentService.formatDateTimeForAPI(
+      selectedDate.value,
+      selectedTime.value
     );
-    resetForm();
+
+    // Preparar o payload com base nos dados do formulário
+    return {
+      doctor_id: 2, // ID fixo conforme solicitado
+      appointment_datetime: appointmentDateTime,
+      name: `${formData.value.firstName} ${formData.value.lastName}`,
+      email: formData.value.email,
+      cpf: formData.value.cpf,
+      phone: formData.value.phone,
+      birthday: formData.value.birthDate,
+      observations: formData.value.notes ? formData.value.notes : 'Agendamento via site',
+      status: 'agendada'
+    };
   }
+
+  // Agendar consulta
+  async function scheduleAppointment() {
+    try {
+      isLoading.value = true;
+      
+      // Preparar os dados para envio
+      const payload = prepareAppointmentPayload();
+      
+      // Chamar o serviço para criar o agendamento
+      const result = await AppointmentService.createAppointment(payload);
+      
+      if (result.isSuccess) {
+        // Atualizar o resultado
+        appointmentResult.value = {
+          success: true,
+          message: "Consulta agendada com sucesso!",
+          data: result.data
+        };
+        
+        // Avançar para o passo de confirmação
+        step.value = 3;
+      } else {
+        appointmentResult.value = {
+          success: false,
+          message: result.error
+        };
+      }
+    } catch (error: any) {
+      console.error("Erro ao agendar consulta:", error);
+      
+      // Tratar erros inesperados
+      appointmentResult.value = {
+        success: false,
+        message: error.message || "Ocorreu um erro ao agendar sua consulta. Por favor, tente novamente."
+      };
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // Computed property para validação do formulário
+  const isFormValid = computed(() => {
+    // Verifica se todos os campos obrigatórios estão preenchidos
+    const fieldsValid = 
+      formData.value.firstName &&
+      formData.value.lastName &&
+      formData.value.email &&
+      formData.value.phone &&
+      formData.value.cpf &&
+      formData.value.birthDate &&
+      formData.value.agreeToTerms;
+    
+    // Se os campos básicos não estão preenchidos, retorna false
+    if (!fieldsValid) return false;
+    
+    // Validação do CPF
+    const cpfValid = validateCPF(formData.value.cpf);
+    
+    // Validação da data de nascimento (deve ser uma data no passado)
+    const birthDate = new Date(formData.value.birthDate);
+    const today = new Date();
+    const birthDateValid = birthDate < today;
+    
+    return cpfValid && birthDateValid && formData.value.agreeToTerms;
+  });
 
   return {
     currentDate,
@@ -248,6 +351,10 @@ export const useAppointmentStore = defineStore('appointment', () => {
     selectedTime,
     step,
     formData,
+    isLoading,
+    appointmentResult,
+    showTermsOfUseModal,
+    showPrivacyPolicyModal,
     currentMonthName,
     weekDays,
     calendarDays,
@@ -258,9 +365,10 @@ export const useAppointmentStore = defineStore('appointment', () => {
     nextMonth,
     selectDay,
     selectTime,
-    goToStep2,
     goToStep1,
+    goToStep2,
     resetForm,
-    scheduleAppointment
-  }
-})
+    scheduleAppointment,
+    isFormValid
+  };
+});

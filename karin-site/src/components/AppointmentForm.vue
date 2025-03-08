@@ -1,28 +1,98 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useAppointmentStore } from '../stores/appointment_store';
+import { computed } from "vue";
+import { useAppointmentStore } from "../stores/appointment_store";
 
 const store = useAppointmentStore();
-const emit = defineEmits(['open-privacy-policy', 'open-terms-of-use']);
+const emit = defineEmits(["open-privacy-policy", "open-terms-of-use"]);
 
+// Função para validar CPF
+const validateCPF = (cpf: string): boolean => {
+  // Remove caracteres não numéricos
+  cpf = cpf.replace(/[^\d]/g, "");
+
+  // Verifica se tem 11 dígitos
+  if (cpf.length !== 11) return false;
+
+  // Verifica se todos os dígitos são iguais (caso inválido)
+  if (/^(\d)\1+$/.test(cpf)) return false;
+
+  // Validação do primeiro dígito verificador
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(cpf.charAt(i)) * (10 - i);
+  }
+  let remainder = sum % 11;
+  let digit1 = remainder < 2 ? 0 : 11 - remainder;
+
+  if (parseInt(cpf.charAt(9)) !== digit1) return false;
+
+  // Validação do segundo dígito verificador
+  sum = 0;
+  for (let i = 0; i < 10; i++) {
+    sum += parseInt(cpf.charAt(i)) * (11 - i);
+  }
+  remainder = sum % 11;
+  let digit2 = remainder < 2 ? 0 : 11 - remainder;
+
+  return parseInt(cpf.charAt(10)) === digit2;
+};
+
+// Validação do formulário
 const isFormValid = computed(() => {
-  return (
+  // Verifica se todos os campos obrigatórios estão preenchidos
+  const fieldsValid =
     store.formData.firstName &&
     store.formData.lastName &&
     store.formData.email &&
     store.formData.phone &&
-    store.formData.agreeToTerms
-  );
-});
+    store.formData.cpf &&
+    store.formData.birthDate;
 
-const openPrivacyPolicy = (event: Event) => {
-  event.preventDefault();
-  emit('open-privacy-policy');
-};
+  // Se os campos básicos não estão preenchidos, retorna false
+  if (!fieldsValid) return false;
+
+  // Validação do CPF
+  const cpfValid = validateCPF(store.formData.cpf);
+
+  // Validação da data de nascimento (deve ser uma data no passado)
+  const birthDate = new Date(store.formData.birthDate);
+  const today = new Date();
+  const birthDateValid = birthDate < today;
+
+  // Adicionar log para debugging
+  console.log("Validação do formulário:", {
+    fieldsValid,
+    cpfValid,
+    birthDateValid,
+    agreeToTerms: store.formData.agreeToTerms,
+  });
+
+  return cpfValid && birthDateValid && store.formData.agreeToTerms;
+});
 
 const openTermsOfUse = (event: Event) => {
   event.preventDefault();
-  emit('open-terms-of-use');
+  emit("open-terms-of-use");
+};
+
+// Formatar CPF enquanto o usuário digita
+const formatCPF = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  let value = input.value.replace(/\D/g, "");
+
+  if (value.length > 11) {
+    value = value.slice(0, 11);
+  }
+
+  if (value.length > 9) {
+    value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, "$1.$2.$3-$4");
+  } else if (value.length > 6) {
+    value = value.replace(/(\d{3})(\d{3})(\d{1,3})/, "$1.$2.$3");
+  } else if (value.length > 3) {
+    value = value.replace(/(\d{3})(\d{1,3})/, "$1.$2");
+  }
+
+  store.formData.cpf = value;
 };
 </script>
 
@@ -61,9 +131,7 @@ const openTermsOfUse = (event: Event) => {
     </div>
 
     <div class="mb-4">
-      <label
-        for="email"
-        class="block text-lg font-medium text-gray-700 mb-2"
+      <label for="email" class="block text-lg font-medium text-gray-700 mb-2"
         >Email <span class="text-red-500">*</span></label
       >
       <input
@@ -76,9 +144,7 @@ const openTermsOfUse = (event: Event) => {
     </div>
 
     <div class="mb-4">
-      <label
-        for="phone"
-        class="block text-lg font-medium text-gray-700 mb-2"
+      <label for="phone" class="block text-lg font-medium text-gray-700 mb-2"
         >Telefone (ou WhatsApp) <span class="text-red-500">*</span></label
       >
       <input
@@ -90,13 +156,43 @@ const openTermsOfUse = (event: Event) => {
       />
     </div>
 
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div>
+        <label for="cpf" class="block text-lg font-medium text-gray-700 mb-2"
+          >CPF <span class="text-red-500">*</span></label
+        >
+        <input
+          type="text"
+          id="cpf"
+          v-model="store.formData.cpf"
+          @input="formatCPF"
+          placeholder="000.000.000-00"
+          maxlength="14"
+          class="w-full p-3 border border-gray-300 rounded-md"
+          required
+        />
+      </div>
+
+      <div>
+        <label
+          for="birthDate"
+          class="block text-lg font-medium text-gray-700 mb-2"
+          >Data de Nascimento <span class="text-red-500">*</span></label
+        >
+        <input
+          type="date"
+          id="birthDate"
+          v-model="store.formData.birthDate"
+          class="w-full p-3 border border-gray-300 rounded-md"
+          required
+        />
+      </div>
+    </div>
+
     <div class="mb-6">
-      <label
-        for="notes"
-        class="block text-lg font-medium text-gray-700 mb-2"
-      >
-        Por favor, compartilhe qualquer informação que ajude a preparar
-        para nossa consulta.
+      <label for="notes" class="block text-lg font-medium text-gray-700 mb-2">
+        Por favor, compartilhe qualquer informação que ajude a preparar para
+        nossa consulta.
       </label>
       <textarea
         id="notes"
@@ -112,16 +208,15 @@ const openTermsOfUse = (event: Event) => {
           type="checkbox"
           v-model="store.formData.agreeToTerms"
           class="mt-1 mr-2"
-          required
+          id="termsCheckbox"
         />
         <span class="text-gray-700">
           Ao prosseguir, você confirma que leu e concorda com os
-          <a href="#" @click="openTermsOfUse" class="text-blue-600 hover:underline"
+          <a
+            href="#"
+            @click="openTermsOfUse"
+            class="text-blue-600 hover:underline"
             >Termos de Uso</a
-          >
-          e
-          <a href="#" @click="openPrivacyPolicy" class="text-blue-600 hover:underline"
-            >Política de Privacidade</a
           >.
         </span>
       </label>

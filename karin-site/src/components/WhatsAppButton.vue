@@ -1,8 +1,8 @@
 <template>
   <a
-    href="/conversion/consulta-online.html"
+    href="https://wa.me/5547999999999"
     target="_blank"
-    class="fixed right-6 bottom-6 z-50 bg-[#25D366] w-16 h-16 flex items-center justify-center rounded-full shadow-lg hover:bg-[#20bd5a] transition-colors duration-300 hover:scale-110"
+    class="fixed right-6 bottom-6 z-[9999] bg-[#25D366] w-16 h-16 flex items-center justify-center rounded-full shadow-lg hover:bg-[#20bd5a] transition-colors duration-300 hover:scale-110"
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"

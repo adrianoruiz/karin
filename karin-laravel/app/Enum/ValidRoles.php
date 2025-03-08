@@ -5,6 +5,7 @@ namespace App\Enum;
 class ValidRoles
 {
     const CLIENT = 'client';
+    const PATIENT = 'patient';
     const SERVICE = 'service';
     const CLINIC = 'clinic';
     const ADMIN = 'admin';
