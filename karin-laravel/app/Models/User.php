@@ -33,6 +33,8 @@ class User extends Authenticatable implements JWTSubject
         'password',
         'phone',
         'is_whatsapp_user',
+        'status',
+        'avatar',
     ];
 
     /**
@@ -56,6 +58,7 @@ class User extends Authenticatable implements JWTSubject
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_whatsapp_user' => 'boolean',
+            'status' => 'boolean',
         ];
     }
 

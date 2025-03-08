@@ -21,6 +21,8 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->boolean('is_whatsapp_user')->default(false);
+            $table->boolean('status')->default(true);
+            $table->string('avatar')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

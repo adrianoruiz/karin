@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('role_modules', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->string('description')->nullable();
+            $table->boolean('status')->default(true);
+            $table->string('access_level')->nullable();
+            $table->text('excepted_endpoints')->nullable();
             $table->timestamps();
         });
     }

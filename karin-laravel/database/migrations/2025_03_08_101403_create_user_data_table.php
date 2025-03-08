@@ -13,7 +13,15 @@ return new class extends Migration
     {
         Schema::create('user_data', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->unsignedBigInteger('image_id')->nullable();
+            $table->date('birthday')->nullable();
+            $table->string('rg')->nullable();
+            $table->string('cpf')->nullable();
+            $table->string('fantasy')->nullable();
+            $table->string('cnpj')->nullable();
+            $table->string('corporate_name')->nullable();
+            $table->string('segment_types')->nullable();
         });
     }
 
