@@ -79,9 +79,17 @@ const store = useAppointmentStore();
         <h4 class="text-xl font-semibold text-blue-800 mb-2">
           Próximos Passos
         </h4>
-        <p class="text-blue-700">
+        <p
+          v-if="store.formData.appointmentType === 'online'"
+          class="text-blue-700"
+        >
           Você receberá o link da consulta 10 minutos antes da sua consulta. Em
           caso de dúvidas, entre em contato pelo WhatsApp.
+        </p>
+        <p v-else class="text-blue-700">
+          Você será aguardado no endereço Rua Jaragua, 273 Centro - Blumenau,
+          SC. Procure chegar com 10 minutos de antecedência. Em caso de dúvidas,
+          entre em contato pelo WhatsApp.
         </p>
       </div>
 
