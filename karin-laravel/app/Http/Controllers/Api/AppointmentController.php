@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\{
     Appointment,
     User,
-    UserData
+    UserData,
+    DoctorAvailability
 };
 
 
@@ -54,6 +55,24 @@ class AppointmentController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
+
+        // Verifica se o horário está disponível
+        $appointmentDate = date('Y-m-d', strtotime($request->appointment_datetime));
+        $appointmentTime = date('H:i', strtotime($request->appointment_datetime));
+
+        $availability = DoctorAvailability::where('doctor_id', $request->doctor_id)
+            ->whereDate('date', $appointmentDate)
+            ->whereTime('time', $appointmentTime)
+            ->where('status', 'available')
+            ->first();
+
+        if (!$availability) {
+            return response()->json([
+                'message' => 'Horário indisponível para agendamento',
+                'errors' => ['appointment_datetime' => ['O horário selecionado não está disponível']]
+            ], 422);
+        }
+
         $role = RoleService::findSlug(ValidRoles::PATIENT);
 
         // Preparar dados para criação ou busca de usuário
@@ -115,6 +134,9 @@ class AppointmentController extends Controller
 
         $appointment = Appointment::create($appointmentData);
 
+        // Marca o horário como reservado
+        $availability->markAsBooked();
+
         return response()->json([
             'message' => 'Consulta agendada com sucesso',
             'appointment' => $appointment->load(['user', 'doctor'])
@@ -165,6 +187,20 @@ class AppointmentController extends Controller
     public function destroy($id)
     {
         $appointment = Appointment::findOrFail($id);
+        
+        // Libera o horário na tabela de disponibilidades
+        $appointmentDate = date('Y-m-d', strtotime($appointment->appointment_datetime));
+        $appointmentTime = date('H:i', strtotime($appointment->appointment_datetime));
+
+        $availability = DoctorAvailability::where('doctor_id', $appointment->doctor_id)
+            ->whereDate('date', $appointmentDate)
+            ->whereTime('time', $appointmentTime)
+            ->first();
+
+        if ($availability) {
+            $availability->markAsAvailable();
+        }
+
         $appointment->delete();
 
         return response()->json([

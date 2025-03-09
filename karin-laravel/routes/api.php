@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\{
     Api\AppointmentController,
     Api\AuthController,
+    Api\DoctorAvailabilityController,
     Api\WhatsappController,
     ChatbotController,
     ChatbotCrudController
@@ -86,4 +87,14 @@ Route::group([
 ], function () {
     Route::post('/message-type', [ChatbotController::class, 'getPersonalizedMessageByType']);
         
+});
+
+// Rotas protegidas por autenticação
+Route::middleware('auth:api')->group(function () {
+    // Rotas para gerenciamento de disponibilidades
+    Route::apiResource('availabilities', DoctorAvailabilityController::class);
+
+    Route::prefix('availabilities')->group(function () {
+        Route::post('/recurring', [DoctorAvailabilityController::class, 'storeRecurring']);
+    });
 });
