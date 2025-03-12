@@ -1,25 +1,31 @@
-import { ref, reactive } from 'vue'
-
-// Estado compartilhado entre componentes
-const isOpen = ref(false)
-const patientId = ref(null)
+import { ref, reactive, onMounted } from 'vue'
+import { usePatientPanelStore } from '~/stores/patient_panel_store'
 
 // Funções para manipular o estado
 export function usePatientPanel() {
+  // Usar a store Pinia para garantir estado consistente
+  const patientPanelStore = usePatientPanelStore()
+
+  // Garantir que o painel começa fechado
+  onMounted(() => {
+    patientPanelStore.closePanel()
+  })
+
   // Abrir o painel com o ID do paciente
   function openPanel(id) {
-    patientId.value = id
-    isOpen.value = true
+    console.log('Opening panel with ID:', id)
+    patientPanelStore.openPanel(id)
   }
 
   // Fechar o painel
   function closePanel() {
-    isOpen.value = false
+    patientPanelStore.closePanel()
   }
 
   return {
-    isOpen,
-    patientId,
+    // Use computed ou ref diretamente da store para reatividade
+    isOpen: patientPanelStore.isOpen,
+    patientId: patientPanelStore.patientId,
     openPanel,
     closePanel
   }

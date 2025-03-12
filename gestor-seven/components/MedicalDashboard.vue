@@ -472,15 +472,7 @@
       </main>
     </div>
 
-    <!-- Patient Side Panel (Visão Rápida) -->
-    <Transition name="slide">
-      <div
-        v-if="patientPanel.isOpen"
-        class="fixed top-0 right-0 h-screen shadow-xl z-50 w-30"
-      >
-        <PatientSidePanel />
-      </div>
-    </Transition>
+    <!-- Patient Side Panel já está sendo inserido no app.vue -->
   </div>
 </template>
 
@@ -503,8 +495,9 @@ import {
   Users,
   X,
 } from "lucide-vue-next";
-import { computed, ref } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { usePatientPanel } from "../composables/usePatientPanel";
+import { usePatientPanelStore } from "../stores/patient_panel_store";
 import PatientSidePanel from "./PatientSidePanel.vue";
 
 export default {
@@ -532,6 +525,11 @@ export default {
     const activeTab = ref("home");
     const today = ref(new Date());
     const patientPanel = usePatientPanel();
+    
+    // Garantir que o painel esteja fechado ao iniciar
+    onMounted(() => {
+      patientPanel.closePanel();
+    });
 
     // Formato da data em português
     const formattedDate = computed(() => {
@@ -647,7 +645,10 @@ export default {
 
     // Funções
     const openPatientPanel = (patientId) => {
-      patientPanel.openPanel(patientId);
+      console.log('MedicalDashboard: openPatientPanel called with ID:', patientId);
+      // Usar diretamente a store para maior consistência
+      const store = usePatientPanelStore();
+      store.openPanel(patientId);
     };
 
     return {
