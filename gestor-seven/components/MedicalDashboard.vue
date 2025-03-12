@@ -646,9 +646,8 @@ export default {
     // Funções
     const openPatientPanel = (patientId) => {
       console.log('MedicalDashboard: openPatientPanel called with ID:', patientId);
-      // Usar diretamente a store para maior consistência
-      const store = usePatientPanelStore();
-      store.openPanel(patientId);
+      // Usar o composable patientPanel que já foi inicializado
+      patientPanel.openPanel(patientId);
     };
 
     return {

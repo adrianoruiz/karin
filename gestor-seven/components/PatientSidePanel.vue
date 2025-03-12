@@ -51,7 +51,7 @@ export default defineComponent({
     };
 
     // Computed para o ID do paciente
-    const patientId = computed(() => store.patientId.value);
+    const patientId = computed(() => store.patientId);
     
     return {
       patientId,
