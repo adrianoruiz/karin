@@ -9,7 +9,11 @@ export default {
     './app.vue',
   ],
   theme: {
-    extend: {},
+    extend: {
+      width: {
+        '30': '30%',
+      },
+    },
   },
   plugins: [],
 } satisfies Config

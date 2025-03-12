@@ -475,13 +475,10 @@
     <!-- Patient Side Panel (Visão Rápida) -->
     <Transition name="slide">
       <div
-        v-if="showPatientPanel"
-        class="fixed top-0 right-0 h-screen w-96 shadow-xl z-50"
+        v-if="patientPanel.isOpen"
+        class="fixed top-0 right-0 h-screen shadow-xl z-50 w-30"
       >
-        <PatientSidePanel
-          :patient-id="selectedPatientId"
-          @close="showPatientPanel = false"
-        />
+        <PatientSidePanel />
       </div>
     </Transition>
   </div>
@@ -507,6 +504,7 @@ import {
   X,
 } from "lucide-vue-next";
 import { computed, ref } from "vue";
+import { usePatientPanel } from "../composables/usePatientPanel";
 import PatientSidePanel from "./PatientSidePanel.vue";
 
 export default {
@@ -533,8 +531,7 @@ export default {
   setup() {
     const activeTab = ref("home");
     const today = ref(new Date());
-    const showPatientPanel = ref(false);
-    const selectedPatientId = ref(null);
+    const patientPanel = usePatientPanel();
 
     // Formato da data em português
     const formattedDate = computed(() => {
@@ -650,8 +647,7 @@ export default {
 
     // Funções
     const openPatientPanel = (patientId) => {
-      selectedPatientId.value = patientId;
-      showPatientPanel.value = true;
+      patientPanel.openPanel(patientId);
     };
 
     return {
@@ -661,8 +657,7 @@ export default {
       stats,
       waitingPatients,
       alerts,
-      showPatientPanel,
-      selectedPatientId,
+      patientPanel,
       openPatientPanel,
     };
   },
