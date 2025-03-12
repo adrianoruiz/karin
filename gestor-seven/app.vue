@@ -1,10 +1,20 @@
 <template>
   <div>
     <MedicalDashboard />
+
+    <!-- Overlay escuro quando o painel estiver aberto -->
+    <Transition name="fade">
+      <div
+        v-if="panelIsOpen"
+        class="fixed inset-0 bg-black bg-opacity-70 z-40"
+        @click="closePanel"
+      ></div>
+    </Transition>
+
     <Transition name="slide">
       <div
         v-if="panelIsOpen"
-        class="fixed top-0 right-0 h-screen shadow-xl z-50 w-1/2"
+        class="fixed top-0 right-0 h-screen shadow-xl z-50 w-5/6"
       >
         <PatientSidePanel />
       </div>
@@ -25,6 +35,11 @@ const patientPanel = usePatientPanel();
 
 // Criar computed para garantir reatividade
 const panelIsOpen = computed(() => store.isOpen);
+
+// Função para fechar o painel ao clicar no overlay
+const closePanel = () => {
+  store.closePanel();
+};
 
 console.log("App.vue script setup - panelIsOpen:", panelIsOpen.value);
 
@@ -49,5 +64,21 @@ onMounted(() => {
 .slide-enter-to,
 .slide-leave-from {
   transform: translateX(0);
+}
+
+/* Animação para o overlay */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
 }
 </style>
