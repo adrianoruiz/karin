@@ -3,10 +3,10 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center">
         <h2 class="text-3xl font-extrabold text-gray-900">
-          Recursos que Transformam seu Negócio
+          Recursos que Transformam sua Prática Clínica
         </h2>
         <p class="mt-4 text-lg text-gray-500">
-          Tecnologia avançada para impulsionar suas vendas
+          Tecnologia avançada para otimizar o atendimento e a gestão médica
         </p>
       </div>
 
@@ -24,43 +24,33 @@
   </div>
 </template>
 
-<script lang="ts">
-import CardRecurso from './card_recurso.vue'
+<script setup lang="ts">
+import CardRecurso from '~/components/card_recurso.vue'
 
-export default {
-  name: 'SecaoRecursos',
-  components: {
-    CardRecurso
+const recursos = [
+  {
+    titulo: 'Prontuário Eletrônico Inteligente',
+    descricao: 'Documentação clínica eficiente com sugestões de texto por IA e reconhecimento de voz para agilizar seus registros médicos.'
   },
-  data() {
-    return {
-      recursos: [
-        {
-          titulo: 'Automação Inteligente',
-          descricao: 'Sistema automatizado que trabalha 24/7 para converter leads em vendas.'
-        },
-        {
-          titulo: 'Análise em Tempo Real',
-          descricao: 'Acompanhe métricas e resultados em tempo real para tomar decisões estratégicas.'
-        },
-        {
-          titulo: 'Economia de Tempo',
-          descricao: 'Automatize tarefas repetitivas e foque no que realmente importa.'
-        },
-        {
-          titulo: 'Aumento de Vendas',
-          descricao: 'Maximize suas conversões com um sistema otimizado para resultados.'
-        },
-        {
-          titulo: 'Gestão de Leads',
-          descricao: 'Organize e acompanhe seus leads de forma eficiente e profissional.'
-        },
-        {
-          titulo: 'Comunicação Eficiente',
-          descricao: 'Mantenha um diálogo consistente e profissional com seus clientes.'
-        }
-      ]
-    }
+  {
+    titulo: 'Gestão de Pacientes',
+    descricao: 'Cadastro completo, histórico clínico, anexos de exames e integração com sistemas de imagem para um atendimento mais eficaz.'
+  },
+  {
+    titulo: 'Agendamento Automatizado',
+    descricao: 'Reduza faltas em até 85% com confirmações automáticas via WhatsApp e reagendamentos inteligentes sem intervenção manual.'
+  },
+  {
+    titulo: 'Prescrição Digital',
+    descricao: 'Crie receitas e atestados com assinatura digital em conformidade com o CFM, com envio direto para o paciente via WhatsApp.'
+  },
+  {
+    titulo: 'Secretária Virtual 24/7',
+    descricao: 'Atendimento automatizado via WhatsApp para dúvidas administrativas, agendamentos e confirmações, liberando sua equipe para tarefas mais importantes.'
+  },
+  {
+    titulo: 'Segurança e Conformidade',
+    descricao: 'Total conformidade com LGPD e normas do CFM, com criptografia de dados, backups automáticos e controle de acesso por níveis de permissão.'
   }
-}
+]
 </script>

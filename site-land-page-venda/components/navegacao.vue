@@ -13,6 +13,11 @@
               >Recursos</a
             >
             <a
+              href="#casos-uso"
+              class="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              >Casos de Uso</a
+            >
+            <a
               href="#depoimentos"
               class="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
               >Depoimentos</a
@@ -23,18 +28,23 @@
               >Planos</a
             >
             <a
+              href="#faq"
+              class="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              >FAQ</a
+            >
+            <a
               href="#blog"
               class="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
               >Blog</a
             >
           </div>
         </div>
-        <div class="flex items-center">
+        <div class="hidden sm:ml-6 sm:flex sm:items-center">
           <a
-            href="#comecar"
-            class="bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700"
+            href="#"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
           >
-            COMEÇAR AGORA
+            Agendar Demonstração
           </a>
         </div>
       </div>
@@ -42,8 +52,6 @@
   </nav>
 </template>
 
-<script lang="ts">
-export default {
-  name: 'Navegacao'
-}
+<script setup lang="ts">
+// Componente de navegação
 </script>
