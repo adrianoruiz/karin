@@ -100,6 +100,16 @@
         </NuxtLink>
 
         <NuxtLink
+          to="/prescricao"
+          :class="`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
+            currentTab === 'prescription' ? 'bg-white/10' : 'hover:bg-white/5'
+          } ${collapsed ? 'justify-center' : ''}`"
+        >
+          <Pill size="20" :class="collapsed ? '' : 'mr-3'" />
+          <span v-if="!collapsed">Prescrição</span>
+        </NuxtLink>
+
+        <NuxtLink
           to="/triagem"
           :class="`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
             currentTab === 'triage' ? 'bg-white/10' : 'hover:bg-white/5'
@@ -159,6 +169,7 @@ import {
   FileText,
   Home,
   Menu,
+  Pill,
   Settings,
   Stethoscope,
   User,
@@ -178,6 +189,7 @@ const currentTab = computed(() => {
   if (path === "/disponibilidade-agenda") return "availability";
   if (path === "/pacientes") return "patients";
   if (path === "/prontuarios") return "prescriptions";
+  if (path === "/prescricao") return "prescription";
   if (path === "/triagem") return "triage";
   if (path === "/relatorios") return "reports";
   if (path === "/configuracoes") return "settings";
