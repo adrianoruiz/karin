@@ -352,6 +352,14 @@
       </div>
     </div>
   </Teleport>
+  <!-- Painel lateral de prontuário -->
+  <Teleport to="body" v-if="medicalRecordStore.isOpen">
+    <div class="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-end">
+      <div class="w-1/2">
+        <MedicalRecordPanel />
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup>
@@ -369,9 +377,11 @@ import {
   UserX,
 } from "lucide-vue-next";
 import { computed, ref } from "vue";
+import MedicalRecordPanel from "~/components/MedicalRecordPanel.vue";
 import PageHeader from "~/components/page_header.vue";
 import SidebarMenu from "~/components/sidebar_menu.vue";
 import TriageDataPanel from "~/components/TriageDataPanel.vue";
+import { useMedicalRecordStore } from "~/stores/medical_record_store";
 import { useTriagePanelStore } from "~/stores/triage_panel_store";
 
 // Filtros
@@ -505,8 +515,9 @@ const patients = ref([
   },
 ]);
 
-// Store para o painel de triagem
+// Stores
 const triagePanelStore = useTriagePanelStore();
+const medicalRecordStore = useMedicalRecordStore();
 
 // Filtragem de pacientes
 const filteredPatients = computed(() => {
@@ -567,7 +578,7 @@ const openPatientDetails = (patient) => {
 };
 
 const openMedicalRecord = (patient) => {
-  alert(`Visualizando prontuário de ${patient.name}`);
+  medicalRecordStore.openPanel(patient);
 };
 
 // Função para abrir o painel de triagem
