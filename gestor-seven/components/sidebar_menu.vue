@@ -100,6 +100,16 @@
         </NuxtLink>
 
         <NuxtLink
+          to="/triagem"
+          :class="`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
+            currentTab === 'triage' ? 'bg-white/10' : 'hover:bg-white/5'
+          } ${collapsed ? 'justify-center' : ''}`"
+        >
+          <Stethoscope size="20" :class="collapsed ? '' : 'mr-3'" />
+          <span v-if="!collapsed">Triagem</span>
+        </NuxtLink>
+
+        <NuxtLink
           to="/relatorios"
           :class="`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
             currentTab === 'reports' ? 'bg-white/10' : 'hover:bg-white/5'
@@ -150,6 +160,7 @@ import {
   Home,
   Menu,
   Settings,
+  Stethoscope,
   User,
   Users,
 } from "lucide-vue-next";
@@ -167,6 +178,7 @@ const currentTab = computed(() => {
   if (path === "/disponibilidade-agenda") return "availability";
   if (path === "/pacientes") return "patients";
   if (path === "/prontuarios") return "prescriptions";
+  if (path === "/triagem") return "triage";
   if (path === "/relatorios") return "reports";
   if (path === "/configuracoes") return "settings";
   return "home";
