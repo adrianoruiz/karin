@@ -1,16 +1,16 @@
 <template>
   <div class="relative h-full">
     <!-- Botão hamburger (visível apenas quando a sidebar estiver recolhida) -->
-    <button 
+    <button
       v-if="collapsed"
-      @click="toggleSidebar" 
+      @click="toggleSidebar"
       class="absolute -right-4 top-4 z-10 bg-blue-800 rounded-full p-2 shadow-md hover:bg-blue-700 transition-colors"
     >
       <Menu size="20" class="text-white" />
     </button>
 
     <!-- Sidebar expandida -->
-    <div 
+    <div
       :class="`h-full transition-all duration-300 ${
         collapsed ? 'w-16' : 'w-64'
       } bg-gradient-to-b from-blue-800 to-blue-900 text-white p-4`"
@@ -26,11 +26,11 @@
           <h3 class="font-medium text-lg">Seven Doctor</h3>
           <p class="text-sm text-blue-200">Versão Premium</p>
         </div>
-        
+
         <!-- Botão para recolher a sidebar (visível apenas quando expandida) -->
-        <button 
-          v-if="!collapsed" 
-          @click="toggleSidebar" 
+        <button
+          v-if="!collapsed"
+          @click="toggleSidebar"
           class="ml-auto text-white/70 hover:text-white"
         >
           <ChevronLeft size="20" />
@@ -52,7 +52,7 @@
         <NuxtLink
           to="/agenda"
           :class="`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
-            currentTab === 'appointments' ? 'bg-white/10' : 'hover:bg-white/5'
+            currentTab === 'agenda' ? 'bg-white/10' : 'hover:bg-white/5'
           } ${collapsed ? 'justify-center' : ''}`"
         >
           <Calendar size="20" :class="collapsed ? '' : 'mr-3'" />
@@ -96,7 +96,7 @@
           } ${collapsed ? 'justify-center' : ''}`"
         >
           <FileText size="20" :class="collapsed ? '' : 'mr-3'" />
-          <span v-if="!collapsed">Prontuários e Receitas</span>
+          <span v-if="!collapsed">Prontuários</span>
         </NuxtLink>
 
         <NuxtLink
@@ -122,15 +122,17 @@
 
       <!-- Perfil do usuário -->
       <div class="mt-auto pt-6">
-        <div :class="`flex items-center p-3 ${collapsed ? 'justify-center' : ''}`">
+        <div
+          :class="`flex items-center p-3 ${collapsed ? 'justify-center' : ''}`"
+        >
           <div
             class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0"
           >
             <User size="24" class="text-gray-600" />
           </div>
           <div v-if="!collapsed" class="ml-3 overflow-hidden">
-            <p class="font-medium truncate">Dra. Karin Boldorini</p>
-            <p class="text-sm text-blue-200 truncate">Dermatologista</p>
+            <p class="font-medium truncate">Dra. Karin Boldarini</p>
+            <p class="text-sm text-blue-200 truncate">Psiquiatria</p>
           </div>
         </div>
       </div>
@@ -151,7 +153,7 @@ import {
   User,
   Users,
 } from "lucide-vue-next";
-import { ref, computed } from "vue";
+import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 
 const collapsed = ref(false);
@@ -160,14 +162,14 @@ const route = useRoute();
 // Determinar a aba ativa com base na rota atual
 const currentTab = computed(() => {
   const path = route.path;
-  if (path === '/') return 'home';
-  if (path === '/agenda') return 'appointments';
-  if (path === '/disponibilidade-agenda') return 'availability';
-  if (path === '/pacientes') return 'patients';
-  if (path === '/prontuarios') return 'prescriptions';
-  if (path === '/relatorios') return 'reports';
-  if (path === '/configuracoes') return 'settings';
-  return 'home';
+  if (path === "/") return "home";
+  if (path === "/agenda") return "agenda";
+  if (path === "/disponibilidade-agenda") return "availability";
+  if (path === "/pacientes") return "patients";
+  if (path === "/prontuarios") return "prescriptions";
+  if (path === "/relatorios") return "reports";
+  if (path === "/configuracoes") return "settings";
+  return "home";
 });
 
 const toggleSidebar = () => {

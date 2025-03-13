@@ -6,8 +6,8 @@
     <!-- Main content -->
     <div class="flex-1 overflow-auto">
       <!-- Header Component -->
-      <page-header 
-        :title="formattedDate" 
+      <page-header
+        :title="formattedDate"
         subtitle="Bem-vinda de volta, Dra. Karin"
         :capitalize-title="true"
         search-placeholder="Buscar paciente, consulta..."
@@ -148,15 +148,13 @@
                 >
                   <span class="text-white font-bold">IA</span>
                 </div>
-                <h2 class="font-medium">Sugestões do Assistente IA</h2>
+                <h2 class="font-medium">Últimas Prescrições</h2>
               </div>
 
               <div class="space-y-3">
                 <div class="bg-blue-50 rounded-lg p-3 border border-blue-100">
                   <p class="text-sm text-gray-700">
-                    <span class="font-medium"
-                      >Receita para Maria Ferrari:</span
-                    >
+                    <span class="font-medium">Receita para Maria Ferrari:</span>
                     Com base nos sintomas apresentados, sugiro considerar
                     Loratadina 10mg, 1 comprimido ao dia por 7 dias.
                   </p>
@@ -263,7 +261,9 @@
                   <div class="flex items-center">
                     <div
                       class="w-2 h-2 rounded-full mr-2"
-                      :class="apt.type === 'Online' ? 'bg-blue-500' : 'bg-green-500'"
+                      :class="
+                        apt.type === 'Online' ? 'bg-blue-500' : 'bg-green-500'
+                      "
                     ></div>
                     <span class="text-sm text-gray-500">{{ apt.type }}</span>
                   </div>
@@ -325,9 +325,7 @@
 
 <script setup>
 import {
-  Activity,
   ArrowRight,
-  Bell,
   Calendar,
   CheckCircle,
   Clock,
@@ -336,13 +334,12 @@ import {
   FileText,
   MessageCircle,
   Plus,
-  Search,
   User,
   Users,
 } from "lucide-vue-next";
-import { ref, computed } from "vue";
-import { usePatientPanelStore } from "~/stores/patient_panel_store";
+import { computed } from "vue";
 import PageHeader from "~/components/page_header.vue";
+import { usePatientPanelStore } from "~/stores/patient_panel_store";
 
 const patientPanelStore = usePatientPanelStore();
 
