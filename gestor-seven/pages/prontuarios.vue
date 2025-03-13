@@ -151,33 +151,42 @@
                 v-if="selectedPatient"
                 class="mb-8 p-4 bg-blue-50 rounded-lg border border-blue-100"
               >
-                <div class="flex items-center">
-                  <img
-                    :src="
-                      selectedPatient.avatar ||
-                      'https://via.placeholder.com/100'
-                    "
-                    :alt="selectedPatient.name"
-                    class="w-16 h-16 rounded-full object-cover mr-4"
-                  />
-                  <div>
-                    <h3 class="text-lg font-medium text-gray-900">
-                      {{ selectedPatient.name }}
-                    </h3>
-                    <div class="text-sm text-gray-600 mt-1">
-                      {{ selectedPatient.age }} anos •
-                      {{
-                        selectedPatient.gender === "F"
-                          ? "Feminino"
-                          : "Masculino"
-                      }}
-                      •
-                      {{ selectedPatient.phone }}
-                    </div>
-                    <div class="text-sm text-gray-600">
-                      {{ selectedPatient.healthInsurance || "Particular" }}
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center">
+                    <img
+                      :src="
+                        selectedPatient.avatar ||
+                        'https://via.placeholder.com/100'
+                      "
+                      :alt="selectedPatient.name"
+                      class="w-16 h-16 rounded-full object-cover mr-4"
+                    />
+                    <div>
+                      <h3 class="text-lg font-medium text-gray-900">
+                        {{ selectedPatient.name }}
+                      </h3>
+                      <div class="text-sm text-gray-600 mt-1">
+                        {{ selectedPatient.age }} anos •
+                        {{
+                          selectedPatient.gender === "F"
+                            ? "Feminino"
+                            : "Masculino"
+                        }}
+                        •
+                        {{ selectedPatient.phone }}
+                      </div>
+                      <div class="text-sm text-gray-600">
+                        {{ selectedPatient.healthInsurance || "Particular" }}
+                      </div>
                     </div>
                   </div>
+                  <button
+                    @click="openTriagePanel(selectedPatient.id)"
+                    class="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg flex items-center hover:bg-blue-200 transition-colors"
+                  >
+                    <Stethoscope size="18" class="mr-2" />
+                    Ver Triagem
+                  </button>
                 </div>
               </div>
 
@@ -407,6 +416,15 @@
       </main>
     </div>
   </div>
+
+  <!-- Painel lateral de triagem -->
+  <Teleport to="body" v-if="triagePanelStore.isOpen">
+    <div class="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-end">
+      <div class="w-full max-w-md">
+        <TriageDataPanel />
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup>
@@ -416,10 +434,14 @@ import {
   ChevronRight,
   FilePlus,
   Search,
+  Stethoscope,
   UserX,
 } from "lucide-vue-next";
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import PageHeader from "~/components/page_header.vue";
+import SidebarMenu from "~/components/sidebar_menu.vue";
+import TriageDataPanel from "~/components/TriageDataPanel.vue";
+import { useTriagePanelStore } from "~/stores/triage_panel_store";
 
 // Estado
 const patientSearchQuery = ref("");
@@ -535,6 +557,14 @@ const filteredPatients = computed(() => {
     patient.name.toLowerCase().includes(query)
   );
 });
+
+// Store para o painel de triagem
+const triagePanelStore = useTriagePanelStore();
+
+// Função para abrir o painel de triagem
+const openTriagePanel = (patientId) => {
+  triagePanelStore.openPanel(patientId);
+};
 
 // Funções
 const handleSearch = (query) => {

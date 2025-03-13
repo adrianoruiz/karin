@@ -148,7 +148,7 @@
                 >
                   <span class="text-white font-bold">IA</span>
                 </div>
-                <h2 class="font-medium">Últimas Prescrições</h2>
+                <h2 class="font-medium">Lembretes</h2>
               </div>
 
               <div class="space-y-3">
