@@ -198,7 +198,7 @@
                   <select
                     v-model="selectedPatientId"
                     @change="handlePatientSelection"
-                    class="w-full pl-3 pr-10 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
+                    class="w-full pl-3 pr-10 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="" disabled selected>
                       Selecione um paciente
@@ -266,6 +266,26 @@
                       >Controle especial</label
                     >
                   </div>
+                </div>
+
+                <!-- Tipo de Documento (quando não for controle especial) -->
+                <div class="mt-4" v-if="!prescriptionData.controleEspecial">
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >Tipo de Documento</label
+                  >
+                  <select
+                    v-model="prescriptionData.tipoDocumento"
+                    class="w-full pl-3 pr-10 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="PRESCRIÇÃO MÉDICA">PRESCRIÇÃO MÉDICA</option>
+                    <option value="ATESTADO MÉDICO">ATESTADO MÉDICO</option>
+                    <option value="LAUDO MÉDICO">LAUDO MÉDICO</option>
+                    <option value="RELATÓRIO MÉDICO">RELATÓRIO MÉDICO</option>
+                    <option value="DECLARAÇÃO MÉDICA">DECLARAÇÃO MÉDICA</option>
+                    <option value="ENCAMINHAMENTO MÉDICO">
+                      ENCAMINHAMENTO MÉDICO
+                    </option>
+                  </select>
                 </div>
 
                 <!-- Medicamentos -->
@@ -779,7 +799,7 @@ Ex:
             <!-- Receituário Normal -->
             <div v-if="!prescriptionData.controleEspecial" class="p-4">
               <div class="text-center font-bold text-xl mb-6">
-                PRESCRIÇÃO MÉDICA
+                {{ prescriptionData.tipoDocumento }}
               </div>
 
               <!-- Cabeçalho -->
@@ -792,13 +812,38 @@ Ex:
 
               <!-- Dados do paciente -->
               <div class="mb-6 border-t border-b border-gray-300 py-2">
+                <div class="font-bold mb-2">DADOS DO PACIENTE</div>
                 <div>
-                  <span class="font-bold">Paciente:</span>
+                  <span class="font-bold">Nome:</span>
                   {{
                     selectedPatient
                       ? selectedPatient.name
                       : "Paciente não selecionado"
                   }}
+                </div>
+                <div v-if="selectedPatient">
+                  <span class="font-bold">CPF:</span>
+                  {{ selectedPatient.cpf || "000.000.000-00" }}
+                </div>
+                <div v-if="selectedPatient">
+                  <span class="font-bold">Endereço:</span>
+                  {{ selectedPatient.address || "Rua Paes Leme" }}
+                </div>
+                <div v-if="selectedPatient">
+                  <span class="font-bold">Número:</span>
+                  {{ selectedPatient.number || "11" }}
+                </div>
+                <div v-if="selectedPatient">
+                  <span class="font-bold">Cidade:</span>
+                  {{ selectedPatient.city || "Brusque" }}
+                </div>
+                <div v-if="selectedPatient">
+                  <span class="font-bold">Estado:</span>
+                  {{ selectedPatient.state || "SC" }}
+                </div>
+                <div v-if="selectedPatient">
+                  <span class="font-bold">CEP:</span>
+                  {{ selectedPatient.zipCode || "88350-220" }}
                 </div>
                 <div v-if="selectedPatient">
                   <span class="font-bold">Idade:</span>
@@ -807,9 +852,6 @@ Ex:
                   {{
                     selectedPatient.gender === "F" ? "Feminino" : "Masculino"
                   }}
-                </div>
-                <div v-if="printOptions.imprimirData">
-                  <span class="font-bold">Data:</span> {{ getCurrentDate() }}
                 </div>
               </div>
 
@@ -891,6 +933,7 @@ const prescriptionData = ref({
   medications: [],
   simplePrescription: "",
   controleEspecial: false,
+  tipoDocumento: "PRESCRIÇÃO MÉDICA",
   notes: "",
 });
 
@@ -913,50 +956,70 @@ const patients = ref([
     name: "Maria Silva",
     age: 35,
     gender: "F",
-    phone: "(47) 99999-8888",
-    healthInsurance: "Unimed",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    prescriptionCount: 3,
+    cpf: "123.456.789-00",
+    address: "Rua das Flores",
+    number: "123",
+    city: "Brusque",
+    state: "SC",
+    zipCode: "88350-100",
+    phone: "(47) 99999-9999",
+    email: "maria@email.com",
   },
   {
     id: 2,
     name: "João Santos",
     age: 42,
     gender: "M",
-    phone: "(47) 98888-7777",
-    healthInsurance: "Particular",
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-    prescriptionCount: 1,
+    cpf: "987.654.321-00",
+    address: "Avenida Central",
+    number: "456",
+    city: "Brusque",
+    state: "SC",
+    zipCode: "88350-200",
+    phone: "(47) 88888-8888",
+    email: "joao@email.com",
   },
   {
     id: 3,
     name: "Ana Oliveira",
     age: 28,
     gender: "F",
-    phone: "(47) 97777-6666",
-    healthInsurance: "Amil",
-    avatar: "https://randomuser.me/api/portraits/women/66.jpg",
-    prescriptionCount: 0,
+    cpf: "456.789.123-00",
+    address: "Rua dos Pinheiros",
+    number: "789",
+    city: "Brusque",
+    state: "SC",
+    zipCode: "88350-300",
+    phone: "(47) 77777-7777",
+    email: "ana@email.com",
   },
   {
     id: 4,
-    name: "Carlos Ferreira",
+    name: "Pedro Costa",
     age: 55,
     gender: "M",
-    phone: "(47) 96666-5555",
-    healthInsurance: "Bradesco Saúde",
-    avatar: "https://randomuser.me/api/portraits/men/15.jpg",
-    prescriptionCount: 2,
+    cpf: "789.123.456-00",
+    address: "Alameda das Palmeiras",
+    number: "1010",
+    city: "Brusque",
+    state: "SC",
+    zipCode: "88350-400",
+    phone: "(47) 66666-6666",
+    email: "pedro@email.com",
   },
   {
     id: 5,
-    name: "Juliana Costa",
+    name: "Carla Souza",
     age: 31,
     gender: "F",
-    phone: "(47) 95555-4444",
-    healthInsurance: "Particular",
-    avatar: "https://randomuser.me/api/portraits/women/22.jpg",
-    prescriptionCount: 0,
+    cpf: "321.654.987-00",
+    address: "Rua dos Ipês",
+    number: "222",
+    city: "Brusque",
+    state: "SC",
+    zipCode: "88350-500",
+    phone: "(47) 55555-5555",
+    email: "carla@email.com",
   },
 ]);
 
@@ -1046,6 +1109,7 @@ const resetPrescriptionData = () => {
     medications: [],
     simplePrescription: "",
     controleEspecial: false,
+    tipoDocumento: "PRESCRIÇÃO MÉDICA",
     notes: "",
   };
 };
