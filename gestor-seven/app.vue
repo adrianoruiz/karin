@@ -1,6 +1,6 @@
 <template>
   <div>
-    <MedicalDashboard />
+    <NuxtPage />
 
     <!-- Overlay escuro quando o painel estiver aberto -->
     <Transition name="fade">
@@ -24,7 +24,6 @@
 
 <script setup>
 import { computed, onMounted } from "vue";
-import MedicalDashboard from "~/components/MedicalDashboard.vue";
 import PatientSidePanel from "~/components/PatientSidePanel.vue";
 import { usePatientPanel } from "~/composables/usePatientPanel";
 import { usePatientPanelStore } from "~/stores/patient_panel_store";
