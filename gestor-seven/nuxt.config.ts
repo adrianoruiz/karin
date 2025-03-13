@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt'],
   app: {
     head: {
-      title: 'Medical Dashboard',
+      title: 'Dra. Karin Boldarini - Sistema de Gestão',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' }

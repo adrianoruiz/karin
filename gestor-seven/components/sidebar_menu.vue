@@ -185,33 +185,21 @@ import {
   User,
   Users,
 } from "lucide-vue-next";
-import { computed, ref } from "vue";
-import { useRoute } from "vue-router";
+import { ref } from "vue";
+import { useAuthStore } from "~/stores/auth";
+import { useRouter } from "#app";
 
+const auth = useAuthStore();
+const router = useRouter();
 const collapsed = ref(false);
-const route = useRoute();
-
-// Determinar a aba ativa com base na rota atual
-const currentTab = computed(() => {
-  const path = route.path;
-  if (path === "/") return "home";
-  if (path === "/agenda") return "agenda";
-  if (path === "/disponibilidade-agenda") return "availability";
-  if (path === "/pacientes") return "patients";
-  if (path === "/prontuarios") return "prescriptions";
-  if (path === "/prescricao") return "prescription";
-  if (path === "/triagem") return "triage";
-  if (path === "/relatorios") return "reports";
-  if (path === "/configuracoes") return "settings";
-  return "home";
-});
 
 const toggleSidebar = () => {
   collapsed.value = !collapsed.value;
 };
 
 const handleLogout = () => {
-  // Implementar lógica de logout aqui
+  auth.logout();
+  router.push('/login');
 };
 </script>
 
