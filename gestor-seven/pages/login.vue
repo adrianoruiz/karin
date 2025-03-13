@@ -2,7 +2,7 @@
 import { ref, onMounted } from "vue";
 import Toast from "../components/Toast.vue";
 import { useAuthStore } from "../stores/auth";
-import { useRouter, navigateTo } from "#app";
+import { useRouter } from "#app";
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -41,9 +41,9 @@ const handleSubmit = async () => {
     const success = await auth.login(email.value, password.value);
     if (success) {
       showToast("Login realizado com sucesso!", "success");
-      // Usar redirecionamento direto via window.location para garantir navegação completa
+      // Usar o router para navegação interna mantendo o CSS
       setTimeout(() => {
-        window.location.href = "/";
+        router.push("/");
       }, 1000);
     } else {
       showToast("Login falhou. Verifique suas credenciais.");
@@ -58,7 +58,7 @@ const handleSubmit = async () => {
 // Verificar se o usuário já está autenticado
 onMounted(() => {
   if (auth.isAuthenticated()) {
-    window.location.href = "/";
+    router.push("/");
   }
 });
 </script>
