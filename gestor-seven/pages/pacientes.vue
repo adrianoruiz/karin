@@ -377,6 +377,7 @@ import {
   UserX,
 } from "lucide-vue-next";
 import { computed, ref } from "vue";
+import { useRouter } from "vue-router";
 import MedicalRecordPanel from "~/components/MedicalRecordPanel.vue";
 import PageHeader from "~/components/page_header.vue";
 import SidebarMenu from "~/components/sidebar_menu.vue";
@@ -518,6 +519,7 @@ const patients = ref([
 // Stores
 const triagePanelStore = useTriagePanelStore();
 const medicalRecordStore = useMedicalRecordStore();
+const router = useRouter();
 
 // Filtragem de pacientes
 const filteredPatients = computed(() => {
@@ -568,9 +570,7 @@ const handleSearch = (query) => {
 };
 
 const openNewPatientModal = () => {
-  alert(
-    "Funcionalidade de adicionar novo paciente será implementada em breve!"
-  );
+  router.push("/novo-paciente");
 };
 
 const openPatientDetails = (patient) => {
