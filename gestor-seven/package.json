@@ -12,6 +12,8 @@
   "dependencies": {
     "@nuxtjs/tailwindcss": "^6.11.4",
     "@pinia/nuxt": "^0.5.1",
+    "axios": "^1.8.3",
+    "browser-image-compression": "^2.0.2",
     "date-fns": "^3.6.0",
     "lucide-vue-next": "^0.359.0",
     "nuxt": "^3.13.2",

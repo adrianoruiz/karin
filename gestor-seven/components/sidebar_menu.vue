@@ -57,22 +57,24 @@
         >
           <Calendar size="20" :class="collapsed ? '' : 'mr-3'" />
           <span v-if="!collapsed">Agenda</span>
-          <span
-            v-if="!collapsed"
-            class="ml-auto bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
-            >8</span
-          >
-          <span
-            v-else
-            class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-            >8</span
-          >
+        </NuxtLink>
+
+        <NuxtLink
+          to="/agenda-kanban"
+          :class="`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
+            currentTab === 'agenda-kanban' ? 'bg-white/10' : 'hover:bg-white/5'
+          } ${collapsed ? 'justify-center' : ''}`"
+        >
+          <Trello size="20" :class="collapsed ? '' : 'mr-3'" />
+          <span v-if="!collapsed">Agenda Kanban</span>
         </NuxtLink>
 
         <NuxtLink
           to="/disponibilidade-agenda"
           :class="`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
-            currentTab === 'availability' ? 'bg-white/10' : 'hover:bg-white/5'
+            currentTab === 'disponibilidade-agenda'
+              ? 'bg-white/10'
+              : 'hover:bg-white/5'
           } ${collapsed ? 'justify-center' : ''}`"
         >
           <Clock size="20" :class="collapsed ? '' : 'mr-3'" />
@@ -82,7 +84,7 @@
         <NuxtLink
           to="/pacientes"
           :class="`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
-            currentTab === 'patients' ? 'bg-white/10' : 'hover:bg-white/5'
+            currentTab === 'pacientes' ? 'bg-white/10' : 'hover:bg-white/5'
           } ${collapsed ? 'justify-center' : ''}`"
         >
           <Users size="20" :class="collapsed ? '' : 'mr-3'" />
@@ -92,7 +94,7 @@
         <NuxtLink
           to="/prontuarios"
           :class="`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
-            currentTab === 'prescriptions' ? 'bg-white/10' : 'hover:bg-white/5'
+            currentTab === 'prontuarios' ? 'bg-white/10' : 'hover:bg-white/5'
           } ${collapsed ? 'justify-center' : ''}`"
         >
           <FileText size="20" :class="collapsed ? '' : 'mr-3'" />
@@ -100,29 +102,29 @@
         </NuxtLink>
 
         <NuxtLink
-          to="/prescricao"
+          to="/triagem"
           :class="`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
-            currentTab === 'prescription' ? 'bg-white/10' : 'hover:bg-white/5'
+            currentTab === 'triagem' ? 'bg-white/10' : 'hover:bg-white/5'
           } ${collapsed ? 'justify-center' : ''}`"
         >
-          <Pill size="20" :class="collapsed ? '' : 'mr-3'" />
-          <span v-if="!collapsed">Prescrição</span>
+          <Activity size="20" :class="collapsed ? '' : 'mr-3'" />
+          <span v-if="!collapsed">Triagem</span>
         </NuxtLink>
 
         <NuxtLink
-          to="/triagem"
+          to="/financeiro"
           :class="`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
-            currentTab === 'triage' ? 'bg-white/10' : 'hover:bg-white/5'
+            currentTab === 'financeiro' ? 'bg-white/10' : 'hover:bg-white/5'
           } ${collapsed ? 'justify-center' : ''}`"
         >
-          <Stethoscope size="20" :class="collapsed ? '' : 'mr-3'" />
-          <span v-if="!collapsed">Triagem</span>
+          <DollarSign size="20" :class="collapsed ? '' : 'mr-3'" />
+          <span v-if="!collapsed">Financeiro</span>
         </NuxtLink>
 
         <NuxtLink
           to="/relatorios"
           :class="`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
-            currentTab === 'reports' ? 'bg-white/10' : 'hover:bg-white/5'
+            currentTab === 'relatorios' ? 'bg-white/10' : 'hover:bg-white/5'
           } ${collapsed ? 'justify-center' : ''}`"
         >
           <BarChart2 size="20" :class="collapsed ? '' : 'mr-3'" />
@@ -132,7 +134,7 @@
         <NuxtLink
           to="/configuracoes"
           :class="`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
-            currentTab === 'settings' ? 'bg-white/10' : 'hover:bg-white/5'
+            currentTab === 'configuracoes' ? 'bg-white/10' : 'hover:bg-white/5'
           } ${collapsed ? 'justify-center' : ''}`"
         >
           <Settings size="20" :class="collapsed ? '' : 'mr-3'" />
@@ -148,11 +150,12 @@
           <div
             class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0"
           >
-            <User size="24" class="text-gray-600" />
+            <img v-if="user?.avatar" :src="user.avatar" alt="Avatar" class="h-full w-full object-cover" />
+            <User v-else size="24" class="text-gray-600" />
           </div>
           <div v-if="!collapsed" class="ml-3 overflow-hidden">
-            <p class="font-medium truncate">Dra. Karin Boldarini</p>
-            <p class="text-sm text-blue-200 truncate">Psiquiatria</p>
+            <p class="font-medium truncate">{{ user?.name || 'Usuário' }}</p>
+            <p class="text-sm text-blue-200 truncate">{{ user?.role || 'Carregando...' }}</p>
           </div>
         </div>
         
@@ -175,31 +178,48 @@ import {
   Calendar,
   ChevronLeft,
   Clock,
+  DollarSign,
   FileText,
   Home,
   LogOut,
   Menu,
-  Pill,
   Settings,
-  Stethoscope,
+  Trello,
   User,
   Users,
+  Activity,
 } from "lucide-vue-next";
-import { ref } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "~/stores/auth";
-import { useRouter } from "#app";
+
+const route = useRoute();
+const currentTab = computed(() => route.name);
 
 const auth = useAuthStore();
 const router = useRouter();
 const collapsed = ref(false);
+const user = computed(() => auth.user);
+
+// Verificar se o usuário está autenticado ao montar o componente
+onMounted(async () => {
+  // Se não houver dados do usuário, tenta buscá-los da API
+  if (!user.value && auth.isAuthenticated()) {
+    await auth.fetchUser();
+  }
+});
 
 const toggleSidebar = () => {
   collapsed.value = !collapsed.value;
 };
 
-const handleLogout = () => {
-  auth.logout();
-  router.push('/login');
+const handleLogout = async () => {
+  try {
+    auth.logout();
+    await router.push('/login');
+  } catch (error) {
+    console.error('Erro ao fazer logout:', error);
+  }
 };
 </script>
 
@@ -207,16 +227,5 @@ const handleLogout = () => {
 /* Transição suave para a largura da sidebar */
 .transition-all {
   transition-property: all;
-}
-
-/* Estilo para links ativos */
-.router-link-active {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-/* Remover sublinhado dos links */
-a {
-  text-decoration: none;
-  color: inherit;
 }
 </style>

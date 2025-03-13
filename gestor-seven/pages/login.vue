@@ -41,9 +41,10 @@ const handleSubmit = async () => {
     const success = await auth.login(email.value, password.value);
     if (success) {
       showToast("Login realizado com sucesso!", "success");
+      // Usar redirecionamento direto via window.location para garantir navegação completa
       setTimeout(() => {
-        navigateTo("/");
-      }, 500);
+        window.location.href = "/";
+      }, 1000);
     } else {
       showToast("Login falhou. Verifique suas credenciais.");
     }
@@ -57,7 +58,7 @@ const handleSubmit = async () => {
 // Verificar se o usuário já está autenticado
 onMounted(() => {
   if (auth.isAuthenticated()) {
-    navigateTo("/");
+    window.location.href = "/";
   }
 });
 </script>
