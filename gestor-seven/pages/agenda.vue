@@ -83,7 +83,7 @@ const scheduledAppointments = ref([
     id: "23472",
     patient: {
       name: "Maria Ferrari",
-      avatar: "/api/placeholder/100/100",
+      avatar: "https://randomuser.me/api/portraits/women/40.jpg",
       age: 42,
       gender: "F",
       healthInsurance: "Amil Premium",
@@ -110,7 +110,7 @@ const completedAppointments = ref([
     id: "23470",
     patient: {
       name: "Ana Pereira",
-      avatar: "/api/placeholder/100/100",
+      avatar: "https://randomuser.me/api/portraits/women/44.jpg",
       age: 52,
       gender: "F",
       healthInsurance: "SulAmérica",

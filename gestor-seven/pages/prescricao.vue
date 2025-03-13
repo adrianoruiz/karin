@@ -53,14 +53,17 @@
             <!-- Lista de pacientes -->
             <div class="space-y-3 mb-6">
               <div
-                v-for="patient in filteredPatients"
+                v-for="(patient, index) in filteredPatients"
                 :key="patient.id"
                 @click="selectPatient(patient)"
                 class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-200 cursor-pointer transition-colors"
               >
                 <div class="flex-shrink-0 mr-4">
                   <img
-                    :src="patient.avatar || 'https://via.placeholder.com/100'"
+                    :src="
+                      patient.avatar ||
+                      `https://randomuser.me/api/portraits/women/${index}.jpg`
+                    "
                     :alt="patient.name"
                     class="w-12 h-12 rounded-full object-cover"
                   />
@@ -155,7 +158,7 @@
                     <img
                       :src="
                         selectedPatient.avatar ||
-                        'https://via.placeholder.com/100'
+                        'https://randomuser.me/api/portraits/women/44.jpg'
                       "
                       :alt="selectedPatient.name"
                       class="w-16 h-16 rounded-full object-cover mr-4"

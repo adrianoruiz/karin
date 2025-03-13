@@ -13,7 +13,7 @@
     <div
       :class="`h-full transition-all duration-300 ${
         collapsed ? 'w-16' : 'w-64'
-      } bg-gradient-to-b from-blue-800 to-blue-900 text-white p-4`"
+      } bg-gradient-to-b from-blue-800 to-blue-900 text-white p-4 flex flex-col`"
     >
       <!-- Cabeçalho com logo e título -->
       <div class="flex items-center mb-8">
@@ -38,7 +38,7 @@
       </div>
 
       <!-- Menu de navegação -->
-      <nav>
+      <nav class="flex-grow">
         <NuxtLink
           to="/"
           :class="`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
@@ -140,8 +140,8 @@
         </NuxtLink>
       </nav>
 
-      <!-- Perfil do usuário -->
-      <div class="mt-auto pt-6">
+      <!-- Perfil do usuário e Logout -->
+      <div class="mt-auto border-t border-white/10 pt-4">
         <div
           :class="`flex items-center p-3 ${collapsed ? 'justify-center' : ''}`"
         >
@@ -155,6 +155,15 @@
             <p class="text-sm text-blue-200 truncate">Psiquiatria</p>
           </div>
         </div>
+        
+        <!-- Botão de Logout -->
+        <button 
+          @click="handleLogout" 
+          :class="`flex items-center w-full p-3 rounded-lg mt-2 transition-colors hover:bg-white/5 ${collapsed ? 'justify-center' : ''}`"
+        >
+          <LogOut size="20" :class="collapsed ? '' : 'mr-3'" />
+          <span v-if="!collapsed">Logout</span>
+        </button>
       </div>
     </div>
   </div>
@@ -168,6 +177,7 @@ import {
   Clock,
   FileText,
   Home,
+  LogOut,
   Menu,
   Pill,
   Settings,
@@ -198,6 +208,10 @@ const currentTab = computed(() => {
 
 const toggleSidebar = () => {
   collapsed.value = !collapsed.value;
+};
+
+const handleLogout = () => {
+  // Implementar lógica de logout aqui
 };
 </script>
 

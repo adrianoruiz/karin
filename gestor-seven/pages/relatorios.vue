@@ -7,7 +7,7 @@
     <div class="flex-1 overflow-auto">
       <page-header
         title="Relatórios"
-        subtitle="Visualize e exporte dados de atendimentos e prescrições"
+        subtitle="Visualize e exporte dados de atendimentos"
         :show-search="false"
         :show-notifications="false"
         action-button-text="Exportar CSV"
@@ -17,21 +17,7 @@
 
       <!-- Filtros -->
       <div class="p-6 bg-white shadow-sm mb-6 mx-6 rounded-lg">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2"
-              >Tipo de Relatório</label
-            >
-            <select
-              v-model="filtros.tipoRelatorio"
-              class="w-full pl-3 pr-10 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="atendimentos">Atendimentos</option>
-              <option value="prescricoes">Prescrições</option>
-              <option value="prontuarios">Prontuários</option>
-              <option value="financeiro">Financeiro</option>
-            </select>
-          </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2"
               >Período</label
@@ -83,7 +69,7 @@
             {{ estatisticas.total }}
           </div>
           <div class="text-sm text-gray-500 text-center">
-            Total de {{ getTipoRelatorioTexto }}
+            Total de atendimentos
           </div>
         </div>
         <div class="bg-white p-6 rounded-lg shadow-sm">
@@ -113,7 +99,7 @@
             {{ estatisticas.cancelados }}
           </div>
           <div class="text-sm text-gray-500 text-center">
-            {{ getTipoRelatorioTexto }} cancelados
+            Atendimentos cancelados
           </div>
         </div>
       </div>
@@ -144,14 +130,6 @@
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 {{ coluna.titulo }}
-              </th>
-              <th class="px-6 py-3 text-right">
-                <button
-                  class="text-xs font-medium text-gray-500 uppercase flex items-center"
-                >
-                  <ChevronDown size="14" class="ml-1" />
-                  TODOS
-                </button>
               </th>
             </tr>
           </thead>
@@ -249,7 +227,6 @@
 <script setup>
 import {
   Bell,
-  ChevronDown,
   CreditCard,
   Download,
   Filter,
@@ -359,13 +336,7 @@ const dadosTabela = ref([
 
 // Texto do tipo de relatório
 const getTipoRelatorioTexto = computed(() => {
-  const tipos = {
-    atendimentos: "atendimentos",
-    prescricoes: "prescrições",
-    prontuarios: "prontuários",
-    financeiro: "lançamentos",
-  };
-  return tipos[filtros.value.tipoRelatorio] || "registros";
+  return "atendimentos";
 });
 
 // Formatar data
