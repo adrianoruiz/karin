@@ -1,5 +1,6 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { defineStore } from 'pinia';
+import { ref } from 'vue';
+import { API_CONFIG } from '~/config/constants';
 
 interface UserType {
   id: number;
@@ -69,7 +70,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch('https://api.drakarin.com.br/api/auth/login', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,10 +94,10 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const fetchUser = async () => {
-    if (!token.value) return null
+    if (!token.value) return { success: false, data: null }
 
     try {
-      const response = await fetch('https://api.drakarin.com.br/api/auth/me', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}auth/me`, {
         headers: {
           'Authorization': `Bearer ${token.value}`,
           'Content-Type': 'application/json',
@@ -107,16 +108,16 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (response.ok && data) {
         setUser(data)
-        return data
+        return { success: true, data }
       }
 
       // Se a resposta não for ok, provavelmente o token expirou
       setToken(null)
       setUser(null)
-      return null
+      return { success: false, data: null }
     } catch (error) {
       console.error('Erro ao buscar usuário:', error)
-      return null
+      return { success: false, data: null }
     }
   }
 
@@ -126,7 +127,20 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const isAuthenticated = () => {
-    return !!token.value
+    // Verificar primeiro no estado da store
+    if (token.value) return true
+    
+    // Se não encontrar no estado, verificar no localStorage (apenas no cliente)
+    if (process.client) {
+      const storedToken = localStorage.getItem('access_token')
+      if (storedToken) {
+        // Atualizar o estado da store com o token encontrado
+        token.value = storedToken
+        return true
+      }
+    }
+    
+    return false
   }
 
   return {
