@@ -47,6 +47,20 @@
                 Anotações Rápidas
               </button>
 
+              <!-- Botão de Triagem -->
+              <button
+                @click="scrollToSection('triagem')"
+                :class="[
+                  'px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors',
+                  activeSection === 'triagem'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'text-gray-600 hover:bg-gray-100',
+                ]"
+              >
+                <Stethoscope size="14" class="inline mr-1" />
+                Triagem
+              </button>
+
               <!-- Separador vertical -->
               <div class="h-8 border-l border-gray-200 self-center mx-1"></div>
 
@@ -119,16 +133,22 @@
       <div id="anotacoes" ref="anotacoes">
         <QuickNotes :patient-id="patientId" />
       </div>
+
+      <div id="triagem" ref="triagem">
+        <PatientTriage :patient-id="patientId" @view-triage="openTriagePanel" />
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { Clipboard, Edit3, FileText, X } from "lucide-vue-next";
+import { Clipboard, Edit3, FileText, Stethoscope, X } from "lucide-vue-next";
 import { computed, defineComponent, ref } from "vue";
 import { usePatientPanelStore } from "../stores/patient_panel_store";
+import { useTriagePanelStore } from "../stores/triage_panel_store";
 import MedicalHistory from "./MedicalHistory.vue";
 import PatientSummary from "./PatientSummary.vue";
+import PatientTriage from "./PatientTriage.vue";
 import Prescriptions from "./Prescriptions.vue";
 import QuickNotes from "./QuickNotes.vue";
 
@@ -139,19 +159,23 @@ export default defineComponent({
     FileText,
     Clipboard,
     Edit3,
+    Stethoscope,
     PatientSummary,
     MedicalHistory,
     Prescriptions,
     QuickNotes,
+    PatientTriage,
   },
   setup() {
     // Usar diretamente a store
     const store = usePatientPanelStore();
+    const triageStore = useTriagePanelStore();
 
     // Referências para as seções
     const anamnese = ref(null);
     const prescricoes = ref(null);
     const anotacoes = ref(null);
+    const triagem = ref(null);
 
     // Seção ativa
     const activeSection = ref("anamnese");
@@ -178,6 +202,11 @@ export default defineComponent({
       }, 50);
     };
 
+    // Função para abrir o painel de triagem
+    const openTriagePanel = () => {
+      triageStore.openPanel(patientId.value);
+    };
+
     return {
       patientId,
       closePanel,
@@ -186,6 +215,8 @@ export default defineComponent({
       anamnese,
       prescricoes,
       anotacoes,
+      triagem,
+      openTriagePanel,
     };
   },
 });

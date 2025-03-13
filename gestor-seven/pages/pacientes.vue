@@ -21,7 +21,9 @@
       <main class="p-6">
         <div class="bg-white rounded-lg shadow">
           <!-- Filtros -->
-          <div class="p-4 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4">
+          <div
+            class="p-4 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4"
+          >
             <div class="flex items-center space-x-2">
               <button
                 v-for="filter in filters"
@@ -71,8 +73,12 @@
           <div class="p-6">
             <div v-if="filteredPatients.length === 0" class="text-center py-10">
               <UserX size="48" class="mx-auto text-gray-300 mb-4" />
-              <h3 class="text-lg font-medium text-gray-700 mb-1">Nenhum paciente encontrado</h3>
-              <p class="text-gray-500">Tente ajustar seus filtros ou adicionar novos pacientes</p>
+              <h3 class="text-lg font-medium text-gray-700 mb-1">
+                Nenhum paciente encontrado
+              </h3>
+              <p class="text-gray-500">
+                Tente ajustar seus filtros ou adicionar novos pacientes
+              </p>
             </div>
 
             <!-- Visualização em grade -->
@@ -85,7 +91,9 @@
                 :key="patient.id"
                 class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
               >
-                <div class="p-4 border-b border-gray-100 flex items-center space-x-4">
+                <div
+                  class="p-4 border-b border-gray-100 flex items-center space-x-4"
+                >
                   <div class="relative">
                     <img
                       :src="patient.avatar || 'https://via.placeholder.com/100'"
@@ -98,7 +106,9 @@
                     ></div>
                   </div>
                   <div class="flex-1 min-w-0">
-                    <h3 class="font-medium text-gray-900 truncate">{{ patient.name }}</h3>
+                    <h3 class="font-medium text-gray-900 truncate">
+                      {{ patient.name }}
+                    </h3>
                     <div class="flex items-center text-sm text-gray-500">
                       <Calendar size="14" class="mr-1" />
                       <span>{{ patient.age }} anos</span>
@@ -111,31 +121,48 @@
 
                 <div class="p-4 space-y-3">
                   <div class="flex items-start">
-                    <Phone size="16" class="text-gray-400 mt-0.5 mr-2 flex-shrink-0" />
+                    <Phone
+                      size="16"
+                      class="text-gray-400 mt-0.5 mr-2 flex-shrink-0"
+                    />
                     <div class="flex-1 min-w-0">
-                      <div class="text-sm text-gray-900 truncate">{{ patient.phone }}</div>
+                      <div class="text-sm text-gray-900 truncate">
+                        {{ patient.phone }}
+                      </div>
                       <div class="text-xs text-gray-500">Telefone</div>
                     </div>
                   </div>
 
                   <div class="flex items-start">
-                    <Mail size="16" class="text-gray-400 mt-0.5 mr-2 flex-shrink-0" />
+                    <Mail
+                      size="16"
+                      class="text-gray-400 mt-0.5 mr-2 flex-shrink-0"
+                    />
                     <div class="flex-1 min-w-0">
-                      <div class="text-sm text-gray-900 truncate">{{ patient.email }}</div>
+                      <div class="text-sm text-gray-900 truncate">
+                        {{ patient.email }}
+                      </div>
                       <div class="text-xs text-gray-500">Email</div>
                     </div>
                   </div>
 
                   <div v-if="patient.healthInsurance" class="flex items-start">
-                    <CreditCard size="16" class="text-gray-400 mt-0.5 mr-2 flex-shrink-0" />
+                    <CreditCard
+                      size="16"
+                      class="text-gray-400 mt-0.5 mr-2 flex-shrink-0"
+                    />
                     <div class="flex-1 min-w-0">
-                      <div class="text-sm text-gray-900 truncate">{{ patient.healthInsurance }}</div>
+                      <div class="text-sm text-gray-900 truncate">
+                        {{ patient.healthInsurance }}
+                      </div>
                       <div class="text-xs text-gray-500">Convênio</div>
                     </div>
                   </div>
                 </div>
 
-                <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 flex justify-between">
+                <div
+                  class="px-4 py-3 bg-gray-50 border-t border-gray-100 flex justify-between"
+                >
                   <button
                     class="text-blue-600 text-sm font-medium flex items-center"
                     @click="openPatientDetails(patient)"
@@ -200,7 +227,10 @@
                       <div class="flex items-center">
                         <div class="flex-shrink-0 h-10 w-10 relative">
                           <img
-                            :src="patient.avatar || 'https://via.placeholder.com/100'"
+                            :src="
+                              patient.avatar ||
+                              'https://via.placeholder.com/100'
+                            "
                             :alt="patient.name"
                             class="h-10 w-10 rounded-full object-cover"
                           />
@@ -210,28 +240,44 @@
                           ></div>
                         </div>
                         <div class="ml-4">
-                          <div class="text-sm font-medium text-gray-900">{{ patient.name }}</div>
+                          <div class="text-sm font-medium text-gray-900">
+                            {{ patient.name }}
+                          </div>
                           <div class="text-sm text-gray-500">
-                            {{ patient.age }} anos • {{ patient.gender === 'F' ? 'Feminino' : 'Masculino' }}
+                            {{ patient.age }} anos •
+                            {{
+                              patient.gender === "F" ? "Feminino" : "Masculino"
+                            }}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="text-sm text-gray-900">{{ patient.phone }}</div>
-                      <div class="text-sm text-gray-500">{{ patient.email }}</div>
+                      <div class="text-sm text-gray-900">
+                        {{ patient.phone }}
+                      </div>
+                      <div class="text-sm text-gray-500">
+                        {{ patient.email }}
+                      </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="text-sm text-gray-900">
-                        {{ patient.healthInsurance || 'Particular' }}
+                        {{ patient.healthInsurance || "Particular" }}
                       </div>
-                      <div v-if="patient.healthInsurance" class="text-sm text-gray-500">
+                      <div
+                        v-if="patient.healthInsurance"
+                        class="text-sm text-gray-500"
+                      >
                         {{ patient.healthInsuranceNumber }}
                       </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="text-sm text-gray-900">{{ patient.lastAppointment }}</div>
-                      <div class="text-sm text-gray-500">{{ patient.lastAppointmentType }}</div>
+                      <div class="text-sm text-gray-900">
+                        {{ patient.lastAppointment }}
+                      </div>
+                      <div class="text-sm text-gray-500">
+                        {{ patient.lastAppointmentType }}
+                      </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span
@@ -241,22 +287,28 @@
                             : 'bg-gray-100 text-gray-800'
                         }`"
                       >
-                        {{ patient.status === 'active' ? 'Ativo' : 'Inativo' }}
+                        {{ patient.status === "active" ? "Ativo" : "Inativo" }}
                       </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        @click="openPatientDetails(patient)"
-                        class="text-blue-600 hover:text-blue-900 mr-3"
-                      >
-                        Ver perfil
-                      </button>
-                      <button
-                        @click="openMedicalRecord(patient)"
-                        class="text-blue-600 hover:text-blue-900"
-                      >
-                        Prontuário
-                      </button>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                    >
+                      <div class="flex space-x-3">
+                        <button
+                          class="text-blue-600 font-medium flex items-center"
+                          @click="openPatientDetails(patient)"
+                        >
+                          <User size="16" class="mr-1" />
+                          Ver perfil
+                        </button>
+                        <button
+                          class="text-blue-600 font-medium flex items-center"
+                          @click="openMedicalRecord(patient)"
+                        >
+                          <FileText size="16" class="mr-1" />
+                          Prontuário
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 </tbody>
@@ -265,7 +317,9 @@
           </div>
 
           <!-- Paginação -->
-          <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+          <div
+            class="px-6 py-4 border-t border-gray-200 flex items-center justify-between"
+          >
             <div class="text-sm text-gray-700">
               Mostrando <span class="font-medium">1</span> a
               <span class="font-medium">{{ filteredPatients.length }}</span> de
@@ -290,6 +344,14 @@
       </main>
     </div>
   </div>
+  <!-- Painel lateral de triagem -->
+  <Teleport to="body" v-if="triagePanelStore.isOpen">
+    <div class="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-end">
+      <div class="w-full max-w-md">
+        <TriageDataPanel />
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup>
@@ -306,8 +368,11 @@ import {
   UserPlus,
   UserX,
 } from "lucide-vue-next";
-import { ref, computed } from "vue";
+import { computed, ref } from "vue";
 import PageHeader from "~/components/page_header.vue";
+import SidebarMenu from "~/components/sidebar_menu.vue";
+import TriageDataPanel from "~/components/TriageDataPanel.vue";
+import { useTriagePanelStore } from "~/stores/triage_panel_store";
 
 // Filtros
 const filters = [
@@ -440,6 +505,9 @@ const patients = ref([
   },
 ]);
 
+// Store para o painel de triagem
+const triagePanelStore = useTriagePanelStore();
+
 // Filtragem de pacientes
 const filteredPatients = computed(() => {
   let result = [...patients.value];
@@ -461,7 +529,8 @@ const filteredPatients = computed(() => {
     result = result.filter(
       (patient) =>
         patient.name.toLowerCase().includes(query) ||
-        (patient.healthInsurance && patient.healthInsurance.toLowerCase().includes(query)) ||
+        (patient.healthInsurance &&
+          patient.healthInsurance.toLowerCase().includes(query)) ||
         patient.email.toLowerCase().includes(query)
     );
   }
@@ -488,7 +557,9 @@ const handleSearch = (query) => {
 };
 
 const openNewPatientModal = () => {
-  alert("Funcionalidade de adicionar novo paciente será implementada em breve!");
+  alert(
+    "Funcionalidade de adicionar novo paciente será implementada em breve!"
+  );
 };
 
 const openPatientDetails = (patient) => {
@@ -497,5 +568,10 @@ const openPatientDetails = (patient) => {
 
 const openMedicalRecord = (patient) => {
   alert(`Visualizando prontuário de ${patient.name}`);
+};
+
+// Função para abrir o painel de triagem
+const openTriagePanel = (patientId) => {
+  triagePanelStore.openPanel(patientId);
 };
 </script>
