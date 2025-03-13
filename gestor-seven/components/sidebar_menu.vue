@@ -60,16 +60,6 @@
         </NuxtLink>
 
         <NuxtLink
-          to="/agenda-kanban"
-          :class="`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
-            currentTab === 'agenda-kanban' ? 'bg-white/10' : 'hover:bg-white/5'
-          } ${collapsed ? 'justify-center' : ''}`"
-        >
-          <Trello size="20" :class="collapsed ? '' : 'mr-3'" />
-          <span v-if="!collapsed">Agenda Kanban</span>
-        </NuxtLink>
-
-        <NuxtLink
           to="/disponibilidade-agenda"
           :class="`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
             currentTab === 'disponibilidade-agenda'
@@ -112,16 +102,6 @@
         </NuxtLink>
 
         <NuxtLink
-          to="/financeiro"
-          :class="`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
-            currentTab === 'financeiro' ? 'bg-white/10' : 'hover:bg-white/5'
-          } ${collapsed ? 'justify-center' : ''}`"
-        >
-          <DollarSign size="20" :class="collapsed ? '' : 'mr-3'" />
-          <span v-if="!collapsed">Financeiro</span>
-        </NuxtLink>
-
-        <NuxtLink
           to="/relatorios"
           :class="`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
             currentTab === 'relatorios' ? 'bg-white/10' : 'hover:bg-white/5'
@@ -150,19 +130,28 @@
           <div
             class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0"
           >
-            <img v-if="user?.avatar" :src="user.avatar" alt="Avatar" class="h-full w-full object-cover" />
+            <img
+              v-if="user?.avatar"
+              :src="user.avatar"
+              alt="Avatar"
+              class="h-full w-full object-cover"
+            />
             <User v-else size="24" class="text-gray-600" />
           </div>
           <div v-if="!collapsed" class="ml-3 overflow-hidden">
-            <p class="font-medium truncate">{{ user?.name || 'Usuário' }}</p>
-            <p class="text-sm text-blue-200 truncate">{{ user?.role || 'Carregando...' }}</p>
+            <p class="font-medium truncate">{{ user?.name || "Usuário" }}</p>
+            <p class="text-sm text-blue-200 truncate">
+              {{ user?.role || "Carregando..." }}
+            </p>
           </div>
         </div>
-        
+
         <!-- Botão de Logout -->
-        <button 
-          @click="handleLogout" 
-          :class="`flex items-center w-full p-3 rounded-lg mt-2 transition-colors hover:bg-white/5 ${collapsed ? 'justify-center' : ''}`"
+        <button
+          @click="handleLogout"
+          :class="`flex items-center w-full p-3 rounded-lg mt-2 transition-colors hover:bg-white/5 ${
+            collapsed ? 'justify-center' : ''
+          }`"
         >
           <LogOut size="20" :class="collapsed ? '' : 'mr-3'" />
           <span v-if="!collapsed">Logout</span>
@@ -174,22 +163,20 @@
 
 <script setup>
 import {
+  Activity,
   BarChart2,
   Calendar,
   ChevronLeft,
   Clock,
-  DollarSign,
   FileText,
   Home,
   LogOut,
   Menu,
   Settings,
-  Trello,
   User,
   Users,
-  Activity,
 } from "lucide-vue-next";
-import { ref, computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "~/stores/auth";
 
@@ -216,9 +203,9 @@ const toggleSidebar = () => {
 const handleLogout = async () => {
   try {
     auth.logout();
-    await router.push('/login');
+    await router.push("/login");
   } catch (error) {
-    console.error('Erro ao fazer logout:', error);
+    console.error("Erro ao fazer logout:", error);
   }
 };
 </script>
