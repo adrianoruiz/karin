@@ -578,14 +578,112 @@ Ex:
         <!-- Conteúdo da impressão -->
         <div class="p-4">
           <div id="print-content" class="bg-white p-6 mx-auto max-w-[21cm]">
-            <!-- Receituário de Controle Especial -->
+            <!-- Receituário de Controle Especial - 1ª via -->
             <div
               v-if="prescriptionData.controleEspecial"
-              class="border border-gray-800 p-4"
+              class="border border-gray-800 p-4 mb-8 print-section"
             >
               <div class="text-center font-bold text-xl mb-4">
-                Receituário de controle especial -
-                {{ printOptions.imprimirData ? "1ª via" : "1" }}
+                Receituário de controle especial - 1ª via
+              </div>
+
+              <!-- Identificação do emitente e informações da via -->
+              <div class="flex border border-gray-800 mb-4">
+                <div class="p-3 flex-1">
+                  <div class="font-bold">IDENTIFICAÇÃO DO EMITENTE</div>
+                  <div>Dra. Karin Alana Da Rosa</div>
+                  <div>CRM:26419-SC</div>
+                  <div>Endereço: Rua Paes Leme, 11</div>
+                  <div>Cidade: Brusque UF: SC</div>
+                  <div>Telefone: (47) 3380-9899</div>
+                </div>
+                <div class="p-3 flex-1 border-l border-gray-800">
+                  <div>1a. via para retenção da farmácia ou drogaria</div>
+                  <div>2a. via para orientação ao paciente</div>
+                </div>
+              </div>
+
+              <!-- Dados da unidade -->
+              <div class="mb-4">
+                <div class="font-bold">DADOS DA UNIDADE</div>
+                <div>AmorSaúde Brusque</div>
+                <div>Rua Paes Leme, 11 - (Brusque)</div>
+                <div>(47) 3380-9899</div>
+              </div>
+
+              <!-- Dados do paciente -->
+              <div class="mb-6">
+                <div class="font-bold">DADOS DO PACIENTE.</div>
+                <div>
+                  Nome:
+                  {{
+                    selectedPatient
+                      ? selectedPatient.name
+                      : "Paciente não selecionado"
+                  }}
+                </div>
+                <div>CPF: {{ selectedPatient ? "000.000.000-00" : "" }}</div>
+                <div>
+                  Endereço: {{ selectedPatient ? "Endereço do paciente" : "" }}
+                </div>
+                <div>Número: {{ selectedPatient ? "00" : "" }}</div>
+                <div>Cidade: {{ selectedPatient ? "Brusque" : "" }}</div>
+                <div>Estado: SC</div>
+                <div>CEP: 88350-220</div>
+              </div>
+
+              <!-- Prescrição -->
+              <div class="mb-10" v-if="prescriptionMode === 'simple'">
+                <div v-html="formatPrescriptionText()"></div>
+              </div>
+              <div class="mb-10" v-else>
+                <div
+                  v-for="(med, index) in prescriptionData.medications"
+                  :key="index"
+                >
+                  {{ index + 1 }}. {{ med.name }} {{ med.dosage }} -
+                  {{ med.instructions }}
+                </div>
+              </div>
+
+              <!-- Data e assinatura -->
+              <div class="flex justify-between mt-16">
+                <div>Brusque, {{ getCurrentDate() }}</div>
+                <div class="text-center">
+                  <div class="border-t border-gray-800 pt-1 w-48">
+                    Karin Alana Da Rosa
+                    <br />
+                    CRM 26419 SC
+                  </div>
+                </div>
+              </div>
+
+              <!-- Identificação do comprador e fornecedor -->
+              <div class="flex border border-gray-800 mt-6">
+                <div class="p-3 flex-1">
+                  <div class="font-bold">IDENTIFICAÇÃO DO COMPRADOR</div>
+                  <div>Nome:_______________________________</div>
+                  <div>RG:________________ Emissor:_________</div>
+                  <div>Endereço:____________________________</div>
+                  <div>Cidade:__________________ UF:_______</div>
+                  <div>Telefone:_____________________________</div>
+                </div>
+                <div class="p-3 flex-1 border-l border-gray-800">
+                  <div class="font-bold">IDENTIFICAÇÃO DO FORNECEDOR</div>
+                  <div class="h-16"></div>
+                  <div class="text-center">Assinatura farmacêutico</div>
+                  <div class="mt-2">Data: ___/___/_____</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Receituário de Controle Especial - 2ª via -->
+            <div
+              v-if="prescriptionData.controleEspecial"
+              class="border border-gray-800 p-4 print-section page-break-before"
+            >
+              <div class="text-center font-bold text-xl mb-4">
+                Receituário de controle especial - 2ª via
               </div>
 
               <!-- Identificação do emitente e informações da via -->
@@ -679,7 +777,7 @@ Ex:
             </div>
 
             <!-- Receituário Normal -->
-            <div v-else class="p-4">
+            <div v-if="!prescriptionData.controleEspecial" class="p-4">
               <div class="text-center font-bold text-xl mb-6">
                 PRESCRIÇÃO MÉDICA
               </div>
@@ -1024,3 +1122,14 @@ const printDocument = () => {
   }, 100);
 };
 </script>
+
+<style scoped>
+@media print {
+  .print-section {
+    page-break-inside: avoid;
+  }
+  .page-break-before {
+    page-break-before: always;
+  }
+}
+</style>
