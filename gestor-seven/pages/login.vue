@@ -41,9 +41,9 @@ const handleSubmit = async () => {
     const success = await auth.login(email.value, password.value);
     if (success) {
       showToast("Login realizado com sucesso!", "success");
-      // Usar o router para navegação interna mantendo o CSS
+      // Usar o router para navegação interna com replace: true para evitar problemas de CSS
       setTimeout(() => {
-        router.push("/");
+        router.replace("/");
       }, 1000);
     } else {
       showToast("Login falhou. Verifique suas credenciais.");
@@ -58,7 +58,7 @@ const handleSubmit = async () => {
 // Verificar se o usuário já está autenticado
 onMounted(() => {
   if (auth.isAuthenticated()) {
-    router.push("/");
+    router.replace("/");
   }
 });
 </script>
@@ -68,29 +68,31 @@ onMounted(() => {
     class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
   >
     <!-- Fundo decorativo com símbolos médicos -->
-    <div class="absolute inset-0 opacity-5 z-0">
-      <div
-        v-for="i in 20"
-        :key="i"
-        class="absolute"
-        :style="{
-          top: `${Math.random() * 100}%`,
-          left: `${Math.random() * 100}%`,
-          transform: `rotate(${Math.random() * 360}deg)`,
-          opacity: 0.6 + Math.random() * 0.4,
-        }"
-      >
-        <svg
-          class="h-8 w-8 text-blue-400"
-          viewBox="0 0 24 24"
-          fill="currentColor"
+    <ClientOnly>
+      <div class="absolute inset-0 opacity-5 z-0">
+        <div
+          v-for="i in 20"
+          :key="i"
+          class="absolute"
+          :style="{
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+            transform: `rotate(${Math.random() * 360}deg)`,
+            opacity: 0.6 + Math.random() * 0.4,
+          }"
         >
-          <path
-            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v4h4v2h-4v4h-2v-4H7v-2h4z"
-          />
-        </svg>
+          <svg
+            class="h-8 w-8 text-blue-400"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v4h4v2h-4v4h-2v-4H7v-2h4z"
+            />
+          </svg>
+        </div>
       </div>
-    </div>
+    </ClientOnly>
 
     <Toast
       :show="toast.show"

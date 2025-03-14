@@ -1,7 +1,7 @@
-import { navigateTo } from '#app'
+import { navigateTo, abortNavigation } from '#app'
 import { useAuthStore } from '../stores/auth'
 
-export default defineNuxtRouteMiddleware(async (to) => {
+export default defineNuxtRouteMiddleware(async (to, from) => {
   // Rotas públicas que não precisam de autenticação
   const publicRoutes = ['/login']
   
@@ -11,7 +11,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     if (process.client) {
       const auth = useAuthStore()
       if (auth.isAuthenticated()) {
-        return navigateTo('/')
+        return navigateTo('/', { replace: true })
       }
     }
     return
@@ -23,7 +23,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
     
     // Verificar se o usuário está autenticado
     if (!auth.isAuthenticated()) {
-      return navigateTo('/login')
+      // Usar replace: true para evitar problemas de carregamento de CSS
+      return navigateTo('/login', { replace: true })
     }
     
     // Verificar se o token ainda é válido fazendo uma chamada para buscar o usuário
@@ -32,16 +33,19 @@ export default defineNuxtRouteMiddleware(async (to) => {
       if (!result.success) {
         // Se não conseguir obter os dados do usuário, o token pode ter expirado
         auth.logout() // Limpar dados de autenticação
-        return navigateTo('/login')
+        // Usar replace: true para evitar problemas de carregamento de CSS
+        return navigateTo('/login', { replace: true })
       }
     } catch (error) {
       console.error('Erro ao verificar autenticação:', error)
       auth.logout() // Limpar dados de autenticação em caso de erro
-      return navigateTo('/login')
+      // Usar replace: true para evitar problemas de carregamento de CSS
+      return navigateTo('/login', { replace: true })
     }
   } else {
-    // No lado do servidor, não podemos verificar a autenticação
-    // Podemos redirecionar para a página de login ou deixar o cliente lidar com isso
-    // Neste caso, estamos permitindo a renderização inicial e deixando o cliente verificar
+    // No lado do servidor, redirecionamos para o login se não for uma rota pública
+    if (!publicRoutes.includes(to.path)) {
+      return navigateTo('/login', { replace: true })
+    }
   }
 })

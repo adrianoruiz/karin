@@ -3,22 +3,24 @@
     <NuxtPage />
 
     <!-- Overlay escuro quando o painel estiver aberto -->
-    <Transition name="fade">
-      <div
-        v-if="panelIsOpen"
-        class="fixed inset-0 bg-black bg-opacity-70 z-40"
-        @click="closePanel"
-      ></div>
-    </Transition>
+    <ClientOnly>
+      <Transition name="fade">
+        <div
+          v-if="panelIsOpen"
+          class="fixed inset-0 bg-black bg-opacity-70 z-40"
+          @click="closePanel"
+        ></div>
+      </Transition>
 
-    <Transition name="slide">
-      <div
-        v-if="panelIsOpen"
-        class="fixed top-0 right-0 h-screen shadow-xl z-50 w-5/6"
-      >
-        <PatientSidePanel />
-      </div>
-    </Transition>
+      <Transition name="slide">
+        <div
+          v-if="panelIsOpen"
+          class="fixed top-0 right-0 h-screen shadow-xl z-50 w-5/6"
+        >
+          <PatientSidePanel />
+        </div>
+      </Transition>
+    </ClientOnly>
   </div>
 </template>
 
@@ -40,11 +42,8 @@ const closePanel = () => {
   store.closePanel();
 };
 
-console.log("App.vue script setup - panelIsOpen:", panelIsOpen.value);
-
 // Garantir que o painel esteja fechado ao iniciar
 onMounted(() => {
-  console.log("App.vue onMounted - closing panel");
   store.closePanel();
 });
 </script>

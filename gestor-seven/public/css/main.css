@@ -1,0 +1,63 @@
+/* Arquivo CSS principal para garantir carregamento correto do CSS em todas as páginas */
+
+/* Estilos globais */
+html, body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Correção para problemas de carregamento de CSS */
+.min-h-screen {
+  min-height: 100vh;
+}
+
+/* Garantir que os gradientes sejam aplicados corretamente */
+.bg-gradient-to-br {
+  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
+}
+
+.from-blue-50 {
+  --tw-gradient-from: #eff6ff;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(239, 246, 255, 0));
+}
+
+.to-blue-100 {
+  --tw-gradient-to: #dbeafe;
+}
+
+/* Garantir que os estilos de formulário sejam aplicados corretamente */
+input, button {
+  font-family: inherit;
+}
+
+/* Corrigir problemas de hidratação */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.3s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateX(100%);
+}
+
+.slide-enter-to,
+.slide-leave-from {
+  transform: translateX(0);
+}

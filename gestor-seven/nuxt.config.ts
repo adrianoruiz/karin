@@ -9,8 +9,36 @@ export default defineNuxtConfig({
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' }
+      ],
+      link: [
+        { rel: 'stylesheet', href: '/css/main.css' }
       ]
     },
-    pageTransition: { name: 'page', mode: 'out-in' }
+    // Desativando transição de página para evitar problemas de CSS
+    pageTransition: false
+  },
+  // Configuração para garantir que o CSS seja carregado corretamente
+  css: ['~/assets/css/main.css'],
+  // Configuração para resolver problemas de hidratação
+  vite: {
+    vue: {
+      template: {
+        compilerOptions: {
+          whitespace: 'preserve'
+        }
+      }
+    },
+    optimizeDeps: {
+      exclude: ['vue-demi']
+    },
+    build: {
+      cssCodeSplit: false
+    }
+  },
+  // Configuração para garantir que o cliente e o servidor estejam sincronizados
+  ssr: false,
+  experimental: {
+    payloadExtraction: true,
+    renderJsonPayloads: false
   }
 })
