@@ -3,7 +3,9 @@ const axios = require('axios');
 const NodeCache = require('node-cache');
 const config = require('../../config');
 const { formatPhoneNumber } = require('./formattedNumber');
-const { getChatGPTResponse } = require('./gpt');
+const { getChatGPTResponse, transcribeAudio } = require('./gpt');
+const fs = require('fs');
+const path = require('path');
 
 const greetingCache = new NodeCache({ stdTTL: config.greetingCacheTTL });
 const conversationCache = new NodeCache({ stdTTL: 3600 }); // Cache para armazenar histórico de conversas (1 hora)
@@ -23,17 +25,17 @@ function detectSensitiveTopics(message) {
     
     // Mapeamento de palavras-chave para respostas padrão
     const sensitiveTopics = [
-        {
-            keywords: ['ansiedade', 'ansioso', 'ansiosa', 'to com ansiedade', 'estou com ansiedade', 
-                      'crise', 'nervoso', 'nervosa', 'pânico', 'panico', 'preocupado', 'preocupada', 
-                      'estresse', 'estressado', 'estressada', 'angústia', 'angustia', 'aflito', 'aflita'],
-            response: "Entendo que isso pode ser difícil. A Dra. Karin poderá fazer uma avaliação completa durante a consulta. Gostaria de agendar um horário?"
-        },
-        {
-            keywords: ['depressão', 'depressao', 'deprimido', 'deprimida', 'triste', 'tristeza', 
-                      'sem ânimo', 'sem animo', 'desanimado', 'desanimada', 'melancolia', 'melancólico', 'melancolico'],
-            response: "Entendo que isso pode ser difícil. A Dra. Karin poderá fazer uma avaliação completa durante a consulta. Gostaria de agendar um horário?"
-        },
+        // {
+        //     keywords: ['ansiedade', 'ansioso', 'ansiosa', 'to com ansiedade', 'estou com ansiedade', 
+        //               'crise', 'nervoso', 'nervosa', 'pânico', 'panico', 'preocupado', 'preocupada', 
+        //               'estresse', 'estressado', 'estressada', 'angústia', 'angustia', 'aflito', 'aflita'],
+        //     response: "Entendo que isso pode ser difícil. A Dra. Karin poderá fazer uma avaliação completa durante a consulta. Gostaria de agendar um horário?"
+        // },
+        // {
+        //     keywords: ['depressão', 'depressao', 'deprimido', 'deprimida', 'triste', 'tristeza', 
+        //               'sem ânimo', 'sem animo', 'desanimado', 'desanimada', 'melancolia', 'melancólico', 'melancolico'],
+        //     response: "Entendo que isso pode ser difícil. A Dra. Karin poderá fazer uma avaliação completa durante a consulta. Gostaria de agendar um horário?"
+        // },
         {
             keywords: ['receita', 'renovar receita', 'renovação', 'renovacao', 'prescrição', 'prescricao', 
                       'remédio', 'remedio', 'medicamento', 'medicação', 'medicacao'],
@@ -154,6 +156,76 @@ async function processMessageWithGPT(message, nome, phoneNumber, petshopId) {
     }
 }
 
+/**
+ * Baixa e salva um arquivo de áudio do WhatsApp
+ * @param {Object} message - Objeto de mensagem do WhatsApp
+ * @returns {Promise<string>} - Caminho para o arquivo salvo
+ */
+async function downloadAudio(message) {
+    try {
+        // Criar diretório para arquivos temporários se não existir
+        const tempDir = path.join(__dirname, '../../temp');
+        if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
+        }
+        
+        // Gerar nome de arquivo único
+        const fileName = `audio_${Date.now()}_${Math.floor(Math.random() * 10000)}.ogg`;
+        const filePath = path.join(tempDir, fileName);
+        
+        // Baixar mídia
+        const media = await message.downloadMedia();
+        if (!media) {
+            throw new Error('Não foi possível baixar a mídia');
+        }
+        
+        // Salvar arquivo
+        fs.writeFileSync(filePath, Buffer.from(media.data, 'base64'));
+        console.log(`Áudio salvo em: ${filePath}`);
+        
+        return filePath;
+    } catch (error) {
+        console.error('Erro ao baixar áudio:', error);
+        throw error;
+    }
+}
+
+/**
+ * Processa uma mensagem de áudio
+ * @param {Object} message - Objeto de mensagem do WhatsApp
+ * @param {string} nome - Nome do contato
+ * @param {string} phoneNumber - Número de telefone
+ * @param {string} petshopId - ID do petshop
+ * @param {Object} client - Cliente do WhatsApp
+ * @returns {Promise<void>}
+ */
+async function processAudioMessage(message, nome, phoneNumber, petshopId, client) {
+    try {
+        // Enviar mensagem de confirmação
+        // await client.sendMessage(message.from, "Estou ouvindo seu áudio, aguarde um momento...");
+        
+        // Baixar o arquivo de áudio
+        const audioPath = await downloadAudio(message);
+        
+        // Transcrever o áudio
+        const transcription = await transcribeAudio(audioPath);
+        console.log(`Transcrição: "${transcription}"`);
+        
+        // Processar o texto transcrito com o ChatGPT
+        const gptResponse = await processMessageWithGPT(transcription, nome, phoneNumber, petshopId);
+        
+        // Enviar resposta ao usuário
+        await client.sendMessage(message.from, gptResponse);
+        
+        // Remover arquivo temporário
+        fs.unlinkSync(audioPath);
+        console.log(`Arquivo temporário removido: ${audioPath}`);
+    } catch (error) {
+        console.error('Erro ao processar mensagem de áudio:', error);
+        await client.sendMessage(message.from, "Desculpe, não consegui processar seu áudio. Poderia enviar sua mensagem em texto?");
+    }
+}
+
 function setupWhatsAppListeners(client, petshopId) {
     console.log(`Configurando listeners do WhatsApp para petshop ${petshopId}`);
 
@@ -218,6 +290,34 @@ function setupWhatsAppListeners(client, petshopId) {
                 profilePicUrl = await contact.getProfilePicUrl();
             } catch (picError) {
                 console.log('Não foi possível obter a foto do perfil:', picError);
+            }
+
+            // Verificar se é uma mensagem de áudio
+            if (message.type === 'ptt' || message.type === 'audio') {
+                console.log('Mensagem de áudio detectada');
+                
+                const cacheKey = createCacheKey(petshopId, phoneNumber);
+                const greetedToday = greetingCache.get(cacheKey);
+                
+                if (!greetedToday && nome !== "Cliente") {
+                    console.log(`Enviando saudação antes de processar áudio para: ${phoneNumber} (petshop ${petshopId})`);
+                    greetingCache.set(cacheKey, true);
+                    
+                    try {
+                        const sentMessage = await getMessageType('greeting', nome, profilePicUrl, phoneNumber, petshopId);
+                        console.log(`Saudação enviada com sucesso para: ${phoneNumber}`);
+                        
+                        // Aguarda um momento para garantir que a mensagem foi processada
+                        await new Promise(resolve => setTimeout(resolve, 4000));
+                    } catch (error) {
+                        console.error('Erro ao processar saudação:', error);
+                        greetingCache.del(cacheKey);
+                    }
+                }
+                
+                // Processar o áudio
+                await processAudioMessage(message, nome, phoneNumber, petshopId, client);
+                return;
             }
 
             const messageBodyNormalized = normalizeText(message.body.trim());
