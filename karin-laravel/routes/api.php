@@ -6,6 +6,7 @@ use App\Http\Controllers\{
     Api\AppointmentController,
     Api\AuthController,
     Api\DoctorAvailabilityController,
+    Api\PlanController,
     Api\WhatsappController,
     ChatbotController,
     ChatbotCrudController
@@ -93,8 +94,12 @@ Route::group([
 Route::middleware('auth:api')->group(function () {
     // Rotas para gerenciamento de disponibilidades
     Route::apiResource('availabilities', DoctorAvailabilityController::class);
-
+    Route::apiResource('plans', PlanController::class);
     Route::prefix('availabilities')->group(function () {
         Route::post('/recurring', [DoctorAvailabilityController::class, 'storeRecurring']);
     });
 });
+
+Route::get('availabilities', [DoctorAvailabilityController::class, 'index']);
+Route::get('plans', [PlanController::class, 'index']);
+Route::get('plans/{plan}', [PlanController::class, 'publicShow']);

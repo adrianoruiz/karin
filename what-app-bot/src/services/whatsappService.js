@@ -3,7 +3,7 @@ const axios = require('axios');
 const NodeCache = require('node-cache');
 const config = require('../../config');
 const { formatPhoneNumber } = require('./formattedNumber');
-const { getChatGPTResponse, transcribeAudio } = require('./gpt');
+const { getChatGPTResponse, transcribeAudio, getAvailableAppointments } = require('./gpt');
 const fs = require('fs');
 const path = require('path');
 
@@ -17,6 +17,18 @@ function normalizeText(text) {
         return '';
     }
     return text.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+// Função para detectar perguntas sobre horários disponíveis
+function isAskingForAvailability(message) {
+    const lowerMessage = normalizeText(message);
+    const availabilityKeywords = [
+        'horario', 'horários', 'vaga', 'vagas', 'disponibilidade', 'disponivel',
+        'quando', 'que dia', 'que horas', 'hora disponivel', 'hora vaga',
+        'agendar', 'marcar', 'consulta', 'atendimento', 'disponível'
+    ];
+    
+    return availabilityKeywords.some(keyword => lowerMessage.includes(keyword));
 }
 
 // Função para detectar temas sensíveis e retornar a resposta padrão apropriada
@@ -98,6 +110,45 @@ async function getMessageType(messageType, nome, avatar, phoneNumber, petshopId)
     }
 }
 
+// Função para formatar horários disponíveis em uma mensagem legível
+async function formatAvailableAppointments(date = null) {
+    try {
+        const availableTimes = await getAvailableAppointments(date);
+        
+        if (availableTimes.length === 0) {
+            return "Não encontrei horários disponíveis para essa data. Gostaria de verificar outra data?";
+        }
+        
+        // Agrupar horários por data
+        const appointmentsByDate = {};
+        availableTimes.forEach(slot => {
+            if (!appointmentsByDate[slot.date]) {
+                appointmentsByDate[slot.date] = [];
+            }
+            appointmentsByDate[slot.date].push(slot.time);
+        });
+        
+        // Formatar a mensagem de resposta
+        let message = "Encontrei os seguintes horários disponíveis:\n\n";
+        
+        for (const [date, times] of Object.entries(appointmentsByDate)) {
+            // Formatar a data (de YYYY-MM-DD para DD/MM/YYYY)
+            const [year, month, day] = date.split('-');
+            const formattedDate = `${day}/${month}/${year}`;
+            
+            message += `*${formattedDate}*: `;
+            message += times.join(', ');
+            message += '\n';
+        }
+        
+        message += "\nGostaria de agendar em algum desses horários?";
+        return message;
+    } catch (error) {
+        console.error('Erro ao formatar horários disponíveis:', error);
+        return "Desculpe, estou com dificuldades para verificar os horários disponíveis no momento. Por favor, tente novamente mais tarde.";
+    }
+}
+
 // Função para processar mensagem com ChatGPT
 async function processMessageWithGPT(message, nome, phoneNumber, petshopId) {
     try {
@@ -125,6 +176,34 @@ async function processMessageWithGPT(message, nome, phoneNumber, petshopId) {
             return sensitiveResponse;
         }
         
+        // Verificar se está perguntando sobre horários disponíveis
+        if (isAskingForAvailability(message)) {
+            console.log('Detectada pergunta sobre horários disponíveis');
+            
+            // Extrair data da mensagem, se houver
+            let requestedDate = null;
+            
+            // Adicionar mensagem do usuário ao histórico
+            conversation.push({
+                role: "user",
+                content: message
+            });
+            
+            // Obter e formatar horários disponíveis
+            const availabilityResponse = await formatAvailableAppointments(requestedDate);
+            
+            // Adicionar resposta ao histórico
+            conversation.push({
+                role: "assistant",
+                content: availabilityResponse
+            });
+            
+            // Salvar conversa atualizada no cache
+            conversationCache.set(conversationKey, conversation);
+            
+            return availabilityResponse;
+        }
+        
         // Adicionar mensagem do usuário ao histórico
         conversation.push({
             role: "user",
@@ -135,7 +214,6 @@ async function processMessageWithGPT(message, nome, phoneNumber, petshopId) {
         if (conversation.length > 10) {
             conversation = conversation.slice(conversation.length - 10);
         }
-        
         
         // Obter resposta do ChatGPT
         const response = await getChatGPTResponse(conversation);
@@ -156,11 +234,6 @@ async function processMessageWithGPT(message, nome, phoneNumber, petshopId) {
     }
 }
 
-/**
- * Baixa e salva um arquivo de áudio do WhatsApp
- * @param {Object} message - Objeto de mensagem do WhatsApp
- * @returns {Promise<string>} - Caminho para o arquivo salvo
- */
 async function downloadAudio(message) {
     try {
         // Criar diretório para arquivos temporários se não existir
@@ -190,15 +263,6 @@ async function downloadAudio(message) {
     }
 }
 
-/**
- * Processa uma mensagem de áudio
- * @param {Object} message - Objeto de mensagem do WhatsApp
- * @param {string} nome - Nome do contato
- * @param {string} phoneNumber - Número de telefone
- * @param {string} petshopId - ID do petshop
- * @param {Object} client - Cliente do WhatsApp
- * @returns {Promise<void>}
- */
 async function processAudioMessage(message, nome, phoneNumber, petshopId, client) {
     try {
         // Enviar mensagem de confirmação

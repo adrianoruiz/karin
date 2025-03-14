@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             RootSeeder::class,
             UsersTableSeeder::class,
             ChatbotsTableSeeder::class,
+            PlanSeeder::class,
         ]);
     }
 }

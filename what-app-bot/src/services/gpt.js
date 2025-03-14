@@ -4,6 +4,7 @@ const fs = require('fs');
 const FormData = require('form-data');
 require('dotenv').config();
 const getSystemMessage = require('./ai/systemMessage');
+const config = require('../../config');
 
 async function getChatGPTResponse(messages, nome) {
     const apiKey = process.env.OPENAI_API_KEY;
@@ -63,15 +64,49 @@ async function transcribeAudio(audioPath) {
             }
         );
         
-        console.log('Transcrição concluída com sucesso:', response.data);
         return response.data.text;
     } catch (error) {
         console.error('Erro ao transcrever áudio:', error);
-        throw new Error('Falha ao transcrever o áudio');
+        throw error;
+    }
+}
+
+/**
+ * Consulta os horários disponíveis para agendamento na API
+ * @param {string} date - Data no formato YYYY-MM-DD (opcional)
+ * @param {number} doctorId - ID do médico (padrão: 2 para Dra. Karin)
+ * @returns {Promise<Array>} - Lista de horários disponíveis
+ */
+async function getAvailableAppointments(date = null, doctorId = 2) {
+    try {
+        // Se a data não for fornecida, usa a data atual
+        const currentDate = date || new Date().toISOString().split('T')[0];
+        
+        // Consulta a API de disponibilidades
+        const response = await axios.get(`${config.apiUrl}availabilities`, {
+            params: {
+                doctor_id: doctorId,
+                date: currentDate
+            }
+        });
+        
+        // Filtra apenas os horários com status "available"
+        const availableTimes = response.data.availabilities
+            .filter(slot => slot.status === "available")
+            .map(slot => ({
+                date: slot.date.split('T')[0],
+                time: slot.time
+            }));
+            
+        return availableTimes;
+    } catch (error) {
+        console.error('Erro ao consultar horários disponíveis:', error);
+        return [];
     }
 }
 
 module.exports = {
     getChatGPTResponse,
-    transcribeAudio
+    transcribeAudio,
+    getAvailableAppointments
 };
