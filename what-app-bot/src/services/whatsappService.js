@@ -3,7 +3,7 @@ const axios = require('axios');
 const NodeCache = require('node-cache');
 const config = require('../../config');
 const { formatPhoneNumber } = require('./formattedNumber');
-const { getChatGPTResponse, transcribeAudio, getAvailableAppointments } = require('./gpt');
+const { getChatGPTResponse, transcribeAudio, getAvailableAppointments, getPlans } = require('./gpt');
 const fs = require('fs');
 const path = require('path');
 
@@ -37,7 +37,7 @@ function detectSensitiveTopics(message) {
         //     response: "Entendo que isso pode ser difícil. A Dra. Karin poderá fazer uma avaliação completa durante a consulta. Gostaria de agendar um horário?"
         // },
         {
-            keywords: ['receita', 'renovar receita', 'renovação', 'renovacao', 'prescrição', 'prescricao', 
+            keywords: ['receita', 'renovar receita', 'renovacao', 'prescrição', 'prescricao', 
                       'remédio', 'remedio', 'medicamento', 'medicação', 'medicacao'],
             response: "Para renovação de receita, é necessário agendar uma consulta, pois a Dra. precisa avaliar sua situação clínica atual. Você gostaria de marcar um horário?"
         },
@@ -208,6 +208,35 @@ async function processMessageWithGPT(message, nome, phoneNumber, petshopId) {
                 // Formatar os horários disponíveis para uma mensagem legível
                 const formattedResponse = await formatAvailableAppointments(availableTimes);
                 return formattedResponse;
+            }
+            // Verificar se é a função de planos
+            else if (name === 'getAvailablePlans') {
+                // Parsear os argumentos
+                const parsedArgs = JSON.parse(args);
+                
+                // Chamar a função para obter planos disponíveis
+                const availablePlans = await getPlans();
+                
+                // Adicionar o resultado da função ao histórico da conversa
+                conversation.push({
+                    role: "function",
+                    name: name,
+                    content: JSON.stringify(availablePlans)
+                });
+                
+                // Chamar o ChatGPT novamente para gerar a resposta final
+                const finalResponse = await getChatGPTResponse(conversation, nome);
+                
+                // Adicionar a resposta final ao histórico
+                conversation.push({
+                    role: "assistant",
+                    content: finalResponse.content
+                });
+                
+                // Salvar conversa atualizada no cache
+                conversationCache.set(conversationKey, conversation);
+                
+                return finalResponse.content;
             }
         }
         
