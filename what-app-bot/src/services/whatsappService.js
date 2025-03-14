@@ -19,18 +19,6 @@ function normalizeText(text) {
     return text.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }
 
-// Função para detectar perguntas sobre horários disponíveis
-function isAskingForAvailability(message) {
-    const lowerMessage = normalizeText(message);
-    const availabilityKeywords = [
-        'horario', 'horários', 'vaga', 'vagas', 'disponibilidade', 'disponivel',
-        'quando', 'que dia', 'que horas', 'hora disponivel', 'hora vaga',
-        'agendar', 'marcar', 'consulta', 'atendimento', 'disponível'
-    ];
-    
-    return availabilityKeywords.some(keyword => lowerMessage.includes(keyword));
-}
-
 // Função para detectar temas sensíveis e retornar a resposta padrão apropriada
 function detectSensitiveTopics(message) {
     const lowerMessage = message.toLowerCase();
@@ -111,10 +99,8 @@ async function getMessageType(messageType, nome, avatar, phoneNumber, petshopId)
 }
 
 // Função para formatar horários disponíveis em uma mensagem legível
-async function formatAvailableAppointments(date = null) {
+async function formatAvailableAppointments(availableTimes) {
     try {
-        const availableTimes = await getAvailableAppointments(date);
-        
         if (availableTimes.length === 0) {
             return "Não encontrei horários disponíveis para essa data. Gostaria de verificar outra data?";
         }
@@ -176,61 +162,76 @@ async function processMessageWithGPT(message, nome, phoneNumber, petshopId) {
             return sensitiveResponse;
         }
         
-        // Verificar se está perguntando sobre horários disponíveis
-        if (isAskingForAvailability(message)) {
-            console.log('Detectada pergunta sobre horários disponíveis');
-            
-            // Extrair data da mensagem, se houver
-            let requestedDate = null;
-            
-            // Adicionar mensagem do usuário ao histórico
-            conversation.push({
-                role: "user",
-                content: message
-            });
-            
-            // Obter e formatar horários disponíveis
-            const availabilityResponse = await formatAvailableAppointments(requestedDate);
-            
-            // Adicionar resposta ao histórico
-            conversation.push({
-                role: "assistant",
-                content: availabilityResponse
-            });
-            
-            // Salvar conversa atualizada no cache
-            conversationCache.set(conversationKey, conversation);
-            
-            return availabilityResponse;
-        }
-        
         // Adicionar mensagem do usuário ao histórico
         conversation.push({
             role: "user",
             content: message
         });
         
-        // Limitar o histórico para as últimas 10 mensagens para evitar tokens excessivos
-        if (conversation.length > 10) {
-            conversation = conversation.slice(conversation.length - 10);
+        // Obter resposta do ChatGPT
+        const gptResponse = await getChatGPTResponse(conversation, nome);
+        
+        // Verificar se a resposta contém uma chamada de função
+        if (gptResponse.function_call) {
+            console.log('Detectada chamada de função:', gptResponse.function_call.name);
+            
+            // Extrair nome da função e argumentos
+            const { name, arguments: args } = gptResponse.function_call;
+            
+            // Verificar se é a função de disponibilidade
+            if (name === 'getAvailableAppointments') {
+                // Parsear os argumentos
+                const parsedArgs = JSON.parse(args);
+                
+                // Chamar a função para obter horários disponíveis
+                const availableTimes = await getAvailableAppointments(parsedArgs.date);
+                
+                // Adicionar o resultado da função ao histórico da conversa
+                conversation.push({
+                    role: "function",
+                    name: name,
+                    content: JSON.stringify(availableTimes)
+                });
+                
+                // Chamar o ChatGPT novamente para gerar a resposta final
+                const finalResponse = await getChatGPTResponse(conversation, nome);
+                
+                // Adicionar a resposta final ao histórico
+                conversation.push({
+                    role: "assistant",
+                    content: finalResponse.content
+                });
+                
+                // Salvar conversa atualizada no cache
+                conversationCache.set(conversationKey, conversation);
+                
+                // Formatar os horários disponíveis para uma mensagem legível
+                const formattedResponse = await formatAvailableAppointments(availableTimes);
+                return formattedResponse;
+            }
         }
         
-        // Obter resposta do ChatGPT
-        const response = await getChatGPTResponse(conversation);
+        // Se não houver chamada de função, usar a resposta direta
+        const responseContent = gptResponse.content;
         
         // Adicionar resposta ao histórico
         conversation.push({
             role: "assistant",
-            content: response
+            content: responseContent
         });
+        
+        // Limitar o histórico para as últimas 10 mensagens (5 pares de conversa)
+        if (conversation.length > 10) {
+            conversation = conversation.slice(conversation.length - 10);
+        }
         
         // Salvar conversa atualizada no cache
         conversationCache.set(conversationKey, conversation);
         
-        return response;
+        return responseContent;
     } catch (error) {
         console.error('Erro ao processar mensagem com GPT:', error);
-        return "Desculpe, estou com dificuldades técnicas no momento. Por favor, tente novamente mais tarde ou entre em contato diretamente com nossa equipe.";
+        return "Desculpe, houve um erro ao processar sua mensagem. Por favor, tente novamente mais tarde.";
     }
 }
 

@@ -6,6 +6,22 @@ require('dotenv').config();
 const getSystemMessage = require('./ai/systemMessage');
 const config = require('../../config');
 
+// Definição do esquema da função para consulta de disponibilidade
+const availabilityFunction = {
+    name: "getAvailableAppointments",
+    description: "Obtém os horários disponíveis para agendamento de consultas para a Dra. Karin.",
+    parameters: {
+        type: "object",
+        properties: {
+            date: {
+                type: "string",
+                description: "Data no formato YYYY-MM-DD. Se não fornecida, utiliza a data atual."
+            }
+        },
+        required: []
+    }
+};
+
 async function getChatGPTResponse(messages, nome) {
     const apiKey = process.env.OPENAI_API_KEY;
     
@@ -21,6 +37,8 @@ async function getChatGPTResponse(messages, nome) {
             {
                 model: "gpt-4o", 
                 messages: messagesWithSystem,
+                functions: [availabilityFunction],
+                function_call: "auto",
                 max_tokens: 300,
                 temperature: 0.7
             },
@@ -32,10 +50,10 @@ async function getChatGPTResponse(messages, nome) {
             }
         );
 
-        return response.data.choices[0].message.content;
+        return response.data.choices[0].message;
     } catch (error) {
         console.error('Erro ao obter resposta do ChatGPT:', error);
-        return "Desculpe, houve um erro ao processar sua solicitação. Por favor, tente novamente mais tarde.";
+        return { content: "Desculpe, houve um erro ao processar sua solicitação. Por favor, tente novamente mais tarde." };
     }
 }
 
@@ -108,5 +126,6 @@ async function getAvailableAppointments(date = null, doctorId = 2) {
 module.exports = {
     getChatGPTResponse,
     transcribeAudio,
-    getAvailableAppointments
+    getAvailableAppointments,
+    availabilityFunction
 };
