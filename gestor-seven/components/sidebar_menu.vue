@@ -102,6 +102,16 @@
         </NuxtLink>
 
         <NuxtLink
+          to="/planos-precos"
+          :class="`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
+            currentTab === 'planos-precos' ? 'bg-white/10' : 'hover:bg-white/5'
+          } ${collapsed ? 'justify-center' : ''}`"
+        >
+          <DollarSign size="20" :class="collapsed ? '' : 'mr-3'" />
+          <span v-if="!collapsed">Planos e Preços</span>
+        </NuxtLink>
+
+        <NuxtLink
           to="/relatorios"
           :class="`flex items-center w-full p-3 rounded-lg mb-1 transition-colors ${
             currentTab === 'relatorios' ? 'bg-white/10' : 'hover:bg-white/5'
@@ -168,6 +178,7 @@ import {
   Calendar,
   ChevronLeft,
   Clock,
+  DollarSign,
   FileText,
   Home,
   LogOut,

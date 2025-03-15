@@ -1,5 +1,5 @@
 // export const isDev = import.meta.env.DEV;
-export const isDev = false
+export const isDev = true
 export let URL_DOMAIN: string = ''
 export function setUrlDomain (newDomain: string): void {
   URL_DOMAIN = newDomain
