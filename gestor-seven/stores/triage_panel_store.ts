@@ -1,11 +1,33 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
+// Definição das interfaces
+interface VitalSigns {
+  bloodPressure: string;
+  heartRate: string;
+  temperature: string;
+  oxygenSaturation: string;
+}
+
+interface Anthropometry {
+  weight: string;
+  height: string;
+}
+
+interface TriageData {
+  date: string;
+  time: string;
+  vitalSigns: VitalSigns;
+  anthropometry: Anthropometry;
+  observations: string;
+  nurse: string;
+}
+
 export const useTriagePanelStore = defineStore('triagePanel', () => {
   // Estado
   const isOpen = ref(false);
-  const patientId = ref(null);
-  const triageData = ref({
+  const patientId = ref<number | null>(null);
+  const triageData = ref<TriageData>({
     date: '',
     time: '',
     vitalSigns: {
@@ -23,7 +45,7 @@ export const useTriagePanelStore = defineStore('triagePanel', () => {
   });
 
   // Ações
-  function openPanel(id, data) {
+  function openPanel(id: number | null, data?: TriageData) {
     patientId.value = id;
     
     // Se tiver dados de triagem, preencher
@@ -58,12 +80,32 @@ export const useTriagePanelStore = defineStore('triagePanel', () => {
     patientId.value = null;
   }
 
+  function resetTriageData() {
+    triageData.value = {
+      date: '',
+      time: '',
+      vitalSigns: {
+        bloodPressure: '',
+        heartRate: '',
+        temperature: '',
+        oxygenSaturation: ''
+      },
+      anthropometry: {
+        weight: '',
+        height: '',
+      },
+      observations: '',
+      nurse: 'Ana Silva'
+    };
+  }
+
   // Retornar estado e ações
   return {
     isOpen,
     patientId,
     triageData,
     openPanel,
-    closePanel
+    closePanel,
+    resetTriageData
   };
 });

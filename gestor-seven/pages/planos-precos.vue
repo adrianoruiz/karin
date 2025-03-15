@@ -12,7 +12,7 @@
         :show-search="false"
         action-button-text="Novo Plano"
         action-button-icon="Plus"
-        @action-click="openNewPlanModal"
+        @action-click="openModal"
       />
 
       <!-- Tabs para filtrar os planos -->
@@ -33,7 +33,7 @@
 
       <!-- Carregando -->
       <div
-        v-if="plansStore.loading"
+        v-if="loading"
         class="flex justify-center items-center py-12"
       >
         <div
@@ -48,7 +48,7 @@
       >
         <p>{{ plansStore.error }}</p>
         <button
-          @click="plansStore.fetchPlans()"
+          @click="fetchPlans"
           class="mt-2 text-sm font-medium text-red-700 hover:text-red-800"
         >
           Tentar novamente
@@ -72,7 +72,7 @@
                 <Edit size="18" />
               </button>
               <button
-                @click="confirmDeletePlan(plan.id)"
+                @click="confirmDelete(plan)"
                 class="text-gray-500 hover:text-red-600 transition-colors"
               >
                 <Trash size="18" />
@@ -132,7 +132,7 @@
 
         <!-- Card para adicionar novo plano -->
         <div
-          @click="openNewPlanModal"
+          @click="openModal"
           class="bg-white rounded-lg shadow-sm p-5 border border-dashed border-gray-300 hover:border-blue-400 hover:shadow-md transition-all flex flex-col items-center justify-center text-gray-400 hover:text-blue-600 cursor-pointer min-h-[180px]"
         >
           <Plus size="24" />
@@ -269,17 +269,65 @@
               </button>
               <button
                 type="submit"
-                :disabled="plansStore.loading"
+                :disabled="saving"
                 class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-70 disabled:cursor-not-allowed flex items-center"
               >
                 <span
-                  v-if="plansStore.loading"
+                  v-if="saving"
                   class="mr-2 animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"
                 ></span>
                 {{ isEditing ? "Atualizar" : "Salvar" }}
               </button>
             </div>
           </form>
+        </div>
+      </div>
+
+      <!-- Confirmar exclusão de plano -->
+      <div
+        v-if="showDeleteConfirm"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      >
+        <div
+          class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative"
+          @click.stop
+        >
+          <button
+            @click="showDeleteConfirm = false"
+            class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+          >
+            <X size="20" />
+          </button>
+
+          <h2 class="text-xl font-semibold mb-6 text-gray-800">
+            Confirmar Exclusão
+          </h2>
+
+          <p class="text-gray-600 mb-6">
+            Tem certeza que deseja excluir o plano "{{ planToDelete.name }}"?
+          </p>
+
+          <div class="flex justify-end space-x-3 mt-6">
+            <button
+              type="button"
+              @click="showDeleteConfirm = false"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              @click="deletePlan"
+              :disabled="deleting"
+              class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-70 disabled:cursor-not-allowed flex items-center"
+            >
+              <span
+                v-if="deleting"
+                class="mr-2 animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"
+              ></span>
+              Excluir
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -296,113 +344,115 @@ import {
   Trash,
   X,
 } from "lucide-vue-next";
-import { computed, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
-import PageHeader from "~/components/page_header.vue";
-import Badge from "~/components/ui/Badge.vue";
-import SidebarMenu from "~/components/sidebar_menu.vue";
-import { useAuthStore } from "~/stores/auth";
+import { ref, computed, onMounted } from "vue";
 import { usePlansStore } from "~/stores/plans_store";
+import { useAuthStore } from "~/stores/auth";
+import SidebarMenu from "~/components/sidebar_menu.vue";
+import Badge from "~/components/ui/Badge.vue";
 
-const router = useRouter();
-const auth = useAuthStore();
+// Stores
 const plansStore = usePlansStore();
+const authStore = useAuthStore();
 
 // Estado
+const activeTab = ref('online');
 const showModal = ref(false);
-const activeTab = ref("all");
+const showDeleteConfirm = ref(false);
+const planToDelete = ref(null);
+const saving = ref(false);
+const deleting = ref(false);
 const isEditing = ref(false);
 
-// Tabs para filtrar os planos
-const tabs = [
-  { label: "Todos", value: "all" },
-  { label: "Online", value: "online" },
-  { label: "Presencial", value: "presencial" },
-  { label: "Consultas Avulsas", value: "consulta_avulsa" },
-  { label: "Pacotes", value: "pacote" },
-];
-
-// Planos filtrados com base na tab ativa
+// Computed
 const filteredPlans = computed(() => {
-  if (activeTab.value === "all") {
-    return plansStore.plans;
-  } else if (activeTab.value === "online") {
-    return plansStore.onlinePlans;
-  } else if (activeTab.value === "presencial") {
-    return plansStore.presencialPlans;
-  } else if (activeTab.value === "consulta_avulsa") {
-    return plansStore.avulsaPlans;
-  } else {
-    return plansStore.pacotePlans;
-  }
+  return activeTab.value === 'online'
+    ? plansStore.onlinePlans
+    : plansStore.presencialPlans;
 });
 
-// Carregar planos ao montar o componente
-onMounted(async () => {
-  if (auth.isAuthenticated()) {
+const loading = computed(() => plansStore.loading);
+const currentPlan = computed(() => plansStore.currentPlan);
+
+// Métodos
+const fetchPlans = async () => {
+  try {
     await plansStore.fetchPlans();
-  } else {
-    router.push("/login");
+  } catch (error) {
+    console.error('Erro ao buscar planos:', error);
+    // Implementar notificação de erro
   }
-});
+};
 
-// Abrir modal para novo plano
-function openNewPlanModal() {
+const openModal = () => {
   isEditing.value = false;
   plansStore.resetCurrentPlan();
-  
-  // Garantir que o doctor_id seja definido
-  if (!plansStore.currentPlan.doctor_id && auth.user) {
-    plansStore.currentPlan.doctor_id = auth.user.id;
-    console.log('Doctor ID definido ao abrir modal:', plansStore.currentPlan.doctor_id);
-  }
-  
   showModal.value = true;
-}
+};
 
-// Fechar modal
-function closeModal() {
+const closeModal = () => {
   showModal.value = false;
-}
+};
 
-// Editar plano existente
-function editPlan(plan) {
+const editPlan = (plan) => {
   isEditing.value = true;
   plansStore.setCurrentPlan(plan);
-  
-  // Garantir que o doctor_id seja definido
-  if (!plansStore.currentPlan.doctor_id && auth.user) {
-    plansStore.currentPlan.doctor_id = auth.user.id;
-    console.log('Doctor ID definido ao editar:', plansStore.currentPlan.doctor_id);
-  }
-  
   showModal.value = true;
-}
+};
 
 // Salvar plano (novo ou editado)
 async function savePlan() {
-  // Garantir que o doctor_id seja definido
-  if (!plansStore.currentPlan.doctor_id && auth.user) {
-    plansStore.currentPlan.doctor_id = auth.user.id;
-  }
+  saving.value = true;
   
-  console.log('Enviando plano com doctor_id:', plansStore.currentPlan.doctor_id);
-  
-  const result = await plansStore.savePlan(plansStore.currentPlan);
-  if (result.success) {
-    showModal.value = false;
+  try {
+    console.log('Enviando plano para salvar:', plansStore.currentPlan);
+    
+    const result = await plansStore.savePlan(plansStore.currentPlan);
+    
+    if (result.success) {
+      closeModal();
+      // Implementar notificação de sucesso
+    } else {
+      // Implementar notificação de erro
+      console.error('Erro ao salvar plano:', result.error);
+    }
+  } catch (error) {
+    console.error('Erro ao salvar plano:', error);
+    // Implementar notificação de erro
+  } finally {
+    saving.value = false;
   }
 }
 
-// Confirmar exclusão de plano
-function confirmDeletePlan(planId) {
-  if (confirm("Tem certeza que deseja excluir este plano?")) {
-    plansStore.deletePlan(planId);
-  }
-}
+const confirmDelete = (plan) => {
+  planToDelete.value = plan;
+  showDeleteConfirm.value = true;
+};
 
-// Formatar valor monetário
-function formatCurrency(value) {
-  return value.toFixed(2).replace(".", ",");
-}
+const deletePlan = async () => {
+  if (!planToDelete.value || !planToDelete.value.id) return;
+  
+  deleting.value = true;
+  
+  try {
+    const result = await plansStore.deletePlan(planToDelete.value.id);
+    
+    if (result.success) {
+      showDeleteConfirm.value = false;
+      // Implementar notificação de sucesso
+    } else {
+      // Implementar notificação de erro
+      console.error('Erro ao excluir plano:', result.error);
+    }
+  } catch (error) {
+    console.error('Erro ao excluir plano:', error);
+    // Implementar notificação de erro
+  } finally {
+    deleting.value = false;
+  }
+};
+
+// Lifecycle hooks
+onMounted(() => {
+  fetchPlans();
+});
 </script>

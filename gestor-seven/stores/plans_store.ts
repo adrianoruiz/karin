@@ -1,21 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { API_CONFIG } from '~/config/constants';
 import { useAuthStore } from './auth';
-
-// Definição da interface para o tipo Plan
-interface Plan {
-  id?: number;
-  user_id?: number;
-  doctor_id?: number;
-  name: string;
-  modality: 'online' | 'presencial';
-  type: 'consulta_avulsa' | 'pacote';
-  consultations: number | null;
-  price: number;
-  installments: number;
-  link: string | null;
-}
+import { plansRepository, type Plan } from '~/repositories/plans_repository';
 
 export const usePlansStore = defineStore('plans', () => {
   // Estado
@@ -46,26 +32,17 @@ export const usePlansStore = defineStore('plans', () => {
       loading.value = true;
       error.value = null;
       
-      // Adicionar doctor_id como parâmetro de consulta
+      // Obter o ID do médico logado
       const doctorId = auth.user?.id;
-      const url = `${API_CONFIG.BASE_URL}plans?doctor_id=${doctorId}`;
       
-      console.log('Buscando planos com URL:', url);
-      
-      const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${auth.token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Erro ao buscar planos:', errorData);
-        throw new Error(errorData.error || 'Falha ao carregar planos');
+      if (!doctorId) {
+        throw new Error('Usuário não autenticado');
       }
-
-      const data = await response.json();
-      plans.value = data.data || [];
+      
+      console.log('Buscando planos para o médico:', doctorId);
+      
+      // Usar o repositório para buscar os planos
+      plans.value = await plansRepository.getPlans(doctorId);
       console.log('Planos carregados:', plans.value);
     } catch (err: any) {
       console.error('Erro ao buscar planos:', err);
@@ -91,25 +68,11 @@ export const usePlansStore = defineStore('plans', () => {
       
       console.log('Enviando plano:', planData);
       
-      const url = isEditing 
-        ? `${API_CONFIG.BASE_URL}plans/${plan.id}` 
-        : `${API_CONFIG.BASE_URL}plans`;
-      
-      const method = isEditing ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${auth.token}`,
-        },
-        body: JSON.stringify(planData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Erro da API:', errorData);
-        throw new Error(errorData.error || (isEditing ? 'Falha ao atualizar plano' : 'Falha ao criar plano'));
+      // Usar o repositório para salvar o plano
+      if (isEditing) {
+        await plansRepository.updatePlan(planData);
+      } else {
+        await plansRepository.createPlan(planData);
       }
 
       // Atualizar a lista de planos
@@ -131,22 +94,15 @@ export const usePlansStore = defineStore('plans', () => {
       loading.value = true;
       error.value = null;
       
-      // Adicionar doctor_id como parâmetro de consulta
+      // Obter o ID do médico logado
       const doctorId = auth.user?.id;
-      const url = `${API_CONFIG.BASE_URL}plans/${planId}?doctor_id=${doctorId}`;
       
-      const response = await fetch(url, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${auth.token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Erro ao excluir plano:', errorData);
-        throw new Error(errorData.error || 'Falha ao excluir plano');
+      if (!doctorId) {
+        throw new Error('Usuário não autenticado');
       }
+      
+      // Usar o repositório para excluir o plano
+      await plansRepository.deletePlan(planId, doctorId);
 
       // Atualizar a lista de planos
       await fetchPlans();

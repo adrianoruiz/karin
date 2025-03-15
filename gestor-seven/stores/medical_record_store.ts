@@ -1,11 +1,37 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
+// Definição da interface para medicação
+interface Medication {
+  name: string;
+  dosage: string;
+  frequency: string;
+  duration: string;
+}
+
+// Definição da interface para o prontuário médico
+interface MedicalRecord {
+  date: string;
+  appointmentType: string;
+  mainComplaint: string;
+  diseaseHistory: string;
+  physicalExam: string;
+  diagnosis: string;
+  medications: Medication[];
+}
+
+// Definição da interface para o paciente (ajuste conforme necessário)
+interface Patient {
+  id?: number;
+  name?: string;
+  [key: string]: any; // Para permitir outras propriedades
+}
+
 export const useMedicalRecordStore = defineStore('medical_record', () => {
   // Estado
   const isOpen = ref(false);
-  const patient = ref(null);
-  const medicalRecord = ref({
+  const patient = ref<Patient | null>(null);
+  const medicalRecord = ref<MedicalRecord>({
     date: '',
     appointmentType: '',
     mainComplaint: '',
@@ -16,7 +42,7 @@ export const useMedicalRecordStore = defineStore('medical_record', () => {
   });
 
   // Ações
-  function openPanel(patientData) {
+  function openPanel(patientData: Patient | null) {
     patient.value = patientData;
     
     // Dados de exemplo para o prontuário
@@ -51,11 +77,24 @@ export const useMedicalRecordStore = defineStore('medical_record', () => {
     patient.value = null;
   }
 
+  function resetMedicalRecord() {
+    medicalRecord.value = {
+      date: '',
+      appointmentType: '',
+      mainComplaint: '',
+      diseaseHistory: '',
+      physicalExam: '',
+      diagnosis: '',
+      medications: []
+    };
+  }
+
   return {
     isOpen,
     patient,
     medicalRecord,
     openPanel,
-    closePanel
+    closePanel,
+    resetMedicalRecord
   };
 });
