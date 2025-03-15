@@ -22,6 +22,7 @@ return new class extends Migration
             $table->integer('consultations')->nullable(); // Quantidade de consultas/sessões (para pacotes)
             $table->decimal('price', 8, 2);
             $table->integer('installments'); // Número máximo de parcelas
+            $table->string('link')->nullable(); // link de pagamento
             $table->timestamps();
 
             // Define a relação com a tabela users (doctor)
