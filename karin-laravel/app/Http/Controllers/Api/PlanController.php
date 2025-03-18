@@ -22,7 +22,7 @@ class PlanController extends Controller
             return response()->json(['error' => 'doctor_id é obrigatório'], 400);
         }
 
-        $plans = Plan::where('user_id', $doctorId)->get();
+        $plans = Plan::where('user_id', $doctorId)->paginate(20);
         return response()->json($plans);
     }
 

@@ -105,9 +105,9 @@
           <div class="p-5">
             <!-- Preço -->
             <div class="flex items-baseline mb-4">
-              <span class="text-2xl font-bold text-blue-600">R$ {{ plan.price.toFixed(2).replace('.', ',') }}</span>
+              <span class="text-2xl font-bold text-blue-600">R$ {{ Number(plan.price).toFixed(2).replace('.', ',') }}</span>
               <span class="text-gray-500 ml-2 text-sm">
-                {{ plan.type === 'pacote' ? `${plan.installments}x de R$ ${(plan.price / plan.installments).toFixed(2).replace('.', ',')}` : '' }}
+                {{ plan.type === 'pacote' ? `${plan.installments}x de R$ ${(Number(plan.price) / plan.installments).toFixed(2).replace('.', ',')}` : '' }}
               </span>
             </div>
             
@@ -400,9 +400,22 @@ const tabs = [
 
 // Computed
 const filteredPlans = computed(() => {
-  return activeTab.value === 'online'
+  console.log('Todos os planos na store:', plansStore.plans);
+  console.log('Planos online:', plansStore.onlinePlans);
+  console.log('Planos presenciais:', plansStore.presencialPlans);
+  console.log('Tab ativa:', activeTab.value);
+  
+  const result = activeTab.value === 'online'
     ? plansStore.onlinePlans
     : plansStore.presencialPlans;
+  
+  console.log('Planos filtrados para exibição:', result);
+  
+  if (result.length === 0) {
+    console.log('ATENÇÃO: Nenhum plano encontrado para exibição!');
+  }
+  
+  return result;
 });
 
 const loading = computed(() => plansStore.loading);
@@ -412,9 +425,32 @@ const currentPlan = computed(() => plansStore.currentPlan);
 const fetchPlans = async () => {
   try {
     await plansStore.fetchPlans();
+    testDirectApiCall();
   } catch (error) {
     console.error('Erro ao buscar planos:', error);
     // Implementar notificação de erro
+  }
+};
+
+const testDirectApiCall = async () => {
+  try {
+    console.log('Fazendo chamada direta à API...');
+    const response = await fetch('http://localhost:8000/api/plans?doctor_id=2');
+    const data = await response.json();
+    console.log('Resposta direta da API:', data);
+    
+    if (data && data.data && Array.isArray(data.data)) {
+      console.log('A API retorna um objeto paginado com propriedade data contendo', data.data.length, 'planos');
+      
+      // Verificar os planos online e presenciais
+      const onlinePlans = data.data.filter(plan => plan.modality === 'online');
+      const presencialPlans = data.data.filter(plan => plan.modality === 'presencial');
+      
+      console.log('Planos online na resposta direta:', onlinePlans);
+      console.log('Planos presenciais na resposta direta:', presencialPlans);
+    }
+  } catch (error) {
+    console.error('Erro na chamada direta à API:', error);
   }
 };
 

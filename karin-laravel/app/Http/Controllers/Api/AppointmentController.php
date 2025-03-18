@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\Validator;
 
 use App\Models\{
     Appointment,
+    DoctorAvailability,
     User,
-    UserData,
-    DoctorAvailability
+    UserData
 };
 
 
@@ -24,7 +24,7 @@ class AppointmentController extends Controller
      */
     public function index()
     {
-        $appointments = Appointment::with(['user', 'doctor'])->get();
+        $appointments = Appointment::with(['user', 'doctor'])->paginate(20);
         
         return response()->json([
             'appointments' => $appointments

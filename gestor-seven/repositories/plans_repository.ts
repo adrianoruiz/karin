@@ -33,8 +33,24 @@ export class PlansRepository extends AbstractHttp {
    */
   async getPlans(doctorId: number): Promise<Plan[]> {
     try {
-      const response = await this.get<ApiResponse<Plan[]>>(`plans?doctor_id=${doctorId}`);
-      return response.data || [];
+      console.log('Chamando API para buscar planos do médico:', doctorId);
+      const response = await this.get(`plans?doctor_id=${doctorId}`);
+      console.log('Resposta da API recebida');
+      
+      // Verificar se é uma resposta paginada do Laravel (com current_page, data, etc.)
+      if (response && typeof response === 'object' && 'data' in response && Array.isArray(response.data)) {
+        console.log(`Resposta é um objeto paginado do Laravel com ${response.data.length} planos`);
+        return response.data;
+      }
+      
+      // Verificar se é um array direto
+      if (Array.isArray(response)) {
+        console.log(`Resposta é um array direto com ${response.length} planos`);
+        return response;
+      }
+      
+      console.warn('Formato de resposta não reconhecido');
+      return [];
     } catch (error: any) {
       console.error('Erro ao buscar planos:', error);
       throw new Error(error.response?.data?.error || 'Falha ao carregar planos');

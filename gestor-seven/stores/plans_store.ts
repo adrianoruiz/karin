@@ -19,10 +19,33 @@ export const usePlansStore = defineStore('plans', () => {
   });
 
   // Getters
-  const onlinePlans = computed(() => plans.value.filter(plan => plan.modality === 'online'));
-  const presencialPlans = computed(() => plans.value.filter(plan => plan.modality === 'presencial'));
-  const avulsaPlans = computed(() => plans.value.filter(plan => plan.type === 'consulta_avulsa'));
-  const pacotePlans = computed(() => plans.value.filter(plan => plan.type === 'pacote'));
+  const onlinePlans = computed(() => {
+    console.log('Calculando planos online a partir de:', plans.value);
+    const filtered = plans.value.filter(plan => plan.modality === 'online');
+    console.log('Planos online filtrados:', filtered);
+    return filtered;
+  });
+  
+  const presencialPlans = computed(() => {
+    console.log('Calculando planos presenciais a partir de:', plans.value);
+    const filtered = plans.value.filter(plan => plan.modality === 'presencial');
+    console.log('Planos presenciais filtrados:', filtered);
+    return filtered;
+  });
+  
+  const avulsaPlans = computed(() => {
+    console.log('Calculando planos de consulta avulsa a partir de:', plans.value);
+    const filtered = plans.value.filter(plan => plan.type === 'consulta_avulsa');
+    console.log('Planos de consulta avulsa filtrados:', filtered);
+    return filtered;
+  });
+  
+  const pacotePlans = computed(() => {
+    console.log('Calculando planos de pacote a partir de:', plans.value);
+    const filtered = plans.value.filter(plan => plan.type === 'pacote');
+    console.log('Planos de pacote filtrados:', filtered);
+    return filtered;
+  });
 
   // Actions
   async function fetchPlans() {
@@ -33,17 +56,26 @@ export const usePlansStore = defineStore('plans', () => {
       error.value = null;
       
       // Obter o ID do médico logado
-      const doctorId = auth.user?.id;
+      let doctorId = auth.user?.id;
       
+      // TEMPORÁRIO: Para fins de teste, usar o ID 2 diretamente
       if (!doctorId) {
-        throw new Error('Usuário não autenticado');
+        console.log('Usuário não autenticado, usando ID 2 para teste');
+        doctorId = 2;
+      } else {
+        console.log('Usuário autenticado com ID:', doctorId);
       }
       
       console.log('Buscando planos para o médico:', doctorId);
       
       // Usar o repositório para buscar os planos
-      plans.value = await plansRepository.getPlans(doctorId);
-      console.log('Planos carregados:', plans.value);
+      const result = await plansRepository.getPlans(doctorId);
+      console.log('Planos recebidos do repositório:', result);
+      
+      plans.value = result;
+      console.log('Planos armazenados na store:', plans.value);
+      console.log('Planos online:', onlinePlans.value);
+      console.log('Planos presenciais:', presencialPlans.value);
     } catch (err: any) {
       console.error('Erro ao buscar planos:', err);
       error.value = err.message || 'Erro ao buscar planos';
