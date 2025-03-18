@@ -56,76 +56,80 @@
       </div>
 
       <!-- Lista de planos -->
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div 
+        v-if="!loading && !plansStore.error && filteredPlans.length > 0"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6"
+      >
+        <!-- Card para cada plano -->
         <div
-          v-for="(plan, index) in filteredPlans"
-          :key="index"
-          class="bg-white rounded-lg shadow-sm p-5 border border-gray-100 hover:shadow-md transition-shadow"
+          v-for="plan in filteredPlans"
+          :key="plan.id"
+          class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
         >
-          <div class="flex justify-between items-start mb-3">
-            <h3 class="text-lg font-semibold text-gray-800">{{ plan.name }}</h3>
-            <div class="flex space-x-2">
-              <button
-                @click="editPlan(plan)"
-                class="text-gray-500 hover:text-blue-600 transition-colors"
-              >
-                <Edit size="18" />
-              </button>
-              <button
-                @click="confirmDelete(plan)"
-                class="text-gray-500 hover:text-red-600 transition-colors"
-              >
-                <Trash size="18" />
-              </button>
+          <!-- Cabeçalho do card -->
+          <div class="p-5 border-b border-gray-100">
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ plan.name }}</h3>
+                <Badge 
+                  :color="plan.modality === 'online' ? 'blue' : 'green'"
+                  class="mb-2"
+                >
+                  {{ plan.modality === 'online' ? 'Online' : 'Presencial' }}
+                </Badge>
+                <Badge 
+                  :color="plan.type === 'consulta_avulsa' ? 'purple' : 'orange'"
+                  class="ml-2 mb-2"
+                >
+                  {{ plan.type === 'consulta_avulsa' ? 'Consulta Avulsa' : 'Pacote' }}
+                </Badge>
+              </div>
+              <div class="flex space-x-2">
+                <button
+                  @click="editPlan(plan)"
+                  class="text-gray-500 hover:text-blue-600 transition-colors p-1 rounded-full hover:bg-blue-50"
+                >
+                  <Edit size="18" />
+                </button>
+                <button
+                  @click="confirmDelete(plan)"
+                  class="text-gray-500 hover:text-red-600 transition-colors p-1 rounded-full hover:bg-red-50"
+                >
+                  <Trash size="18" />
+                </button>
+              </div>
             </div>
           </div>
-
-          <div class="space-y-2 text-sm text-gray-600">
-            <div class="flex items-center">
-              <Badge
-                :class="`mr-2 ${
-                  plan.modality === 'online'
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-blue-100 text-blue-800'
-                }`"
-              >
-                {{ plan.modality === "online" ? "Online" : "Presencial" }}
-              </Badge>
-              <Badge
-                :class="`${
-                  plan.type === 'pacote'
-                    ? 'bg-purple-100 text-purple-800'
-                    : 'bg-gray-100 text-gray-800'
-                }`"
-              >
-                {{ plan.type === "pacote" ? "Pacote" : "Consulta Avulsa" }}
-              </Badge>
-            </div>
-
-            <div class="flex items-center">
-              <DollarSign size="16" class="mr-1" />
-              <span class="font-medium text-gray-800">
-                R$ {{ formatCurrency(plan.price) }}
-              </span>
-              <span v-if="plan.installments > 1" class="ml-1">
-                em até {{ plan.installments }}x
+          
+          <!-- Corpo do card -->
+          <div class="p-5">
+            <!-- Preço -->
+            <div class="flex items-baseline mb-4">
+              <span class="text-2xl font-bold text-blue-600">R$ {{ plan.price.toFixed(2).replace('.', ',') }}</span>
+              <span class="text-gray-500 ml-2 text-sm">
+                {{ plan.type === 'pacote' ? `${plan.installments}x de R$ ${(plan.price / plan.installments).toFixed(2).replace('.', ',')}` : '' }}
               </span>
             </div>
-
-            <div v-if="plan.type === 'pacote'" class="flex items-center">
-              <Calendar size="16" class="mr-1" />
-              <span>{{ plan.consultations }} consultas</span>
-            </div>
-
-            <div v-if="plan.link" class="flex items-center mt-2">
-              <a
-                :href="plan.link"
-                target="_blank"
-                class="text-blue-600 hover:text-blue-800 flex items-center"
-              >
-                <ExternalLink size="16" class="mr-1" />
-                Link de pagamento
-              </a>
+            
+            <!-- Detalhes do plano -->
+            <div class="space-y-3">
+              <!-- Número de consultas (se for pacote) -->
+              <div v-if="plan.type === 'pacote'" class="flex items-center text-gray-600">
+                <CalendarClock size="18" class="mr-2 text-gray-400" />
+                <span>{{ plan.consultations }} consultas</span>
+              </div>
+              
+              <!-- Parcelamento -->
+              <div v-if="plan.type === 'pacote'" class="flex items-center text-gray-600">
+                <CreditCard size="18" class="mr-2 text-gray-400" />
+                <span>Parcelamento em {{ plan.installments }}x</span>
+              </div>
+              
+              <!-- Data de criação -->
+              <div class="flex items-center text-gray-500 text-sm">
+                <Clock size="14" class="mr-2 text-gray-400" />
+                <span>Criado em {{ new Date(plan.created_at).toLocaleDateString('pt-BR') }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -137,6 +141,27 @@
         >
           <Plus size="24" />
           <span class="mt-2 font-medium">Adicionar Plano</span>
+        </div>
+      </div>
+
+      <!-- Mensagem quando não há planos -->
+      <div
+        v-if="!loading && !plansStore.error && filteredPlans.length === 0"
+        class="bg-white rounded-lg shadow-sm p-8 mt-6 text-center"
+      >
+        <div class="flex flex-col items-center justify-center">
+          <CalendarX size="48" class="text-gray-300 mb-4" />
+          <h3 class="text-lg font-medium text-gray-700 mb-2">Nenhum plano encontrado</h3>
+          <p class="text-gray-500 mb-4">
+            Você ainda não cadastrou nenhum plano {{ activeTab === 'online' ? 'online' : 'presencial' }}.
+          </p>
+          <button
+            @click="openModal"
+            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 inline-flex items-center"
+          >
+            <Plus size="18" class="mr-1" />
+            Adicionar Plano
+          </button>
         </div>
       </div>
 
@@ -337,6 +362,10 @@
 <script setup>
 import {
   Calendar,
+  CalendarClock,
+  CalendarX,
+  Clock,
+  CreditCard,
   DollarSign,
   Edit,
   ExternalLink,
@@ -362,6 +391,12 @@ const planToDelete = ref(null);
 const saving = ref(false);
 const deleting = ref(false);
 const isEditing = ref(false);
+
+// Definição das tabs
+const tabs = [
+  { label: "Online", value: "online" },
+  { label: "Presencial", value: "presencial" }
+];
 
 // Computed
 const filteredPlans = computed(() => {
