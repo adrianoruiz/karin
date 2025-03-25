@@ -5,8 +5,10 @@ const config = require('../../config');
 const { formatPhoneNumber } = require('./formattedNumber');
 const { getChatGPTResponse, getAvailableAppointments, getPlans } = require('./gpt');
 const { transcribeAudio, downloadAudio, processAudioMessage } = require('./ai/audioService');
+const { textToSpeech, cleanupTempAudioFiles } = require('./ai/speechService');
 const fs = require('fs');
 const path = require('path');
+const { MessageMedia } = require('whatsapp-web.js');
 
 const greetingCache = new NodeCache({ stdTTL: config.greetingCacheTTL });
 const conversationCache = new NodeCache({ stdTTL: 3600 }); // Cache para armazenar histórico de conversas (1 hora)
@@ -356,10 +358,10 @@ async function setupWhatsAppListeners(client, petshopId) {
                 
                 // Processar o áudio usando a função do audioService
                 try {
-                    await processAudioMessage(message, nome, phoneNumber, petshopId, client, processMessageWithGPT);
+                    await processAudioMessage(message, nome, phoneNumber, petshopId, client, processMessageWithGPT, sendWhatsAppMessage);
                 } catch (error) {
                     console.error('Erro ao processar mensagem de áudio:', error);
-                    await client.sendMessage(message.from, "Desculpe, não consegui processar seu áudio. Poderia enviar sua mensagem em texto?");
+                    await sendWhatsAppMessage(client, phoneNumber, "Desculpe, não consegui processar seu áudio. Poderia enviar sua mensagem em texto?", petshopId);
                 }
                 return;
             }
@@ -370,7 +372,7 @@ async function setupWhatsAppListeners(client, petshopId) {
                 const cacheKey = createCacheKey(petshopId, phoneNumber);
                 greetingCache.del(cacheKey);
                 console.log(`Estado de saudação resetado para o número: ${phoneNumber} no petshop ${petshopId}`);
-                await client.sendMessage(message.from, 'Seu estado de saudação foi resetado. Você receberá a próxima saudação.');
+                await sendWhatsAppMessage(client, phoneNumber, 'Seu estado de saudação foi resetado. Você receberá a próxima saudação.', petshopId);
                 return;
             }
 
@@ -406,7 +408,7 @@ async function setupWhatsAppListeners(client, petshopId) {
                     console.log(`Resposta do ChatGPT: "${gptResponse}"`);
                     
                     // Enviar resposta ao usuário
-                    await client.sendMessage(message.from, gptResponse);
+                    await sendWhatsAppMessage(client, phoneNumber, gptResponse, petshopId);
                     console.log(`Resposta enviada para ${phoneNumber}`);
                 } catch (error) {
                     console.error('Erro ao processar mensagem com ChatGPT:', error);
@@ -469,7 +471,40 @@ async function sendWhatsAppMessage(client, number, message, petshopId) {
     const formattedNumber = formatPhoneNumber(number);
     console.log(`Enviando mensagem para: ${formattedNumber}`);
     try {
-        const response = await client.sendMessage(formattedNumber, message);
+        let response;
+        
+        // Verificar se deve usar resposta por voz
+        if (config.useVoiceResponse) {
+            try {
+                console.log('Usando resposta por voz para a mensagem');
+                
+                // Converter texto em áudio
+                const audioFilePath = await textToSpeech(message);
+                
+                // Criar objeto MessageMedia a partir do arquivo de áudio
+                const audioData = fs.readFileSync(audioFilePath);
+                const audioBase64 = audioData.toString('base64');
+                const audioMedia = new MessageMedia('audio/mp3', audioBase64, 'audio_response.mp3');
+                
+                // Enviar áudio como resposta
+                response = await client.sendMessage(formattedNumber, audioMedia, {
+                    sendAudioAsVoice: true
+                });
+                
+                // Limpar arquivos temporários mais antigos que 30 minutos
+                cleanupTempAudioFiles(30);
+                
+                console.log('Mensagem de áudio enviada com sucesso');
+            } catch (error) {
+                console.error('Erro ao enviar mensagem de áudio, enviando como texto:', error);
+                // Fallback para texto em caso de erro
+                response = await client.sendMessage(formattedNumber, message);
+            }
+        } else {
+            // Enviar como texto normalmente
+            response = await client.sendMessage(formattedNumber, message);
+        }
+        
         console.log('Mensagem enviada com sucesso:', response);
         return { status: 'success', message: 'Mensagem enviada', response };
     } catch (err) {

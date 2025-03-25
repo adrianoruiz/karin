@@ -155,9 +155,10 @@ function getBasicFallbackResponse(text) {
  * @param {number} petshopId - ID do petshop
  * @param {object} client - Cliente do WhatsApp
  * @param {function} processMessageWithGPT - Função para processar mensagem com GPT
+ * @param {function} sendWhatsAppMessage - Função para enviar mensagem do WhatsApp
  * @returns {Promise<void>}
  */
-async function processAudioMessage(message, nome, phoneNumber, petshopId, client, processMessageWithGPT) {
+async function processAudioMessage(message, nome, phoneNumber, petshopId, client, processMessageWithGPT, sendWhatsAppMessage) {
     let audioPath = null;
     
     try {
@@ -174,8 +175,13 @@ async function processAudioMessage(message, nome, phoneNumber, petshopId, client
         // Processar o texto transcrito com o ChatGPT
         const gptResponse = await processMessageWithGPT(transcription, nome, phoneNumber, petshopId);
         
-        // Enviar resposta ao usuário
-        await client.sendMessage(message.from, gptResponse);
+        // Enviar resposta ao usuário usando o serviço de WhatsApp que suporta voz
+        if (sendWhatsAppMessage) {
+            await sendWhatsAppMessage(client, phoneNumber, gptResponse, petshopId);
+        } else {
+            // Fallback para o método antigo se sendWhatsAppMessage não for fornecido
+            await client.sendMessage(message.from, gptResponse);
+        }
         
         return gptResponse;
     } catch (error) {
@@ -190,7 +196,13 @@ async function processAudioMessage(message, nome, phoneNumber, petshopId, client
                 const fallbackResponse = getBasicFallbackResponse(fallbackTranscription);
                 
                 if (fallbackResponse) {
-                    await client.sendMessage(message.from, fallbackResponse);
+                    // Enviar resposta de fallback
+                    if (sendWhatsAppMessage) {
+                        await sendWhatsAppMessage(client, phoneNumber, fallbackResponse, petshopId);
+                    } else {
+                        // Fallback para o método antigo
+                        await client.sendMessage(message.from, fallbackResponse);
+                    }
                     return fallbackResponse;
                 }
             } catch (fallbackError) {
@@ -199,15 +211,25 @@ async function processAudioMessage(message, nome, phoneNumber, petshopId, client
         }
         
         if (client) {
-            await client.sendMessage(message.from, errorMessage);
+            // Enviar mensagem de erro
+            if (sendWhatsAppMessage) {
+                await sendWhatsAppMessage(client, phoneNumber, errorMessage, petshopId);
+            } else {
+                // Fallback para o método antigo
+                await client.sendMessage(message.from, errorMessage);
+            }
         }
         
         throw error;
     } finally {
-        // Remover arquivo temporário
+        // Limpar o arquivo de áudio após o processamento
         if (audioPath && fs.existsSync(audioPath)) {
-            fs.unlinkSync(audioPath);
-            console.log(`Arquivo temporário removido: ${audioPath}`);
+            try {
+                fs.unlinkSync(audioPath);
+                console.log(`Arquivo de áudio removido: ${audioPath}`);
+            } catch (unlinkError) {
+                console.error('Erro ao remover arquivo de áudio:', unlinkError);
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\{
     Api\AppointmentController,
     Api\AuthController,
+    Api\ChatLogController,
     Api\DoctorAvailabilityController,
     Api\PlanController,
     Api\WhatsappController,
@@ -97,6 +98,13 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('plans', PlanController::class);
     Route::prefix('availabilities')->group(function () {
         Route::post('/recurring', [DoctorAvailabilityController::class, 'storeRecurring']);
+    });
+
+    // Rotas para gerenciamento de logs de chat
+    Route::apiResource('chat-logs', ChatLogController::class);
+    Route::prefix('chat-logs')->group(function () {
+        Route::get('/unread/messages', [ChatLogController::class, 'unread']);
+        Route::post('/mark-all-as-read', [ChatLogController::class, 'markAllAsRead']);
     });
 });
 
