@@ -4,6 +4,7 @@ const fs = require('fs');
 const FormData = require('form-data');
 require('dotenv').config();
 const getSystemMessage = require('./ai/systemMessage');
+const { transcribeAudio } = require('./ai/audioService');
 const config = require('../../config');
 
 // Definição do esquema da função para consulta de disponibilidade
@@ -74,38 +75,6 @@ async function getChatGPTResponse(messages, nome) {
     } catch (error) {
         console.error('Erro ao obter resposta do ChatGPT:', error);
         return { content: "Desculpe, houve um erro ao processar sua solicitação. Por favor, tente novamente mais tarde." };
-    }
-}
-
-/**
- * Transcreve um arquivo de áudio usando a API Whisper da OpenAI
- * @param {string} audioPath - Caminho para o arquivo de áudio
- * @returns {Promise<string>} - Texto transcrito do áudio
- */
-async function transcribeAudio(audioPath) {
-    const apiKey = process.env.OPENAI_API_KEY;
-    
-    try {
-        const formData = new FormData();
-        formData.append('file', fs.createReadStream(audioPath));
-        formData.append('model', 'whisper-1');
-        formData.append('language', 'pt');
-        
-        const response = await axios.post(
-            'https://api.openai.com/v1/audio/transcriptions',
-            formData,
-            {
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    ...formData.getHeaders()
-                }
-            }
-        );
-        
-        return response.data.text;
-    } catch (error) {
-        console.error('Erro ao transcrever áudio:', error);
-        throw error;
     }
 }
 

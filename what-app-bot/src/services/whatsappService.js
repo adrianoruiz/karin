@@ -3,7 +3,8 @@ const axios = require('axios');
 const NodeCache = require('node-cache');
 const config = require('../../config');
 const { formatPhoneNumber } = require('./formattedNumber');
-const { getChatGPTResponse, transcribeAudio, getAvailableAppointments, getPlans } = require('./gpt');
+const { getChatGPTResponse, getAvailableAppointments, getPlans } = require('./gpt');
+const { transcribeAudio, downloadAudio, processAudioMessage } = require('./ai/audioService');
 const fs = require('fs');
 const path = require('path');
 
@@ -264,63 +265,7 @@ async function processMessageWithGPT(message, nome, phoneNumber, petshopId) {
     }
 }
 
-async function downloadAudio(message) {
-    try {
-        // Criar diretório para arquivos temporários se não existir
-        const tempDir = path.join(__dirname, '../../temp');
-        if (!fs.existsSync(tempDir)) {
-            fs.mkdirSync(tempDir, { recursive: true });
-        }
-        
-        // Gerar nome de arquivo único
-        const fileName = `audio_${Date.now()}_${Math.floor(Math.random() * 10000)}.ogg`;
-        const filePath = path.join(tempDir, fileName);
-        
-        // Baixar mídia
-        const media = await message.downloadMedia();
-        if (!media) {
-            throw new Error('Não foi possível baixar a mídia');
-        }
-        
-        // Salvar arquivo
-        fs.writeFileSync(filePath, Buffer.from(media.data, 'base64'));
-        console.log(`Áudio salvo em: ${filePath}`);
-        
-        return filePath;
-    } catch (error) {
-        console.error('Erro ao baixar áudio:', error);
-        throw error;
-    }
-}
-
-async function processAudioMessage(message, nome, phoneNumber, petshopId, client) {
-    try {
-        // Enviar mensagem de confirmação
-        // await client.sendMessage(message.from, "Estou ouvindo seu áudio, aguarde um momento...");
-        
-        // Baixar o arquivo de áudio
-        const audioPath = await downloadAudio(message);
-        
-        // Transcrever o áudio
-        const transcription = await transcribeAudio(audioPath);
-        console.log(`Transcrição: "${transcription}"`);
-        
-        // Processar o texto transcrito com o ChatGPT
-        const gptResponse = await processMessageWithGPT(transcription, nome, phoneNumber, petshopId);
-        
-        // Enviar resposta ao usuário
-        await client.sendMessage(message.from, gptResponse);
-        
-        // Remover arquivo temporário
-        fs.unlinkSync(audioPath);
-        console.log(`Arquivo temporário removido: ${audioPath}`);
-    } catch (error) {
-        console.error('Erro ao processar mensagem de áudio:', error);
-        await client.sendMessage(message.from, "Desculpe, não consegui processar seu áudio. Poderia enviar sua mensagem em texto?");
-    }
-}
-
-function setupWhatsAppListeners(client, petshopId) {
+async function setupWhatsAppListeners(client, petshopId) {
     console.log(`Configurando listeners do WhatsApp para petshop ${petshopId}`);
 
     client.on('ready', () => {
@@ -409,8 +354,13 @@ function setupWhatsAppListeners(client, petshopId) {
                     }
                 }
                 
-                // Processar o áudio
-                await processAudioMessage(message, nome, phoneNumber, petshopId, client);
+                // Processar o áudio usando a função do audioService
+                try {
+                    await processAudioMessage(message, nome, phoneNumber, petshopId, client, processMessageWithGPT);
+                } catch (error) {
+                    console.error('Erro ao processar mensagem de áudio:', error);
+                    await client.sendMessage(message.from, "Desculpe, não consegui processar seu áudio. Poderia enviar sua mensagem em texto?");
+                }
                 return;
             }
 
