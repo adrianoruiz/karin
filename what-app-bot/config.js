@@ -10,7 +10,7 @@ module.exports = {
     voiceSettings: {
         model: 'gpt-4o-mini-tts',
         voice: 'alloy', // Opções: alloy, echo, fable, onyx, nova, shimmer
-        instructions: "Fale em um tom amigável e profissional, como uma secretária virtual. Pronuncie claramente, com pausas naturais e um ritmo conversacional."
+        instructions: "Fale em um tom amigável e profissional, uma voz de 21 anos, como uma secretária simpática, muito humana e natural. Pronuncie claramente, com pausas naturais e um ritmo conversacional."
     },
     reactLink: desenv
         ? 'drakarin.com.br'
