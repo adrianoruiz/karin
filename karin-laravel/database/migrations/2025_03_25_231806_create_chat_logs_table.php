@@ -4,6 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+
+
 return new class extends Migration
 {
     /**
@@ -13,7 +15,8 @@ return new class extends Migration
     {
         Schema::create('chat_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->comment('ID do paciente')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->nullable()->comment('ID do paciente (se estiver cadastrado)')->references('id')->on('users')->onDelete('cascade');
+            $table->string('phone_user')->comment('Número de telefone do WhatsApp do paciente');
             $table->foreignId('doctor_id')->comment('ID do médico')->references('id')->on('users')->onDelete('cascade');
             $table->enum('message_type', ['text', 'audio', 'image', 'file'])->default('text')->comment('Tipo de mensagem');
             $table->enum('sender_type', ['user', 'doctor'])->comment('Quem enviou a mensagem');
@@ -26,7 +29,8 @@ return new class extends Migration
             $table->timestamps();
             
             // Índices para otimização de consultas
-            $table->index(['user_id', 'doctor_id']);
+            $table->index(['phone_user', 'doctor_id']);
+            $table->index('user_id');
             $table->index('created_at');
         });
     }

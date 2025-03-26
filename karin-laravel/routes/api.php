@@ -100,13 +100,20 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/recurring', [DoctorAvailabilityController::class, 'storeRecurring']);
     });
 
-    // Rotas para gerenciamento de logs de chat
-    Route::apiResource('chat-logs', ChatLogController::class);
-    Route::prefix('chat-logs')->group(function () {
-        Route::get('/unread/messages', [ChatLogController::class, 'unread']);
-        Route::post('/mark-all-as-read', [ChatLogController::class, 'markAllAsRead']);
-    });
 });
+
+
+
+// Rotas para gerenciamento de logs de chat
+//Todo voltar a testar com rota autenticada
+Route::apiResource('chat-logs', ChatLogController::class);
+Route::prefix('chat-logs')->group(function () {
+    Route::get('/unread/messages', [ChatLogController::class, 'getUnreadMessages']);
+    Route::post('/mark-all-as-read', [ChatLogController::class, 'markAllAsRead']);
+});
+
+// Rota pública para teste de chat-logs
+// Route::post('chat-logs-test', [ChatLogController::class, 'store']);
 
 Route::get('availabilities', [DoctorAvailabilityController::class, 'index']);
 Route::get('plans', [PlanController::class, 'index']);

@@ -177,7 +177,8 @@ async function processAudioMessage(message, nome, phoneNumber, petshopId, client
         
         // Enviar resposta ao usuário usando o serviço de WhatsApp que suporta voz
         if (sendWhatsAppMessage) {
-            await sendWhatsAppMessage(client, phoneNumber, gptResponse, petshopId);
+            // Passando true como último parâmetro para indicar que é uma resposta a uma mensagem de áudio
+            await sendWhatsAppMessage(client, phoneNumber, gptResponse, petshopId, true);
         } else {
             // Fallback para o método antigo se sendWhatsAppMessage não for fornecido
             await client.sendMessage(message.from, gptResponse);
@@ -198,7 +199,8 @@ async function processAudioMessage(message, nome, phoneNumber, petshopId, client
                 if (fallbackResponse) {
                     // Enviar resposta de fallback
                     if (sendWhatsAppMessage) {
-                        await sendWhatsAppMessage(client, phoneNumber, fallbackResponse, petshopId);
+                        // Passando true como último parâmetro para indicar que é uma resposta a uma mensagem de áudio
+                        await sendWhatsAppMessage(client, phoneNumber, fallbackResponse, petshopId, true);
                     } else {
                         // Fallback para o método antigo
                         await client.sendMessage(message.from, fallbackResponse);
@@ -213,7 +215,8 @@ async function processAudioMessage(message, nome, phoneNumber, petshopId, client
         if (client) {
             // Enviar mensagem de erro
             if (sendWhatsAppMessage) {
-                await sendWhatsAppMessage(client, phoneNumber, errorMessage, petshopId);
+                // Passando true como último parâmetro para indicar que é uma resposta a uma mensagem de áudio
+                await sendWhatsAppMessage(client, phoneNumber, errorMessage, petshopId, true);
             } else {
                 // Fallback para o método antigo
                 await client.sendMessage(message.from, errorMessage);

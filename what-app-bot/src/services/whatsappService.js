@@ -408,7 +408,7 @@ async function setupWhatsAppListeners(client, petshopId) {
                     console.log(`Resposta do ChatGPT: "${gptResponse}"`);
                     
                     // Enviar resposta ao usuário
-                    await sendWhatsAppMessage(client, phoneNumber, gptResponse, petshopId);
+                    await sendWhatsAppMessage(client, phoneNumber, gptResponse, petshopId, false);
                     console.log(`Resposta enviada para ${phoneNumber}`);
                 } catch (error) {
                     console.error('Erro ao processar mensagem com ChatGPT:', error);
@@ -467,16 +467,16 @@ async function setupWhatsAppListeners(client, petshopId) {
     });
 }
 
-async function sendWhatsAppMessage(client, number, message, petshopId) {
+async function sendWhatsAppMessage(client, number, message, petshopId, isUserAudioMessage = false) {
     const formattedNumber = formatPhoneNumber(number);
     console.log(`Enviando mensagem para: ${formattedNumber}`);
     try {
         let response;
         
-        // Verificar se deve usar resposta por voz
-        if (config.useVoiceResponse) {
+        // Verificar se deve usar resposta por voz (apenas se o usuário enviou áudio)
+        if (isUserAudioMessage) {
             try {
-                console.log('Usando resposta por voz para a mensagem');
+                console.log('Usando resposta por voz para a mensagem (usuário enviou áudio)');
                 
                 // Converter texto em áudio
                 const audioFilePath = await textToSpeech(message);

@@ -2,22 +2,26 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\User;
+use Illuminate\Database\Eloquent\{
+    Factories\HasFactory,
+    Model,
+    Relations\BelongsTo
+};
+
+
 
 class ChatLog extends Model
 {
     use HasFactory;
 
     /**
-     * Os atributos que são atribuíveis em massa.
+     * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
     protected $fillable = [
         'user_id',
+        'phone_user',
         'doctor_id',
         'message_type',
         'sender_type',
@@ -26,11 +30,11 @@ class ChatLog extends Model
         'file_name',
         'file_mime_type',
         'is_read',
-        'read_at',
+        'read_at'
     ];
 
     /**
-     * Os atributos que devem ser convertidos.
+     * The attributes that should be cast.
      *
      * @var array<string, string>
      */
@@ -42,94 +46,67 @@ class ChatLog extends Model
     ];
 
     /**
-     * Obtém o usuário (paciente) associado a esta mensagem.
+     * Get the user that owns the chat log.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class);
     }
 
     /**
-     * Obtém o médico associado a esta mensagem.
+     * Get the doctor that participated in the chat.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function doctor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'doctor_id');
     }
 
+   
+    public function scopeByPhone($query, $phone)
+    {
+        return $query->where('phone_user', $phone);
+    }
+
+   
+    public function scopeUnread($query)
+    {
+        return $query->where('is_read', false);
+    }
+
     /**
-     * Marca a mensagem como lida.
+     * Mark the message as read.
      *
-     * @return $this
+     * @return bool
      */
     public function markAsRead()
     {
-        if (!$this->is_read) {
-            $this->is_read = true;
-            $this->read_at = now();
-            $this->save();
-        }
-
-        return $this;
+        return $this->update([
+            'is_read' => true,
+            'read_at' => now(),
+        ]);
     }
 
     /**
-     * Verifica se a mensagem é do tipo texto.
+     * Check if the message is from the doctor.
      *
      * @return bool
      */
-    public function isText(): bool
-    {
-        return $this->message_type === 'text';
-    }
-
-    /**
-     * Verifica se a mensagem é do tipo áudio.
-     *
-     * @return bool
-     */
-    public function isAudio(): bool
-    {
-        return $this->message_type === 'audio';
-    }
-
-    /**
-     * Verifica se a mensagem é do tipo imagem.
-     *
-     * @return bool
-     */
-    public function isImage(): bool
-    {
-        return $this->message_type === 'image';
-    }
-
-    /**
-     * Verifica se a mensagem é do tipo arquivo.
-     *
-     * @return bool
-     */
-    public function isFile(): bool
-    {
-        return $this->message_type === 'file';
-    }
-
-    /**
-     * Verifica se a mensagem foi enviada pelo paciente.
-     *
-     * @return bool
-     */
-    public function isFromUser(): bool
-    {
-        return $this->sender_type === 'user';
-    }
-
-    /**
-     * Verifica se a mensagem foi enviada pelo médico.
-     *
-     * @return bool
-     */
-    public function isFromDoctor(): bool
+    public function isFromDoctor()
     {
         return $this->sender_type === 'doctor';
+    }
+
+    /**
+     * Check if the message is from the user/patient.
+     *
+     * @return bool
+     */
+    public function isFromUser()
+    {
+        return $this->sender_type === 'user';
     }
 }
