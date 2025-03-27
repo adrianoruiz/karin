@@ -13,7 +13,8 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\Relations\{
     HasOne,
     MorphMany,
-    MorphOne
+    MorphOne,
+    HasMany
 };
 
 
@@ -166,5 +167,15 @@ class User extends Authenticatable implements JWTSubject
     public function image(): MorphOne
     {
         return $this->morphOne(Image::class, 'imageable');
+    }
+
+    /**
+     * Relacionamento com disponibilidades do médico.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function availabilities(): HasMany
+    {
+        return $this->hasMany(DoctorAvailability::class, 'doctor_id');
     }
 }

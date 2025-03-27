@@ -65,7 +65,7 @@
         color: #e74c3c;
         margin-top: 15px;
       }
-      
+
       /* Estilos para modo de debug */
       .debug-mode {
         margin-top: 20px;
@@ -74,12 +74,12 @@
         border-radius: 5px;
         border: 1px solid #ddd;
       }
-      
+
       .debug-mode h3 {
         margin-top: 0;
         color: #2c3e50;
       }
-      
+
       #qrDebugImage {
         margin: 15px 0;
         max-width: 100%;
@@ -90,7 +90,7 @@
   <body>
     <div id="container">
       <div id="loader"></div>
-      <img id="qrCodeImage" src="" alt="QR Code para petshop" />
+      <img id="qrCodeImage" src="" alt="QR Code para clinica" />
       <div id="instructions">
         <p>Fazer login no WhatsApp usando o código QR</p>
         <ol>
@@ -108,9 +108,9 @@
         O QR Code está sendo gerado. <br />
         Por favor, aguarde...
       </div>
-      
+
       <!-- Seção de debug para renderizar QR code direto da API -->
-      <div id="debugSection" class="debug-mode" style="display: none;">
+      <div id="debugSection" class="debug-mode" style="display: none">
         <h3>Modo de Debug</h3>
         <img id="qrDebugImage" src="" alt="QR Code de Debug" />
         <p id="debugInfo"></p>
@@ -119,67 +119,78 @@
 
     <script>
       let reloadTimer;
-      
+
       // Função para obter parâmetros da URL
       function getUrlParams() {
         const params = {};
         const queryString = window.location.search.substring(1);
-        const pairs = queryString.split('&');
-        
+        const pairs = queryString.split("&");
+
         for (let i = 0; i < pairs.length; i++) {
-          const pair = pairs[i].split('=');
-          params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+          const pair = pairs[i].split("=");
+          params[decodeURIComponent(pair[0])] = decodeURIComponent(
+            pair[1] || ""
+          );
         }
-        
+
         return params;
       }
-      
+
       // Verifica se estamos no modo de debug
       const params = getUrlParams();
-      const isDebugMode = window.location.pathname.includes('/debug');
-      
+      const isDebugMode = window.location.pathname.includes("/debug");
+
       if (isDebugMode) {
-        document.getElementById('debugSection').style.display = 'block';
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('instructions').style.display = 'none';
-        
+        document.getElementById("debugSection").style.display = "block";
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("instructions").style.display = "none";
+
         // Extrair o ID da URL
-        const pathParts = window.location.pathname.split('/');
-        const idIndex = pathParts.indexOf('debug') + 1;
-        const id = idIndex < pathParts.length ? pathParts[idIndex] : '';
-        
+        const pathParts = window.location.pathname.split("/");
+        const idIndex = pathParts.indexOf("debug") + 1;
+        const id = idIndex < pathParts.length ? pathParts[idIndex] : "";
+
         if (id) {
           // Construir a URL da API
           const apiUrl = `/api/whatsapp/qr/${id}`;
-          document.getElementById('debugInfo').textContent = `Carregando QR code para ID: ${id}`;
-          
+          document.getElementById(
+            "debugInfo"
+          ).textContent = `Carregando QR code para ID: ${id}`;
+
           // Fazer a requisição para a API
           fetch(apiUrl)
-            .then(response => {
+            .then((response) => {
               if (!response.ok) {
                 throw new Error(`Erro na requisição: ${response.status}`);
               }
               return response.json();
             })
-            .then(data => {
+            .then((data) => {
               if (data.status === "success" && data.qrCode) {
-                document.getElementById('qrDebugImage').src = data.qrCode;
-                document.getElementById('debugInfo').textContent = `QR code carregado com sucesso para ID: ${id}`;
+                document.getElementById("qrDebugImage").src = data.qrCode;
+                document.getElementById(
+                  "debugInfo"
+                ).textContent = `QR code carregado com sucesso para ID: ${id}`;
               } else {
-                document.getElementById('debugInfo').textContent = `Erro: ${data.message || 'QR code não disponível'}`;
+                document.getElementById("debugInfo").textContent = `Erro: ${
+                  data.message || "QR code não disponível"
+                }`;
               }
             })
-            .catch(error => {
-              document.getElementById('debugInfo').textContent = `Erro ao carregar QR code: ${error.message}`;
+            .catch((error) => {
+              document.getElementById(
+                "debugInfo"
+              ).textContent = `Erro ao carregar QR code: ${error.message}`;
             });
         } else {
-          document.getElementById('debugInfo').textContent = 'ID não fornecido na URL';
+          document.getElementById("debugInfo").textContent =
+            "ID não fornecido na URL";
         }
       } else {
         // Comportamento normal para o modo não-debug
         async function loadQRCode() {
-          const petshopId = window.location.pathname.split("/").pop();
-          const qrEndpoint = `/qr-code/${petshopId}`;
+          const clinicaId = window.location.pathname.split("/").pop();
+          const qrEndpoint = `/qr-code/${clinicaId}`;
 
           try {
             const response = await fetch(qrEndpoint);

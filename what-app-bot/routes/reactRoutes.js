@@ -8,22 +8,22 @@ const reactionService = require('../src/services/reactionService');
  * Exemplo de chamada:
  * POST /react-click
  * {
- *    "petshopId": 123,
+ *    "clinicaId": 123,
  *    "phoneNumber": "5541987654321"
  * }
  */
 router.post('/react-click', async (req, res) => {
   try {
-    const { petshopId, phoneNumber } = req.body;
+    const { clinicaId, phoneNumber } = req.body;
 
-    if (!petshopId || !phoneNumber) {
+    if (!clinicaId || !phoneNumber) {
       return res.status(400).json({
         success: false,
-        message: 'Parâmetros petshopId e phoneNumber são obrigatórios'
+        message: 'Parâmetros clinicaId e phoneNumber são obrigatórios'
       });
     }
 
-    const result = await reactionService.reactToStoreLink(petshopId, phoneNumber);
+    const result = await reactionService.reactToStoreLink(clinicaId, phoneNumber);
     
     if (!result.success) {
       return res.status(400).json(result);

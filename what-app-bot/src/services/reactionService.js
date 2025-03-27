@@ -7,19 +7,19 @@ const config = require('../../config');
 class ReactionService {
     /**
      * Reage com um emoji de confirmação (✔) na mensagem que contém o link da loja
-     * @param {string} petshopId - ID do petshop
+     * @param {string} clinicaId - ID do clinica
      * @param {string} phoneNumber - Número do telefone do cliente
      * @returns {Promise<Result>} Resultado da operação
      */
-    async reactToStoreLink(petshopId, phoneNumber) {
+    async reactToStoreLink(clinicaId, phoneNumber) {
         try {
-            const client = await this.getWhatsAppClient(petshopId);
+            const client = await this.getWhatsAppClient(clinicaId);
             const chat = await this.getChat(client, phoneNumber);
             await this.addReactionToLinkMessage(chat);
 
             return {
                 success: true,
-                message: `Reação adicionada com sucesso para petshop ${petshopId} e número ${phoneNumber}`
+                message: `Reação adicionada com sucesso para clinica ${clinicaId} e número ${phoneNumber}`
             };
         } catch (error) {
             console.error(`Erro ao reagir à mensagem: ${error.message}`);
@@ -34,13 +34,13 @@ class ReactionService {
      * Obtém o cliente WhatsApp autenticado
      * @private
      */
-    async getWhatsAppClient(petshopId) {
-        const client = clientManager.getClient(petshopId);
+    async getWhatsAppClient(clinicaId) {
+        const client = clientManager.getClient(clinicaId);
         if (!client) {
-            throw new Error(`Cliente WhatsApp não encontrado para o petshopId: ${petshopId}`);
+            throw new Error(`Cliente WhatsApp não encontrado para o clinicaId: ${clinicaId}`);
         }
         if (!client.isAuthenticated) {
-            throw new Error(`Cliente WhatsApp para petshopId: ${petshopId} não está autenticado`);
+            throw new Error(`Cliente WhatsApp para clinicaId: ${clinicaId} não está autenticado`);
         }
         return client;
     }

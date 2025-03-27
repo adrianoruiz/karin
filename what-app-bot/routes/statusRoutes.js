@@ -8,11 +8,11 @@ const authMiddleware = require('../src/middleware/auth'); // Importar o middlewa
 router.use('/api/whatsapp', authMiddleware.validateToken.bind(authMiddleware));
 
 // Endpoint para verificar status da conexão
-router.get('/api/whatsapp/status/:petshopId', async (req, res) => {
-    const { petshopId } = req.params;
+router.get('/api/whatsapp/status/:clinicaId', async (req, res) => {
+    const { clinicaId } = req.params;
 
     try {
-        const client = clientManager.getClient(petshopId);
+        const client = clientManager.getClient(clinicaId);
         const isAuthenticated = client && client.isAuthenticated;
 
         res.json({
@@ -29,15 +29,15 @@ router.get('/api/whatsapp/status/:petshopId', async (req, res) => {
 });
 
 // Endpoint para obter o QR code em formato de imagem
-router.get('/api/whatsapp/qr/:petshopId', async (req, res) => {
-    const { petshopId } = req.params;
+router.get('/api/whatsapp/qr/:clinicaId', async (req, res) => {
+    const { clinicaId } = req.params;
 
     try {
-        let client = clientManager.getClient(petshopId);
+        let client = clientManager.getClient(clinicaId);
 
         // Inicializa o cliente se não existir
         if (!client) {
-            client = clientManager.initializeClient(petshopId);
+            client = clientManager.initializeClient(clinicaId);
         }
 
         // Se já está autenticado
@@ -50,7 +50,7 @@ router.get('/api/whatsapp/qr/:petshopId', async (req, res) => {
         }
 
         // Obtém o QR code
-        const qrCode = getQRCode(petshopId);
+        const qrCode = getQRCode(clinicaId);
 
         if (qrCode) {
             return res.json({
@@ -75,14 +75,14 @@ router.get('/api/whatsapp/qr/:petshopId', async (req, res) => {
 });
 
 // Endpoint para iniciar a conexão do WhatsApp
-router.post('/api/whatsapp/connect/:petshopId', async (req, res) => {
-    const { petshopId } = req.params;
+router.post('/api/whatsapp/connect/:clinicaId', async (req, res) => {
+    const { clinicaId } = req.params;
 
     try {
-        let client = clientManager.getClient(petshopId);
+        let client = clientManager.getClient(clinicaId);
 
         if (!client) {
-            client = clientManager.initializeClient(petshopId);
+            client = clientManager.initializeClient(clinicaId);
             res.json({
                 status: 'success',
                 message: 'Iniciando processo de conexão',
@@ -111,15 +111,15 @@ router.post('/api/whatsapp/connect/:petshopId', async (req, res) => {
 });
 
 // Endpoint para desconectar o WhatsApp
-router.post('/api/whatsapp/disconnect/:petshopId', async (req, res) => {
-    const { petshopId } = req.params;
+router.post('/api/whatsapp/disconnect/:clinicaId', async (req, res) => {
+    const { clinicaId } = req.params;
 
     try {
-        const client = clientManager.getClient(petshopId);
+        const client = clientManager.getClient(clinicaId);
 
         if (client) {
             await client.logout();
-            clientManager.removeClient(petshopId);
+            clientManager.removeClient(clinicaId);
 
             res.json({
                 status: 'success',

@@ -6,18 +6,18 @@ const whatsappService = require('../whatsappService');
 class ClientManager extends EventEmitter {
     constructor() {
         super();
-        this.clients = {}; // Armazena os clientes por petshopId
+        this.clients = {}; // Armazena os clientes por clinicaId
     }
 
-    initializeClient(petshopId) {
-        if (this.clients[petshopId]) {
-            console.log(`Cliente para petshop ${petshopId} já está inicializado.`);
-            return this.clients[petshopId];
+    initializeClient(clinicaId) {
+        if (this.clients[clinicaId]) {
+            console.log(`Cliente para clinica ${clinicaId} já está inicializado.`);
+            return this.clients[clinicaId];
         }
 
         const client = new Client({
             authStrategy: new LocalAuth({
-                clientId: `petshop-${petshopId}`
+                clientId: `clinica-${clinicaId}`
             }),
             puppeteer: {
                 args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -28,60 +28,60 @@ class ClientManager extends EventEmitter {
         client.isAuthenticated = false;
 
         client.on('qr', (qr) => {
-            console.log(`QR Code recebido para petshop ${petshopId}`);
-            this.emit('qr', { qr, petshopId });
+            console.log(`QR Code recebido para clinica ${clinicaId}`);
+            this.emit('qr', { qr, clinicaId });
         });
 
         client.on('authenticated', (session) => {
-            console.log(`Autenticado para petshop ${petshopId}`);
+            console.log(`Autenticado para clinica ${clinicaId}`);
             client.isAuthenticated = true;
-            this.emit('authenticated', { petshopId, session });
+            this.emit('authenticated', { clinicaId, session });
         });
 
         client.on('ready', () => {
-            console.log(`Cliente para petshop ${petshopId} está pronto!`);
+            console.log(`Cliente para clinica ${clinicaId} está pronto!`);
             client.isAuthenticated = true;
             // Configurar os listeners específicos do WhatsApp para este cliente
-            whatsappService.setupWhatsAppListeners(client, petshopId);
-            this.emit('ready', { petshopId });
+            whatsappService.setupWhatsAppListeners(client, clinicaId);
+            this.emit('ready', { clinicaId });
         });
 
         client.on('auth_failure', (msg) => {
-            console.error(`Falha na autenticação para petshop ${petshopId}:`, msg);
+            console.error(`Falha na autenticação para clinica ${clinicaId}:`, msg);
             client.isAuthenticated = false;
-            this.emit('auth_failure', { petshopId, message: msg });
+            this.emit('auth_failure', { clinicaId, message: msg });
         });
 
         client.on('disconnected', (reason) => {
-            console.log(`Cliente para petshop ${petshopId} desconectado:`, reason);
+            console.log(`Cliente para clinica ${clinicaId} desconectado:`, reason);
             client.isAuthenticated = false;
-            this.emit('disconnected', { petshopId, reason });
+            this.emit('disconnected', { clinicaId, reason });
             // Remover cliente após desconexão
-            this.removeClient(petshopId);
+            this.removeClient(clinicaId);
         });
 
         client.initialize();
 
-        this.clients[petshopId] = client;
+        this.clients[clinicaId] = client;
         return client;
     }
 
-    getClient(petshopId) {
-        return this.clients[petshopId];
+    getClient(clinicaId) {
+        return this.clients[clinicaId];
     }
 
-    async removeClient(petshopId) {
+    async removeClient(clinicaId) {
         try {
-            const client = this.clients[petshopId];
+            const client = this.clients[clinicaId];
             if (client) {
-                console.log(`Removendo cliente para petshop ${petshopId}`);
+                console.log(`Removendo cliente para clinica ${clinicaId}`);
                 
                 // Tenta fazer logout se o cliente ainda estiver autenticado
                 if (client.isAuthenticated) {
                     try {
                         await client.logout();
                     } catch (logoutError) {
-                        console.error(`Erro ao fazer logout do cliente ${petshopId}:`, logoutError);
+                        console.error(`Erro ao fazer logout do cliente ${clinicaId}:`, logoutError);
                     }
                 }
 
@@ -89,39 +89,39 @@ class ClientManager extends EventEmitter {
                 try {
                     await client.destroy();
                 } catch (destroyError) {
-                    console.error(`Erro ao destruir cliente ${petshopId}:`, destroyError);
+                    console.error(`Erro ao destruir cliente ${clinicaId}:`, destroyError);
                 }
 
                 // Remove os listeners para evitar memory leaks
                 client.removeAllListeners();
                 
                 // Remove o cliente do objeto clients
-                delete this.clients[petshopId];
+                delete this.clients[clinicaId];
                 
                 // Emite evento de remoção
-                this.emit('client_removed', { petshopId });
+                this.emit('client_removed', { clinicaId });
                 
-                console.log(`Cliente ${petshopId} removido com sucesso`);
+                console.log(`Cliente ${clinicaId} removido com sucesso`);
                 return true;
             }
             return false;
         } catch (error) {
-            console.error(`Erro ao remover cliente ${petshopId}:`, error);
+            console.error(`Erro ao remover cliente ${clinicaId}:`, error);
             throw error;
         }
     }
 
     // Método para verificar se um cliente existe e está autenticado
-    isClientAuthenticated(petshopId) {
-        const client = this.clients[petshopId];
+    isClientAuthenticated(clinicaId) {
+        const client = this.clients[clinicaId];
         return client && client.isAuthenticated;
     }
 
     // Método para remover todos os clientes (útil para shutdown do servidor)
     async removeAllClients() {
-        const petshopIds = Object.keys(this.clients);
-        for (const petshopId of petshopIds) {
-            await this.removeClient(petshopId);
+        const clinicaIds = Object.keys(this.clients);
+        for (const clinicaId of clinicaIds) {
+            await this.removeClient(clinicaId);
         }
     }
 }

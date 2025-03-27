@@ -8,6 +8,7 @@ import NavBar from "./components/NavBar.vue";
 import Testimonials from "./components/Testimonials.vue";
 import WhatsAppButton from "./components/WhatsAppButton.vue";
 import WorkMethod from "./components/WorkMethod.vue";
+import TermosModais from "./components/termos_modais.vue";
 </script>
 
 <template>
@@ -63,6 +64,9 @@ import WorkMethod from "./components/WorkMethod.vue";
     <div class="fixed bottom-6 right-6 z-50 animate-pulse-slow">
       <WhatsAppButton />
     </div>
+
+    <!-- Modais de Termos e Política de Privacidade -->
+    <TermosModais />
   </div>
 </template>
 

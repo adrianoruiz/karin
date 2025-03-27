@@ -46,7 +46,8 @@
         <div class="text-white">
           <h2 class="text-xl mb-4">Contato</h2>
           <a
-            href="/conversion/consulta-online.html"
+            href="https://wa.me/5547991259577"
+            target="_blank"
             class="inline-flex items-center bg-white text-[#B7AC9F] px-4 py-2 rounded-full hover:bg-opacity-90 transition-colors"
           >
             <svg
@@ -61,10 +62,39 @@
             </svg>
             (47) 99125-9577
           </a>
+          <div class="mt-4 text-sm">
+            <a
+              href="#"
+              @click="openTermsOfUse"
+              class="text-white hover:underline"
+              >Termos de Uso</a
+            >
+            <span class="mx-2">•</span>
+            <a
+              href="#"
+              @click="openPrivacyPolicy"
+              class="text-white hover:underline"
+              >Política de Privacidade</a
+            >
+          </div>
         </div>
       </div>
     </div>
   </footer>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { useAppointmentStore } from '../stores/appointment_store';
+
+const store = useAppointmentStore();
+
+const openTermsOfUse = (event: Event) => {
+  event.preventDefault();
+  store.showTermsOfUseModal = true;
+};
+
+const openPrivacyPolicy = (event: Event) => {
+  event.preventDefault();
+  store.showPrivacyPolicyModal = true;
+};
+</script>

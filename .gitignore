@@ -12,6 +12,7 @@ node_modules/
 # Arquivos do WhatsApp
 .wwebjs_auth/
 .wwebjs_cache/
+what-app-bot/.env
 
 # Logs e arquivos temporários
 *.log
@@ -47,3 +48,4 @@ coverage/
 yarn.lock
 package-lock.json
 pnpm-lock.yaml
+what-app-bot/.env

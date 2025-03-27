@@ -22,23 +22,22 @@ class ChatbotsTableSeeder extends Seeder
         $adminUser = User::where('email', 'karin@drakarin.com.br')->first();
         
         if ($adminUser) {
-            // Mensagens de boas-vindas (welcome/greeting)
-            Chatbot::create([
-                'user_id' => $adminUser->id,
-                'message_type' => 'welcome',
-                'name' => 'Boas-vindas padrão',
-                'message' => 'Olá {nome}, seja bem-vindo(a) ao atendimento da Dra. Karin Boldarini. Como posso ajudar você hoje?',
-                'order' => 1,
-                'is_active' => true,
-                'is_default' => true,
-            ]);
 
-            // Também criar como 'greeting' para compatibilidade
             Chatbot::create([
                 'user_id' => $adminUser->id,
                 'message_type' => 'greeting',
                 'name' => 'Saudação padrão',
-                'message' => 'Olá {nome}, seja bem-vindo(a) ao atendimento da Dra. Karin Boldarini. Como posso ajudar você hoje?',
+                'message' => 'Olá {nome}, 😊 sou Neusa da equipe Clínica Dra. Karin Boldarini. Como posso ajudar com seu atendimento hoje?',
+                'order' => 1,
+                'is_active' => true,
+                'is_default' => true,
+            ]);
+        
+            Chatbot::create([
+                'user_id' => $adminUser->id,
+                'message_type' => 'greeting',
+                'name' => 'Saudação padrão',
+                'message' => 'Olá {nome}, 😊 sou Neusa da equipe Clínica Dra. Karin Boldarini. Como posso ajudar com seu atendimento hoje?',
                 'order' => 1,
                 'is_active' => true,
                 'is_default' => true,

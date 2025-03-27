@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useAppointmentStore } from '../stores/appointment_store';
+import { computed } from "vue";
+import { useAppointmentStore } from "../stores/appointment_store";
 
 const store = useAppointmentStore();
 
 const appointmentTypeLabel = computed(() => {
-  return store.formData.appointmentType === 'presencial' 
-    ? 'Consulta Presencial (Disponível somente para Blumenau SC)' 
-    : 'Consulta Online';
+  return store.formData.appointmentType === "presencial"
+    ? "Consulta Presencial (Disponível somente para Blumenau SC)"
+    : "Consulta Online";
 });
 </script>
 
@@ -111,30 +111,23 @@ const appointmentTypeLabel = computed(() => {
             <span class="ml-2">Presencial</span>
           </label>
         </div>
-        <p v-if="store.formData.appointmentType === 'presencial'" class="text-sm text-gray-600">
+        <p
+          v-if="store.formData.appointmentType === 'presencial'"
+          class="text-sm text-gray-600"
+        >
           Disponível somente para Blumenau SC
         </p>
       </div>
 
       <p class="text-gray-700 mb-4">
-        Pronto para cuidar da sua saúde mental com uma abordagem
-        personalizada?
+        Pronto para cuidar da sua saúde mental com uma abordagem personalizada?
       </p>
 
       <p class="text-gray-700 mb-6">
         Preencha o formulário para agendar uma consulta com a Dra. Karin
-        Boldarini. Durante sua consulta de 30 minutos, você receberá
-        atenção especializada para suas necessidades de saúde mental.
+        Boldarini. Durante sua consulta de 30 minutos, você receberá atenção
+        especializada para suas necessidades de saúde mental.
       </p>
-    </div>
-
-    <div class="mt-4 flex justify-between items-center">
-      <button class="text-gray-600 hover:text-gray-800">
-        Política de privacidade
-      </button>
-      <button class="text-gray-600 hover:text-gray-800">
-        Termos de uso
-      </button>
     </div>
   </div>
 </template>

@@ -1,11 +1,17 @@
 // config.js
-const desenv = true;
+const desenv = false;
 
 module.exports = {
     desenv,    
     port: desenv ? 3001 : 3000,
     apiUrl: desenv ? 'http://127.0.0.1:8000/api/' : 'https://api.drakarin.com.br/api/',
     disableGreeting: false,
+    useVoiceResponse: true, // Alterado para true por padrão, será controlado dinamicamente
+    voiceSettings: {
+        model: 'gpt-4o-mini-tts',
+        voice: 'alloy', // Opções: alloy, echo, fable, onyx, nova, shimmer
+        instructions: "Fale em um tom amigável e profissional, uma voz de 21 anos, como uma secretária simpática, muito humana e natural. Pronuncie claramente, com pausas naturais e um ritmo conversacional."
+    },
     reactLink: desenv
         ? 'drakarin.com.br'
         : 'drakarin.com.br',
