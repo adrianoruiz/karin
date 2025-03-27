@@ -59,28 +59,28 @@ router.get('/api/whatsapp/qr/:id', (req, res) => {
 router.use(authMiddleware.validateToken.bind(authMiddleware));
 
 // Rota para servir a página do QR code
-router.get('/qr/:petshopId', (req, res) => {
+router.get('/qr/:clinicaId', (req, res) => {
     const filePath = path.join(__dirname, '../src/services/qr/qrPage.html'); // Ajuste o caminho conforme necessário
     res.sendFile(filePath);
 });
 
 // Rota para obter o QR code em formato JSON
-router.get('/qr-code/:petshopId', (req, res) => {
-    const { petshopId } = req.params;
+router.get('/qr-code/:clinicaId', (req, res) => {
+    const { clinicaId } = req.params;
 
-    let client = clientManager.getClient(petshopId);
+    let client = clientManager.getClient(clinicaId);
 
     // Inicializar o cliente se não existir
     if (!client) {
-        console.log(`Cliente não encontrado para petshop ${petshopId}, inicializando...`);
-        client = clientManager.initializeClient(petshopId);
+        console.log(`Cliente não encontrado para clinica ${clinicaId}, inicializando...`);
+        client = clientManager.initializeClient(clinicaId);
     }
 
     // Verificar se o cliente já está autenticado
     if (client && client.isAuthenticated) {
         res.status(200).json({ authenticated: true });
     } else {
-        const qrCode = getQRCode(petshopId);
+        const qrCode = getQRCode(clinicaId);
         if (qrCode) {
             res.status(200).json({ qrCodeUrl: qrCode });
         } else {

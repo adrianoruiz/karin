@@ -152,13 +152,13 @@ function getBasicFallbackResponse(text) {
  * @param {object} message - Objeto da mensagem do WhatsApp
  * @param {string} nome - Nome do usuário
  * @param {string} phoneNumber - Número de telefone do usuário
- * @param {number} petshopId - ID do petshop
+ * @param {number} clinicaId - ID do clinica
  * @param {object} client - Cliente do WhatsApp
  * @param {function} processMessageWithGPT - Função para processar mensagem com GPT
  * @param {function} sendWhatsAppMessage - Função para enviar mensagem do WhatsApp
  * @returns {Promise<void>}
  */
-async function processAudioMessage(message, nome, phoneNumber, petshopId, client, processMessageWithGPT, sendWhatsAppMessage) {
+async function processAudioMessage(message, nome, phoneNumber, clinicaId, client, processMessageWithGPT, sendWhatsAppMessage) {
     let audioPath = null;
     
     try {
@@ -173,12 +173,12 @@ async function processAudioMessage(message, nome, phoneNumber, petshopId, client
         console.log(`Transcrição: "${transcription}"`);
         
         // Processar o texto transcrito com o ChatGPT
-        const gptResponse = await processMessageWithGPT(transcription, nome, phoneNumber, petshopId);
+        const gptResponse = await processMessageWithGPT(transcription, nome, phoneNumber, clinicaId);
         
         // Enviar resposta ao usuário usando o serviço de WhatsApp que suporta voz
         if (sendWhatsAppMessage) {
             // Passando true como último parâmetro para indicar que é uma resposta a uma mensagem de áudio
-            await sendWhatsAppMessage(client, phoneNumber, gptResponse, petshopId, true);
+            await sendWhatsAppMessage(client, phoneNumber, gptResponse, clinicaId, true);
         } else {
             // Fallback para o método antigo se sendWhatsAppMessage não for fornecido
             await client.sendMessage(message.from, gptResponse);
@@ -200,7 +200,7 @@ async function processAudioMessage(message, nome, phoneNumber, petshopId, client
                     // Enviar resposta de fallback
                     if (sendWhatsAppMessage) {
                         // Passando true como último parâmetro para indicar que é uma resposta a uma mensagem de áudio
-                        await sendWhatsAppMessage(client, phoneNumber, fallbackResponse, petshopId, true);
+                        await sendWhatsAppMessage(client, phoneNumber, fallbackResponse, clinicaId, true);
                     } else {
                         // Fallback para o método antigo
                         await client.sendMessage(message.from, fallbackResponse);
@@ -216,7 +216,7 @@ async function processAudioMessage(message, nome, phoneNumber, petshopId, client
             // Enviar mensagem de erro
             if (sendWhatsAppMessage) {
                 // Passando true como último parâmetro para indicar que é uma resposta a uma mensagem de áudio
-                await sendWhatsAppMessage(client, phoneNumber, errorMessage, petshopId, true);
+                await sendWhatsAppMessage(client, phoneNumber, errorMessage, clinicaId, true);
             } else {
                 // Fallback para o método antigo
                 await client.sendMessage(message.from, errorMessage);

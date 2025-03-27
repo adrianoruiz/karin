@@ -75,20 +75,20 @@ function detectSensitiveTopics(message) {
 }
 
 // Função para criar chave composta
-function createCacheKey(petshopId, phoneNumber) {
-    return `${petshopId}:${phoneNumber}`;
+function createCacheKey(clinicaId, phoneNumber) {
+    return `${clinicaId}:${phoneNumber}`;
 }
 
 // Função para criar chave de conversa
-function createConversationKey(petshopId, phoneNumber) {
-    return `conv:${petshopId}:${phoneNumber}`;
+function createConversationKey(clinicaId, phoneNumber) {
+    return `conv:${clinicaId}:${phoneNumber}`;
 }
 
-async function getMessageType(messageType, nome, avatar, phoneNumber, petshopId) {
+async function getMessageType(messageType, nome, avatar, phoneNumber, clinicaId) {
     try {
         const nomeSemEmojis = nome.replace(/[\u{1F600}-\u{1F6FF}]/gu, ''); // Remove emojis
         const response = await axios.post(`${config.apiUrl}chatbots/message-type`, {
-            user_id: petshopId,
+            user_id: clinicaId,
             message_type: messageType,
             name: nomeSemEmojis,
             avatar: avatar,
@@ -139,9 +139,9 @@ async function formatAvailableAppointments(availableTimes) {
 }
 
 // Função para processar mensagem com ChatGPT
-async function processMessageWithGPT(message, nome, phoneNumber, petshopId) {
+async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
     try {
-        const conversationKey = createConversationKey(petshopId, phoneNumber);
+        const conversationKey = createConversationKey(clinicaId, phoneNumber);
         let conversation = conversationCache.get(conversationKey) || [];
         
         // Verificar temas sensíveis
@@ -267,15 +267,15 @@ async function processMessageWithGPT(message, nome, phoneNumber, petshopId) {
     }
 }
 
-async function setupWhatsAppListeners(client, petshopId) {
-    console.log(`Configurando listeners do WhatsApp para petshop ${petshopId}`);
+async function setupWhatsAppListeners(client, clinicaId) {
+    console.log(`Configurando listeners do WhatsApp para clinica ${clinicaId}`);
 
     client.on('ready', () => {
-        console.log(`WhatsApp client para petshop ${petshopId} está pronto!`);
+        console.log(`WhatsApp client para clinica ${clinicaId} está pronto!`);
     });
 
     client.on('message', async (message) => {
-        console.log(`Mensagem recebida para petshop ${petshopId}:`, {
+        console.log(`Mensagem recebida para clinica ${clinicaId}:`, {
             body: message.body,
             from: message.from,
             isGroupMsg: message.isGroupMsg,
@@ -283,7 +283,7 @@ async function setupWhatsAppListeners(client, petshopId) {
         });
 
         if (!client.isAuthenticated) {
-            console.log(`Cliente para petshop ${petshopId} não está autenticado.`);
+            console.log(`Cliente para clinica ${clinicaId} não está autenticado.`);
             return;
         }
 
@@ -337,15 +337,15 @@ async function setupWhatsAppListeners(client, petshopId) {
             if (message.type === 'ptt' || message.type === 'audio') {
                 console.log('Mensagem de áudio detectada');
                 
-                const cacheKey = createCacheKey(petshopId, phoneNumber);
+                const cacheKey = createCacheKey(clinicaId, phoneNumber);
                 const greetedToday = greetingCache.get(cacheKey);
                 
                 if (!greetedToday && nome !== "Cliente") {
-                    console.log(`Enviando saudação antes de processar áudio para: ${phoneNumber} (petshop ${petshopId})`);
+                    console.log(`Enviando saudação antes de processar áudio para: ${phoneNumber} (clinica ${clinicaId})`);
                     greetingCache.set(cacheKey, true);
                     
                     try {
-                        const sentMessage = await getMessageType('greeting', nome, profilePicUrl, phoneNumber, petshopId);
+                        const sentMessage = await getMessageType('greeting', nome, profilePicUrl, phoneNumber, clinicaId);
                         console.log(`Saudação enviada com sucesso para: ${phoneNumber}`);
                         
                         // Aguarda um momento para garantir que a mensagem foi processada
@@ -358,10 +358,10 @@ async function setupWhatsAppListeners(client, petshopId) {
                 
                 // Processar o áudio usando a função do audioService
                 try {
-                    await processAudioMessage(message, nome, phoneNumber, petshopId, client, processMessageWithGPT, sendWhatsAppMessage);
+                    await processAudioMessage(message, nome, phoneNumber, clinicaId, client, processMessageWithGPT, sendWhatsAppMessage);
                 } catch (error) {
                     console.error('Erro ao processar mensagem de áudio:', error);
-                    await sendWhatsAppMessage(client, phoneNumber, "Desculpe, não consegui processar seu áudio. Poderia enviar sua mensagem em texto?", petshopId);
+                    await sendWhatsAppMessage(client, phoneNumber, "Desculpe, não consegui processar seu áudio. Poderia enviar sua mensagem em texto?", clinicaId);
                 }
                 return;
             }
@@ -369,23 +369,23 @@ async function setupWhatsAppListeners(client, petshopId) {
             const messageBodyNormalized = normalizeText(message.body.trim());
 
             if (messageBodyNormalized === 'reset oi') {
-                const cacheKey = createCacheKey(petshopId, phoneNumber);
+                const cacheKey = createCacheKey(clinicaId, phoneNumber);
                 greetingCache.del(cacheKey);
-                console.log(`Estado de saudação resetado para o número: ${phoneNumber} no petshop ${petshopId}`);
-                await sendWhatsAppMessage(client, phoneNumber, 'Seu estado de saudação foi resetado. Você receberá a próxima saudação.', petshopId);
+                console.log(`Estado de saudação resetado para o número: ${phoneNumber} no clinica ${clinicaId}`);
+                await sendWhatsAppMessage(client, phoneNumber, 'Seu estado de saudação foi resetado. Você receberá a próxima saudação.', clinicaId);
                 return;
             }
 
-            const cacheKey = createCacheKey(petshopId, phoneNumber);
+            const cacheKey = createCacheKey(clinicaId, phoneNumber);
             const greetedToday = greetingCache.get(cacheKey);
 
             if (!greetedToday && nome !== "Cliente") {
-                console.log(`Enviando saudação para: ${phoneNumber} (petshop ${petshopId})`);
+                console.log(`Enviando saudação para: ${phoneNumber} (clinica ${clinicaId})`);
 
                 greetingCache.set(cacheKey, true);
 
                 try {
-                    const sentMessage = await getMessageType('greeting', nome, profilePicUrl, phoneNumber, petshopId);
+                    const sentMessage = await getMessageType('greeting', nome, profilePicUrl, phoneNumber, clinicaId);
                     console.log(`Saudação enviada com sucesso para: ${phoneNumber}`);
                     
                     // Aguarda um momento para garantir que a mensagem foi processada
@@ -399,16 +399,16 @@ async function setupWhatsAppListeners(client, petshopId) {
                     greetingCache.del(cacheKey);
                 }
             } else {
-                console.log(`Cliente já foi saudado hoje: ${phoneNumber} (petshop ${petshopId})`);
+                console.log(`Cliente já foi saudado hoje: ${phoneNumber} (clinica ${clinicaId})`);
                 
                 // Processar a mensagem com o ChatGPT e enviar resposta
                 try {
                     console.log(`Processando mensagem com ChatGPT: "${message.body}"`);
-                    const gptResponse = await processMessageWithGPT(message.body, nome, phoneNumber, petshopId);
+                    const gptResponse = await processMessageWithGPT(message.body, nome, phoneNumber, clinicaId);
                     console.log(`Resposta do ChatGPT: "${gptResponse}"`);
                     
                     // Enviar resposta ao usuário
-                    await sendWhatsAppMessage(client, phoneNumber, gptResponse, petshopId, false);
+                    await sendWhatsAppMessage(client, phoneNumber, gptResponse, clinicaId, false);
                     console.log(`Resposta enviada para ${phoneNumber}`);
                 } catch (error) {
                     console.error('Erro ao processar mensagem com ChatGPT:', error);
@@ -421,7 +421,7 @@ async function setupWhatsAppListeners(client, petshopId) {
     });
 
     client.on('message_create', async (message) => {
-        console.log(`Mensagem enviada pelo petshop ${petshopId}: ${message.body}`);
+        console.log(`Mensagem enviada pelo clinica ${clinicaId}: ${message.body}`);
         if (!client.isAuthenticated) return;
 
         if (message.isGroupMsg) {
@@ -429,7 +429,7 @@ async function setupWhatsAppListeners(client, petshopId) {
         }
 
         if (message.fromMe) {
-            console.log(`Mensagem enviada pelo celular da loja (petshop ${petshopId})`);
+            console.log(`Mensagem enviada pelo celular da loja (clinica ${clinicaId})`);
 
             try {
                 const chat = await message.getChat();
@@ -438,12 +438,12 @@ async function setupWhatsAppListeners(client, petshopId) {
                 console.log(`Número de telefone do destinatário: ${phoneNumber}`);
 
                 if (!message.body.includes('Seu estado de saudação foi resetado')) {
-                    const cacheKey = createCacheKey(petshopId, phoneNumber);
-                    console.log(`Desativando saudações para o dia para este contato (petshop ${petshopId})`);
+                    const cacheKey = createCacheKey(clinicaId, phoneNumber);
+                    console.log(`Desativando saudações para o dia para este contato (clinica ${clinicaId})`);
                     greetingCache.set(cacheKey, true);
                     
                     // Adicionar mensagem do atendente ao histórico da conversa
-                    const conversationKey = createConversationKey(petshopId, phoneNumber);
+                    const conversationKey = createConversationKey(clinicaId, phoneNumber);
                     let conversation = conversationCache.get(conversationKey) || [];
                     
                     conversation.push({
@@ -467,7 +467,7 @@ async function setupWhatsAppListeners(client, petshopId) {
     });
 }
 
-async function sendWhatsAppMessage(client, number, message, petshopId, isUserAudioMessage = false) {
+async function sendWhatsAppMessage(client, number, message, clinicaId, isUserAudioMessage = false) {
     const formattedNumber = formatPhoneNumber(number);
     console.log(`Enviando mensagem para: ${formattedNumber}`);
     try {

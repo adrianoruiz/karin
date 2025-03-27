@@ -7,24 +7,24 @@ const { clientManager } = require('../src/services/qr/qrcode');
 router.post('/send-message', async (req, res) => {
     console.log('Corpo da Requisição:', req.body);
 
-    const { petshopId, number, message } = req.body;
+    const { clinicaId, number, message } = req.body;
 
-    console.log(`Recebido pedido para enviar mensagem para petshop ${petshopId}, número ${number}: ${message}`);
+    console.log(`Recebido pedido para enviar mensagem para clinica ${clinicaId}, número ${number}: ${message}`);
 
-    if (!petshopId || !number || !message) {
-        return res.status(400).send({ status: 'error', message: 'Parâmetros petshopId, number e message são obrigatórios.' });
+    if (!clinicaId || !number || !message) {
+        return res.status(400).send({ status: 'error', message: 'Parâmetros clinicaId, number e message são obrigatórios.' });
     }
 
-    const client = clientManager.getClient(petshopId);
+    const client = clientManager.getClient(clinicaId);
 
     if (!client) {
-        console.log(`Cliente para petshop ${petshopId} não encontrado.`);
-        return res.status(500).send({ status: 'error', message: 'Cliente do WhatsApp não encontrado para este petshop.' });
+        console.log(`Cliente para clinica ${clinicaId} não encontrado.`);
+        return res.status(500).send({ status: 'error', message: 'Cliente do WhatsApp não encontrado para este clinica.' });
     }
 
     if (!client.isAuthenticated) {
-        console.log(`Cliente para petshop ${petshopId} não está autenticado.`);
-        return res.status(500).send({ status: 'error', message: 'WhatsApp client is not ready para este petshop.' });
+        console.log(`Cliente para clinica ${clinicaId} não está autenticado.`);
+        return res.status(500).send({ status: 'error', message: 'WhatsApp client is not ready para este clinica.' });
     }
 
     try {

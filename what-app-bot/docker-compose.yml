@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  whatsapp-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: whatsapp-node
+    restart: always
+    volumes:
+      - /Users/adrianoboldarini/7clicks/karin/what-app-bot:/app
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+
+    #   - /home/drakarin/whatsapp.drakarin.com.br:/app em producao
