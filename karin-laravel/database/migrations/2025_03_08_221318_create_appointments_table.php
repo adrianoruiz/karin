@@ -20,6 +20,7 @@ return new class extends Migration
             $table->dateTime('appointment_datetime');
             $table->string('status')->default('scheduled');
             $table->text('observations')->nullable();
+            $table->boolean('is_online')->default(false);
             $table->timestamps();
         });
     }

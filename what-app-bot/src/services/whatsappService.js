@@ -13,7 +13,8 @@ const { MessageMedia } = require('whatsapp-web.js');
 // Importar as ferramentas da pasta tools
 const {
     getAvailableAppointments,
-    getPlans
+    getPlans,
+    bookAppointment
 } = require('./tools');
 
 const greetingCache = new NodeCache({ stdTTL: config.greetingCacheTTL });
@@ -306,6 +307,71 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
                 conversationCache.set(conversationKey, conversation);
                 
                 return finalResponse.content;
+            }
+            // Verificar se é a função de agendamento
+            else if (name === 'bookAppointment') {
+                // Parsear os argumentos
+                const parsedArgs = JSON.parse(args);
+                console.log('[DEBUG] Argumentos da função bookAppointment:', parsedArgs);
+                
+                // Chamar a função para agendar a consulta
+                console.log('[DEBUG] Chamando bookAppointment com dados:', JSON.stringify(parsedArgs, null, 2));
+                const bookingResult = await bookAppointment(parsedArgs);
+                console.log('[DEBUG] Resultado de bookAppointment:', JSON.stringify(bookingResult, null, 2));
+                
+                // Adicionar o resultado da função ao histórico da conversa
+                conversation.push({
+                    role: "function",
+                    name: name,
+                    content: JSON.stringify(bookingResult)
+                });
+                console.log('[DEBUG] Adicionado resultado da função ao histórico da conversa');
+                
+                // Chamar o ChatGPT novamente para gerar a resposta final
+                const finalResponse = await getChatGPTResponse(conversation, nome);
+                console.log('[DEBUG] Resposta final do ChatGPT:', finalResponse);
+                
+                // Adicionar a resposta final ao histórico
+                conversation.push({
+                    role: "assistant",
+                    content: finalResponse.content
+                });
+                
+                // Salvar conversa atualizada no cache
+                conversationCache.set(conversationKey, conversation);
+                
+                // Formatar a resposta do agendamento
+                let formattedResponse = "";
+                if (bookingResult.success) {
+                    // Formatar a data e hora da consulta
+                    const appointmentDate = new Date(bookingResult.appointment.appointment_datetime);
+                    const formattedDate = appointmentDate.toLocaleDateString('pt-BR');
+                    const formattedTime = appointmentDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    
+                    formattedResponse = `✅ Consulta agendada com sucesso!\n\n`;
+                    formattedResponse += `📅 Data: *${formattedDate}*\n`;
+                    formattedResponse += `⏰ Horário: *${formattedTime}*\n`;
+                    formattedResponse += `👩‍⚕️ Médico: Dra. Karin Boldarini\n`;
+                    formattedResponse += `🏥 Tipo: ${bookingResult.appointment.is_online ? 'Consulta Online' : 'Consulta Presencial'}\n\n`;
+                    formattedResponse += `Agradecemos pelo agendamento! Caso precise remarcar ou cancelar, entre em contato conosco.`;
+                } else {
+                    formattedResponse = `❌ Não foi possível agendar a consulta.\n\n`;
+                    formattedResponse += `Motivo: ${bookingResult.message}\n\n`;
+                    
+                    // Se houver erros específicos, exibi-los
+                    if (bookingResult.errors) {
+                        formattedResponse += "Detalhes dos erros:\n";
+                        for (const field in bookingResult.errors) {
+                            formattedResponse += `- ${field}: ${bookingResult.errors[field].join(', ')}\n`;
+                        }
+                        formattedResponse += "\n";
+                    }
+                    
+                    formattedResponse += "Por favor, verifique as informações e tente novamente.";
+                }
+                
+                console.log('[DEBUG] Resposta formatada:', formattedResponse);
+                return formattedResponse;
             }
         }
         

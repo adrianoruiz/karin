@@ -9,6 +9,7 @@ use App\Http\Controllers\{
     Api\DoctorAvailabilityController,
     Api\PlanController,
     Api\WhatsappController,
+    Api\PatientAppointmentController,
     ChatbotController,
     ChatbotCrudController
 };
@@ -100,7 +101,7 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/recurring', [DoctorAvailabilityController::class, 'storeRecurring']);
     });
 
-});
+ });
 
 
 
@@ -118,3 +119,13 @@ Route::prefix('chat-logs')->group(function () {
 Route::get('availabilities', [DoctorAvailabilityController::class, 'index']);
 Route::get('plans', [PlanController::class, 'index']);
 Route::get('plans/{plan}', [PlanController::class, 'publicShow']);
+
+// Rota pública para agendamento de consultas
+Route::post('appointments/public', [AppointmentController::class, 'storePublic']);
+
+// Rotas para pacientes agendarem consultas
+Route::prefix('patient')->group(function () {
+    Route::get('available-times', [PatientAppointmentController::class, 'getAvailableTimes']);
+    Route::post('book-appointment', [PatientAppointmentController::class, 'bookAppointment']);
+    Route::post('check-availability', [PatientAppointmentController::class, 'checkAvailability']);
+});

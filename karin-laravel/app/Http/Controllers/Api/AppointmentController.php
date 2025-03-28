@@ -207,4 +207,104 @@ class AppointmentController extends Controller
             'message' => 'Consulta excluída com sucesso'
         ]);
     }
+    
+    /**
+     * Criar um novo agendamento através da rota pública (sem autenticação)
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function storePublic(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'cpf' => 'required|string',
+            'phone' => 'required|string',
+            'birthday' => 'required|date',
+            'doctor_id' => 'required|exists:users,id',
+            'appointment_datetime' => 'required|date',
+            'observations' => 'nullable|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Verifica se o horário está disponível
+        $appointmentDate = date('Y-m-d', strtotime($request->appointment_datetime));
+        $appointmentTime = date('H:i', strtotime($request->appointment_datetime));
+
+        $availability = DoctorAvailability::where('doctor_id', $request->doctor_id)
+            ->whereDate('date', $appointmentDate)
+            ->whereTime('time', $appointmentTime)
+            ->where('status', 'available')
+            ->first();
+
+        if (!$availability) {
+            return response()->json([
+                'message' => 'Horário indisponível para agendamento',
+                'errors' => ['appointment_datetime' => ['O horário selecionado não está disponível']]
+            ], 422);
+        }
+
+        $role = RoleService::findSlug(ValidRoles::PATIENT);
+
+        // Limpa CPF e telefone para conter apenas números
+        $cpf = preg_replace('/[^0-9]/', '', $request->cpf);
+        $phone = preg_replace('/[^0-9]/', '', $request->phone);
+        
+        // Procura usuário pelo CPF
+        $userData = UserData::where('cpf', $cpf)->first();
+        $user = null;
+        
+        if ($userData) {
+            // Encontrou pelo CPF
+            $user = User::find($userData->user_id);
+        } else {
+            // Procura usuário pelo telefone
+            $user = User::where('phone', $phone)->first();
+            
+            if (!$user) {
+                // Não encontrou, então cria um novo usuário
+                $user = User::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'phone' => $phone,
+                    'is_whatsapp_user' => $request->is_whatsapp_user ?? false,
+                    'status' => true,
+                    'password' => bcrypt(substr($cpf, -4)) // Usa os 4 últimos dígitos do CPF como senha inicial
+                ]);
+                
+                // Cria os dados adicionais do usuário
+                $userData = [
+                    'user_id' => $user->id,
+                    'cpf' => $cpf,
+                    'birthday' => $request->birthday,
+                ];
+                $user->userData()->create($userData);
+
+                $user->roles()->sync([$role]);
+            }
+        }
+
+        // Cria o agendamento
+        $appointmentData = [
+            'user_id' => $user->id,
+            'doctor_id' => $request->doctor_id,
+            'appointment_datetime' => $request->appointment_datetime,
+            'status' => 'agendada',
+            'observations' => $request->observations
+        ];
+
+        $appointment = Appointment::create($appointmentData);
+
+        // Marca o horário como reservado
+        $availability->markAsBooked();
+
+        return response()->json([
+            'message' => 'Consulta agendada com sucesso',
+            'appointment' => $appointment
+        ], 201);
+    }
 }

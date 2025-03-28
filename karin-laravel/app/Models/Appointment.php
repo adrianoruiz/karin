@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\{
     Model
 };
 
-
-
 class Appointment extends Model
 {
     use HasFactory;
@@ -20,7 +18,8 @@ class Appointment extends Model
         'doctor_id',
         'appointment_datetime',
         'status',
-        'observations'
+        'observations',
+        'is_online'
     ];
     
     /**
