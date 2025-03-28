@@ -473,10 +473,13 @@ async function sendWhatsAppMessage(client, number, message, clinicaId, isUserAud
     try {
         let response;
         
-        // Verificar se deve usar resposta por voz (apenas se o usuário enviou áudio)
-        if (isUserAudioMessage) {
+        // Importar a configuração
+        const config = require('../../config');
+        
+        // Verificar se deve usar resposta por voz (apenas se o usuário enviou áudio E useVoiceResponse está ativado)
+        if (isUserAudioMessage && config.useVoiceResponse) {
             try {
-                console.log('Usando resposta por voz para a mensagem (usuário enviou áudio)');
+                console.log('Usando resposta por voz para a mensagem (usuário enviou áudio e useVoiceResponse está ativado)');
                 
                 // Converter texto em áudio
                 const audioFilePath = await textToSpeech(message);

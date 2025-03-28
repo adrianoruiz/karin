@@ -6,7 +6,7 @@ module.exports = {
     port: 3001,
     apiUrl: desenv ? 'http://127.0.0.1:8000/api/' : 'https://api.drakarin.com.br/api/',
     disableGreeting: false,
-    useVoiceResponse: true, // Alterado para true por padrão, será controlado dinamicamente
+    useVoiceResponse: false, // Alterado para true por padrão, será controlado dinamicamente
     voiceSettings: {
         model: 'gpt-4o-mini-tts',
         voice: 'alloy', // Opções: alloy, echo, fable, onyx, nova, shimmer
