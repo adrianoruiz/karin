@@ -1,5 +1,5 @@
 // config.js
-const desenv = true;
+const desenv = false;
 
 module.exports = {
     desenv,    
