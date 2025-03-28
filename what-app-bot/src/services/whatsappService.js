@@ -3,12 +3,18 @@ const axios = require('axios');
 const NodeCache = require('node-cache');
 const config = require('../../config');
 const { formatPhoneNumber } = require('./formattedNumber');
-const { getChatGPTResponse, getAvailableAppointments, getPlans } = require('./gpt');
+const { getChatGPTResponse } = require('./gpt');
 const { transcribeAudio, downloadAudio, processAudioMessage } = require('./ai/audioService');
 const { textToSpeech, cleanupTempAudioFiles } = require('./ai/speechService');
 const fs = require('fs');
 const path = require('path');
 const { MessageMedia } = require('whatsapp-web.js');
+
+// Importar as ferramentas da pasta tools
+const {
+    getAvailableAppointments,
+    getPlans
+} = require('./tools');
 
 const greetingCache = new NodeCache({ stdTTL: config.greetingCacheTTL });
 const conversationCache = new NodeCache({ stdTTL: 3600 }); // Cache para armazenar histórico de conversas (1 hora)
@@ -102,20 +108,66 @@ async function getMessageType(messageType, nome, avatar, phoneNumber, clinicaId)
 }
 
 // Função para formatar horários disponíveis em uma mensagem legível
-async function formatAvailableAppointments(availableTimes) {
+async function formatAvailableAppointments(appointmentData) {
     try {
-        if (availableTimes.length === 0) {
+        console.log('[DEBUG] Iniciando formatação de horários disponíveis');
+        console.log('[DEBUG] Dados recebidos:', JSON.stringify(appointmentData, null, 2));
+        
+        // Extrair os dados do objeto retornado
+        const { availableTimes, nextWednesdayTimes, nextWednesdayDateFormatted } = appointmentData;
+        
+        // Verificação mais robusta para horários vazios
+        if (!availableTimes || !Array.isArray(availableTimes) || availableTimes.length === 0) {
+            console.log('[DEBUG] Nenhum horário disponível encontrado para a data solicitada');
+            
+            // Verificar se há horários disponíveis para a próxima quarta-feira
+            if (nextWednesdayTimes && Array.isArray(nextWednesdayTimes) && nextWednesdayTimes.length > 0) {
+                console.log('[DEBUG] Encontrados horários para a próxima quarta-feira');
+                
+                // Agrupar horários da próxima quarta-feira por hora
+                const wednesdayTimes = nextWednesdayTimes.map(slot => slot.time).sort();
+                
+                // Formatar a mensagem informando que a Dra. Karin atende às quartas-feiras
+                let message = "Não encontrei horários disponíveis para essa data. ";
+                message += `A Dra. Karin geralmente atende às quartas-feiras e encontrei os seguintes horários disponíveis para *${nextWednesdayDateFormatted}*:\n\n`;
+                
+                // Agrupar horários em blocos de 3 para melhor visualização
+                for (let i = 0; i < wednesdayTimes.length; i += 3) {
+                    const timeBlock = wednesdayTimes.slice(i, i + 3).join(' | ');
+                    message += `${timeBlock}\n`;
+                }
+                
+                message += "\nGostaria de agendar em algum desses horários?";
+                console.log('[DEBUG] Mensagem formatada com horários da próxima quarta-feira:', message);
+                return message;
+            }
+            
             return "Não encontrei horários disponíveis para essa data. Gostaria de verificar outra data?";
         }
+        
+        console.log('[DEBUG] Quantidade de horários disponíveis:', availableTimes.length);
         
         // Agrupar horários por data
         const appointmentsByDate = {};
         availableTimes.forEach(slot => {
+            if (!slot.date || !slot.time) {
+                console.log('[DEBUG] Slot inválido encontrado:', slot);
+                return; // Pula este slot
+            }
+            
             if (!appointmentsByDate[slot.date]) {
                 appointmentsByDate[slot.date] = [];
             }
             appointmentsByDate[slot.date].push(slot.time);
         });
+        
+        console.log('[DEBUG] Horários agrupados por data:', appointmentsByDate);
+        
+        // Verificar se há datas após o agrupamento
+        if (Object.keys(appointmentsByDate).length === 0) {
+            console.log('[DEBUG] Nenhuma data válida após agrupamento');
+            return "Não encontrei horários disponíveis para essa data. Gostaria de verificar outra data?";
+        }
         
         // Formatar a mensagem de resposta
         let message = "Encontrei os seguintes horários disponíveis:\n\n";
@@ -125,15 +177,23 @@ async function formatAvailableAppointments(availableTimes) {
             const [year, month, day] = date.split('-');
             const formattedDate = `${day}/${month}/${year}`;
             
-            message += `*${formattedDate}*: `;
-            message += times.join(', ');
+            // Ordenar os horários
+            times.sort();
+            
+            message += `*${formattedDate}*:\n`;
+            // Agrupar horários em blocos de 3 para melhor visualização
+            for (let i = 0; i < times.length; i += 3) {
+                const timeBlock = times.slice(i, i + 3).join(' | ');
+                message += `${timeBlock}\n`;
+            }
             message += '\n';
         }
         
-        message += "\nGostaria de agendar em algum desses horários?";
+        message += "Gostaria de agendar em algum desses horários?";
+        console.log('[DEBUG] Mensagem formatada final:', message);
         return message;
     } catch (error) {
-        console.error('Erro ao formatar horários disponíveis:', error);
+        console.error('[ERROR] Erro ao formatar horários disponíveis:', error);
         return "Desculpe, estou com dificuldades para verificar os horários disponíveis no momento. Por favor, tente novamente mais tarde.";
     }
 }
@@ -185,19 +245,24 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
             if (name === 'getAvailableAppointments') {
                 // Parsear os argumentos
                 const parsedArgs = JSON.parse(args);
+                console.log('[DEBUG] Argumentos da função getAvailableAppointments:', parsedArgs);
                 
                 // Chamar a função para obter horários disponíveis
-                const availableTimes = await getAvailableAppointments(parsedArgs.date);
+                console.log('[DEBUG] Chamando getAvailableAppointments com data:', parsedArgs.date);
+                const appointmentData = await getAvailableAppointments(parsedArgs.date);
+                console.log('[DEBUG] Resultado de getAvailableAppointments:', JSON.stringify(appointmentData, null, 2));
                 
                 // Adicionar o resultado da função ao histórico da conversa
                 conversation.push({
                     role: "function",
                     name: name,
-                    content: JSON.stringify(availableTimes)
+                    content: JSON.stringify(appointmentData)
                 });
+                console.log('[DEBUG] Adicionado resultado da função ao histórico da conversa');
                 
                 // Chamar o ChatGPT novamente para gerar a resposta final
                 const finalResponse = await getChatGPTResponse(conversation, nome);
+                console.log('[DEBUG] Resposta final do ChatGPT:', finalResponse);
                 
                 // Adicionar a resposta final ao histórico
                 conversation.push({
@@ -209,7 +274,8 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
                 conversationCache.set(conversationKey, conversation);
                 
                 // Formatar os horários disponíveis para uma mensagem legível
-                const formattedResponse = await formatAvailableAppointments(availableTimes);
+                const formattedResponse = await formatAvailableAppointments(appointmentData);
+                console.log('[DEBUG] Resposta formatada:', formattedResponse);
                 return formattedResponse;
             }
             // Verificar se é a função de planos
