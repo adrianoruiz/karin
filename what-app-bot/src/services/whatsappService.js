@@ -13,7 +13,9 @@ const { MessageMedia } = require('whatsapp-web.js');
 // Importar as ferramentas da pasta tools
 const {
     getAvailableAppointments,
-    getPlans
+    getPlans,
+    bookAppointment,
+    updateAppointment
 } = require('./tools');
 
 const greetingCache = new NodeCache({ stdTTL: config.greetingCacheTTL });
@@ -34,17 +36,8 @@ function detectSensitiveTopics(message) {
     
     // Mapeamento de palavras-chave para respostas padrão
     const sensitiveTopics = [
-        // {
-        //     keywords: ['ansiedade', 'ansioso', 'ansiosa', 'to com ansiedade', 'estou com ansiedade', 
-        //               'crise', 'nervoso', 'nervosa', 'pânico', 'panico', 'preocupado', 'preocupada', 
-        //               'estresse', 'estressado', 'estressada', 'angústia', 'angustia', 'aflito', 'aflita'],
-        //     response: "Entendo que isso pode ser difícil. A Dra. Karin poderá fazer uma avaliação completa durante a consulta. Gostaria de agendar um horário?"
-        // },
-        // {
-        //     keywords: ['depressão', 'depressao', 'deprimido', 'deprimida', 'triste', 'tristeza', 
-        //               'sem ânimo', 'sem animo', 'desanimado', 'desanimada', 'melancolia', 'melancólico', 'melancolico'],
-        //     response: "Entendo que isso pode ser difícil. A Dra. Karin poderá fazer uma avaliação completa durante a consulta. Gostaria de agendar um horário?"
-        // },
+     
+     
         {
             keywords: ['receita', 'renovar receita', 'renovacao', 'prescrição', 'prescricao', 
                       'remédio', 'remedio', 'medicamento', 'medicação', 'medicacao'],
@@ -255,6 +248,88 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
                 conversationCache.set(conversationKey, conversation);
                 
                 return finalResponse.content;
+            }
+            // Verificar se é a função de agendamento
+            else if (name === 'bookAppointment') {
+                console.log('Processando agendamento de consulta...');
+                
+                // Parsear os argumentos
+                const parsedArgs = JSON.parse(args);
+                
+                // Chamar a função para agendar a consulta
+                const bookingResult = await bookAppointment(parsedArgs);
+                
+                console.log('Resultado do agendamento:', JSON.stringify(bookingResult, null, 2));
+                
+                // Adicionar o resultado da função ao histórico da conversa
+                conversation.push({
+                    role: "function",
+                    name: name,
+                    content: JSON.stringify(bookingResult)
+                });
+                
+                // Chamar o ChatGPT novamente para gerar a resposta final
+                const finalResponse = await getChatGPTResponse(conversation, nome);
+                
+                // Adicionar a resposta final ao histórico
+                conversation.push({
+                    role: "assistant",
+                    content: finalResponse.content
+                });
+                
+                // Salvar conversa atualizada no cache
+                conversationCache.set(conversationKey, conversation);
+                
+                // Formatar a resposta com base no resultado do agendamento
+                let formattedResponse = finalResponse.content;
+                
+                // Se o agendamento foi bem-sucedido e há um link de pagamento, adiciona-o à resposta
+                if (bookingResult.success && bookingResult.payment_link) {
+                    formattedResponse += `\n\nAqui está o link para pagamento: ${bookingResult.payment_link}\n\nNo link de pagamento você pode escolher se quer pagar no cartão de crédito/débito ou PIX.`;
+                }
+                
+                return formattedResponse;
+            }
+            // Verificar se é a função de atualização de agendamento
+            else if (name === 'updateAppointment') {
+                console.log('Processando atualização de agendamento...');
+                
+                // Parsear os argumentos
+                const parsedArgs = JSON.parse(args);
+                
+                // Chamar a função para atualizar o agendamento
+                const updateResult = await updateAppointment(parsedArgs);
+                
+                console.log('Resultado da atualização:', JSON.stringify(updateResult, null, 2));
+                
+                // Adicionar o resultado da função ao histórico da conversa
+                conversation.push({
+                    role: "function",
+                    name: name,
+                    content: JSON.stringify(updateResult)
+                });
+                
+                // Chamar o ChatGPT novamente para gerar a resposta final
+                const finalResponse = await getChatGPTResponse(conversation, nome);
+                
+                // Adicionar a resposta final ao histórico
+                conversation.push({
+                    role: "assistant",
+                    content: finalResponse.content
+                });
+                
+                // Salvar conversa atualizada no cache
+                conversationCache.set(conversationKey, conversation);
+                
+                // Formatar a resposta com base no resultado da atualização
+                let formattedResponse = finalResponse.content;
+                
+                // Se a atualização foi bem-sucedida e há um link de pagamento, adiciona-o à resposta
+                if (updateResult.success && updateResult.payment_link) {
+                    formattedResponse += `\n\nAqui está o link para pagamento: ${updateResult.payment_link}\n\nNo link de pagamento você pode escolher se quer pagar no cartão de crédito/débito ou PIX.`;
+                }
+                
+                return formattedResponse;
             }
         }
         
