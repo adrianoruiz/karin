@@ -7,9 +7,9 @@ use App\Http\Controllers\{
     Api\AuthController,
     Api\ChatLogController,
     Api\DoctorAvailabilityController,
+    Api\PatientAppointmentController,
     Api\PlanController,
     Api\WhatsappController,
-    Api\PatientAppointmentController,
     ChatbotController,
     ChatbotCrudController
 };
@@ -56,6 +56,16 @@ Route::group([
 
 // Rotas de agendamentos
 Route::apiResource('appointments', AppointmentController::class);
+
+
+// Rotas para pacientes agendarem consultas
+Route::prefix('patient')->group(function () {
+    Route::get('available-times', [PatientAppointmentController::class, 'getAvailableTimes']);
+    Route::post('book-appointment', [PatientAppointmentController::class, 'bookAppointment']);
+    Route::post('check-availability', [PatientAppointmentController::class, 'checkAvailability']);
+    Route::get('available-plans/{doctor_id}', [PatientAppointmentController::class, 'getAvailablePlans']);
+    Route::get('payment-methods/{doctor_id}', [PatientAppointmentController::class, 'getDoctorPaymentMethods']);
+});
 
 
 // Rotas de Chatbot - CRUD
@@ -119,13 +129,3 @@ Route::prefix('chat-logs')->group(function () {
 Route::get('availabilities', [DoctorAvailabilityController::class, 'index']);
 Route::get('plans', [PlanController::class, 'index']);
 Route::get('plans/{plan}', [PlanController::class, 'publicShow']);
-
-// Rota pública para agendamento de consultas
-Route::post('appointments/public', [AppointmentController::class, 'storePublic']);
-
-// Rotas para pacientes agendarem consultas
-Route::prefix('patient')->group(function () {
-    Route::get('available-times', [PatientAppointmentController::class, 'getAvailableTimes']);
-    Route::post('book-appointment', [PatientAppointmentController::class, 'bookAppointment']);
-    Route::post('check-availability', [PatientAppointmentController::class, 'checkAvailability']);
-});

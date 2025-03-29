@@ -14,7 +14,8 @@ use Illuminate\Database\Eloquent\Relations\{
     HasOne,
     MorphMany,
     MorphOne,
-    HasMany
+    HasMany,
+    BelongsToMany
 };
 
 
@@ -177,5 +178,26 @@ class User extends Authenticatable implements JWTSubject
     public function availabilities(): HasMany
     {
         return $this->hasMany(DoctorAvailability::class, 'doctor_id');
+    }
+    
+    /**
+     * Relacionamento com formas de pagamento aceitas pelo médico.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function paymentMethods(): BelongsToMany
+    {
+        return $this->belongsToMany(PaymentMethod::class, 'doctor_payment_method', 'user_id', 'payment_method_id')
+            ->withTimestamps();
+    }
+    
+    /**
+     * Relacionamento com planos oferecidos pelo médico.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function plans(): HasMany
+    {
+        return $this->hasMany(Plan::class, 'user_id');
     }
 }

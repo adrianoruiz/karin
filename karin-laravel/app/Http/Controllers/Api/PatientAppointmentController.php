@@ -13,7 +13,9 @@ use App\Models\{
     Appointment,
     DoctorAvailability,
     User,
-    UserData
+    UserData,
+    Plan,
+    PaymentMethod
 };
 
 class PatientAppointmentController extends Controller
@@ -85,7 +87,9 @@ class PatientAppointmentController extends Controller
             'doctor_id' => 'required|exists:users,id',
             'appointment_datetime' => 'required|date',
             'observations' => 'nullable|string',
-            'is_online' => 'nullable|boolean'
+            'is_online' => 'nullable|boolean',
+            'plan_id' => 'required|exists:plans,id',
+            'payment_method_id' => 'nullable|exists:payment_methods,id'
         ]);
 
         if ($validator->fails()) {
@@ -179,6 +183,8 @@ class PatientAppointmentController extends Controller
         $appointmentData = [
             'user_id' => $user->id,
             'doctor_id' => $request->doctor_id,
+            'plan_id' => $request->plan_id,
+            'payment_method_id' => $request->payment_method_id,
             'appointment_datetime' => $request->appointment_datetime,
             'status' => 'agendada',
             'observations' => $request->observations,
@@ -190,9 +196,29 @@ class PatientAppointmentController extends Controller
         // Marca o horário como reservado
         $availability->markAsBooked();
 
+        // Busca o plano selecionado para retornar informações de preço
+        $plan = Plan::findOrFail($request->plan_id);
+        
+        // Busca a forma de pagamento, se informada
+        $paymentMethod = null;
+        if ($request->payment_method_id) {
+            $paymentMethod = PaymentMethod::findOrFail($request->payment_method_id);
+        }
+
         return response()->json([
             'message' => 'Consulta agendada com sucesso',
-            'appointment' => $appointment
+            'appointment' => $appointment,
+            'plan' => [
+                'name' => $plan->name,
+                'price' => $plan->price,
+                'modality' => $plan->modality,
+                'type' => $plan->type,
+                'installments' => $plan->installments
+            ],
+            'payment_method' => $paymentMethod ? [
+                'name' => $paymentMethod->name,
+                'slug' => $paymentMethod->slug
+            ] : null
         ], 201);
     }
 
@@ -224,6 +250,89 @@ class PatientAppointmentController extends Controller
 
         return response()->json([
             'is_available' => $isAvailable
+        ]);
+    }
+
+    /**
+     * Retorna os planos disponíveis de um médico específico
+     *
+     * @param int $doctorId
+     * @return JsonResponse
+     */
+    public function getAvailablePlans(int $doctorId): JsonResponse
+    {
+        // Verifica se o médico existe
+        $doctor = User::findOrFail($doctorId);
+        
+        // Busca os planos ativos do médico
+        $plans = Plan::where('user_id', $doctorId)
+            ->where('is_active', true)
+            ->orderBy('type')
+            ->orderBy('price')
+            ->get();
+            
+        // Formata os planos para o frontend
+        $formattedPlans = $plans->map(function ($plan) {
+            return [
+                'id' => $plan->id,
+                'name' => $plan->name,
+                'description' => $plan->description,
+                'price' => $plan->price,
+                'duration' => $plan->duration,
+                'type' => $plan->type,
+                'consultations' => $plan->consultations,
+                'modality' => $plan->modality,
+                'installments' => $plan->installments
+            ];
+        });
+        
+        return response()->json([
+            'doctor' => [
+                'id' => $doctor->id,
+                'name' => $doctor->name
+            ],
+            'plans' => $formattedPlans
+        ]);
+    }
+
+    /**
+     * Retorna as formas de pagamento aceitas por um médico específico
+     *
+     * @param int $doctorId
+     * @return JsonResponse
+     */
+    public function getDoctorPaymentMethods(int $doctorId): JsonResponse
+    {
+        // Verifica se o médico existe
+        $doctor = User::findOrFail($doctorId);
+        
+        // Busca as formas de pagamento ativas aceitas pelo médico
+        $paymentMethods = $doctor->paymentMethods()
+            ->where('is_active', true)
+            ->get();
+            
+        // Se o médico não tiver formas de pagamento específicas, retorna todas as formas ativas
+        if ($paymentMethods->isEmpty()) {
+            $paymentMethods = PaymentMethod::where('is_active', true)->get();
+        }
+            
+        // Formata as formas de pagamento para o frontend
+        $formattedPaymentMethods = $paymentMethods->map(function ($method) {
+            return [
+                'id' => $method->id,
+                'name' => $method->name,
+                'slug' => $method->slug,
+                'icon' => $method->icon,
+                'description' => $method->description
+            ];
+        });
+        
+        return response()->json([
+            'doctor' => [
+                'id' => $doctor->id,
+                'name' => $doctor->name
+            ],
+            'payment_methods' => $formattedPaymentMethods
         ]);
     }
 }
