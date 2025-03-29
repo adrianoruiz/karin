@@ -18,8 +18,8 @@ async function downloadAudio(message) {
             fs.mkdirSync(tempDir, { recursive: true });
         }
         
-        // Gerar nome de arquivo único e curto para evitar erro ENAMETOOLONG
-        const fileName = `audio_${Date.now().toString().slice(-6)}_${Math.floor(Math.random() * 1000)}.ogg`;
+        // Gerar nome de arquivo único
+        const fileName = `audio_${Date.now()}_${Math.floor(Math.random() * 10000)}.ogg`;
         const filePath = path.join(tempDir, fileName);
         
         // Baixar mídia
@@ -174,12 +174,6 @@ async function processAudioMessage(message, nome, phoneNumber, clinicaId, client
         
         // Processar o texto transcrito com o ChatGPT
         const gptResponse = await processMessageWithGPT(transcription, nome, phoneNumber, clinicaId);
-        
-        // Verificar se o bot está desativado (retorno null)
-        if (gptResponse === null) {
-            console.log('Bot está desativado. Não será enviada resposta.');
-            return null;
-        }
         
         // Enviar resposta ao usuário usando o serviço de WhatsApp que suporta voz
         if (sendWhatsAppMessage) {

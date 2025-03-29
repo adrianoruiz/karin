@@ -12,49 +12,12 @@ require('dotenv').config();
 const {
     availabilityFunction,
     plansFunction,
-    paymentMethodsFunction,
-    bookingFunction,
     transcribeAudio,
     getAvailableAppointments,
-    getPlans,
-    getPaymentMethods,
-    bookAppointment,
-    checkAvailability
+    getPlans
 } = require('./tools');
 
-/**
- * Verifica se o bot está ativo através da API
- * @returns {Promise<boolean>} - Retorna true se o bot estiver ativo, false caso contrário
- */
-async function isBotActive() {
-    try {
-        const response = await axios.post(
-            `${config.apiUrl}chat-logs/active-bot`,
-            {},
-            {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
-        
-        console.log('Status do bot:', response.data);
-        return response.data.is_bot_active === true;
-    } catch (error) {
-        console.error('Erro ao verificar status do bot:', error);
-        // Em caso de erro na verificação, assumimos que o bot está inativo para evitar respostas indesejadas
-        return false;
-    }
-}
-
 async function getChatGPTResponse(messages, nome) {
-    // Verifica se o bot está ativo antes de processar a resposta
-    const botActive = await isBotActive();
-    if (!botActive) {
-        console.log('Bot está desativado. Não será enviada resposta.');
-        return null; // Retorna null quando o bot está desativado
-    }
-
     const apiKey = process.env.OPENAI_API_KEY;
     
     // Obtém o system message a partir do arquivo separado
@@ -69,7 +32,7 @@ async function getChatGPTResponse(messages, nome) {
             {
                 model: "gpt-4o", 
                 messages: messagesWithSystem,
-                functions: [availabilityFunction, plansFunction, paymentMethodsFunction, bookingFunction],
+                functions: [availabilityFunction, plansFunction],
                 function_call: "auto",
                 max_tokens: 300,
                 temperature: 0.7
@@ -94,12 +57,6 @@ module.exports = {
     transcribeAudio,
     availabilityFunction,
     plansFunction,
-    paymentMethodsFunction,
-    bookingFunction,
     getAvailableAppointments,
-    getPlans,
-    getPaymentMethods,
-    bookAppointment,
-    checkAvailability,
-    isBotActive // Exportando a função para uso em outros módulos se necessário
+    getPlans
 };

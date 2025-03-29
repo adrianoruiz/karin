@@ -85,56 +85,6 @@
         max-width: 100%;
         height: auto;
       }
-      
-      .btn {
-        display: inline-block;
-        padding: 10px 15px;
-        background-color: #3498db;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-        margin-top: 15px;
-        text-decoration: none;
-      }
-      
-      .btn:hover {
-        background-color: #2980b9;
-      }
-      
-      .btn-danger {
-        background-color: #e74c3c;
-      }
-      
-      .btn-danger:hover {
-        background-color: #c0392b;
-      }
-      
-      .status-message {
-        margin-top: 15px;
-        padding: 10px;
-        border-radius: 4px;
-        font-size: 14px;
-      }
-      
-      .status-success {
-        background-color: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
-      }
-      
-      .status-error {
-        background-color: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
-      }
-      
-      .status-warning {
-        background-color: #fff3cd;
-        color: #856404;
-        border: 1px solid #ffeeba;
-      }
     </style>
   </head>
   <body>
@@ -164,9 +114,6 @@
         <h3>Modo de Debug</h3>
         <img id="qrDebugImage" src="" alt="QR Code de Debug" />
         <p id="debugInfo"></p>
-        <button id="forceQrButton" class="btn btn-danger">Forçar Novo QR Code</button>
-        <button id="refreshQrButton" class="btn">Atualizar QR Code</button>
-        <div id="statusMessage" class="status-message" style="display: none;"></div>
       </div>
     </div>
 
@@ -188,28 +135,6 @@
 
         return params;
       }
-      
-      // Função para mostrar mensagem de status
-      function showStatusMessage(message, type) {
-        const statusElement = document.getElementById("statusMessage");
-        statusElement.textContent = message;
-        statusElement.className = "status-message";
-        
-        if (type === "success") {
-          statusElement.classList.add("status-success");
-        } else if (type === "error") {
-          statusElement.classList.add("status-error");
-        } else if (type === "warning") {
-          statusElement.classList.add("status-warning");
-        }
-        
-        statusElement.style.display = "block";
-        
-        // Esconder a mensagem após 5 segundos
-        setTimeout(() => {
-          statusElement.style.display = "none";
-        }, 5000);
-      }
 
       // Verifica se estamos no modo de debug
       const params = getUrlParams();
@@ -226,110 +151,40 @@
         const id = idIndex < pathParts.length ? pathParts[idIndex] : "";
 
         if (id) {
-          // Função para carregar o QR code
-          function loadDebugQRCode(forceNew = false) {
-            // Mostrar loader
-            document.getElementById("qrDebugImage").style.display = "none";
-            document.getElementById("loader").style.display = "block";
-            document.getElementById("debugInfo").textContent = "Carregando QR code...";
-            
-            // Construir a URL da API
-            let apiUrl = `/api/whatsapp/qr/${id}`;
-            if (forceNew) {
-              apiUrl += "?force=true";
-            }
-            
-            // Fazer a requisição para a API
-            fetch(apiUrl)
-              .then((response) => {
-                if (!response.ok) {
-                  throw new Error(`Erro na requisição: ${response.status}`);
-                }
-                return response.json();
-              })
-              .then((data) => {
-                // Esconder loader
-                document.getElementById("loader").style.display = "none";
-                
-                if (data.status === "success" && data.qrCode) {
-                  // Mostrar QR code
-                  document.getElementById("qrDebugImage").src = data.qrCode;
-                  document.getElementById("qrDebugImage").style.display = "block";
-                  document.getElementById("debugInfo").textContent = "QR code carregado com sucesso";
-                  showStatusMessage("QR code carregado com sucesso", "success");
-                } else if (data.status === "success" && data.authenticated) {
-                  // Cliente já autenticado
-                  document.getElementById("qrDebugImage").style.display = "none";
-                  document.getElementById("debugInfo").textContent = "Erro: Cliente já autenticado";
-                  showStatusMessage("Cliente já autenticado. Não é necessário escanear o QR code.", "warning");
-                } else if (data.status === "pending") {
-                  // QR code ainda não disponível
-                  document.getElementById("qrDebugImage").style.display = "none";
-                  document.getElementById("debugInfo").textContent = `Erro: ${data.message}`;
-                  showStatusMessage(data.message, "warning");
-                  
-                  // Tentar novamente após 5 segundos
-                  setTimeout(loadDebugQRCode, 5000);
-                } else {
-                  // Outro erro
-                  document.getElementById("qrDebugImage").style.display = "none";
-                  document.getElementById("debugInfo").textContent = `Erro: ${data.message || "QR code não disponível"}`;
-                  showStatusMessage(data.message || "QR code não disponível", "error");
-                }
-              })
-              .catch((error) => {
-                // Esconder loader
-                document.getElementById("loader").style.display = "none";
-                document.getElementById("qrDebugImage").style.display = "none";
-                document.getElementById("debugInfo").textContent = `Erro ao carregar QR code: ${error.message}`;
-                showStatusMessage(`Erro ao carregar QR code: ${error.message}`, "error");
-              });
-          }
-          
-          // Função para forçar um novo QR code
-          function forceNewQRCode() {
-            // Mostrar loader
-            document.getElementById("qrDebugImage").style.display = "none";
-            document.getElementById("loader").style.display = "block";
-            document.getElementById("debugInfo").textContent = "Forçando geração de novo QR code...";
-            showStatusMessage("Forçando geração de novo QR code...", "warning");
-            
-            // Fazer a requisição para a API
-            fetch(`/api/whatsapp/force-qr/${id}`)
-              .then((response) => {
-                if (!response.ok) {
-                  throw new Error(`Erro na requisição: ${response.status}`);
-                }
-                return response.json();
-              })
-              .then((data) => {
-                // Esconder loader
-                document.getElementById("loader").style.display = "none";
-                document.getElementById("qrDebugImage").style.display = "none";
-                document.getElementById("debugInfo").textContent = data.message;
-                showStatusMessage(data.message, "warning");
-                
-                // Tentar carregar o QR code após 5 segundos
-                setTimeout(loadDebugQRCode, 5000);
-              })
-              .catch((error) => {
-                // Esconder loader
-                document.getElementById("loader").style.display = "none";
-                document.getElementById("qrDebugImage").style.display = "none";
-                document.getElementById("debugInfo").textContent = `Erro ao forçar QR code: ${error.message}`;
-                showStatusMessage(`Erro ao forçar QR code: ${error.message}`, "error");
-              });
-          }
-          
-          // Adicionar event listeners aos botões
-          document.getElementById("forceQrButton").addEventListener("click", forceNewQRCode);
-          document.getElementById("refreshQrButton").addEventListener("click", () => loadDebugQRCode(false));
-          
-          // Carregar o QR code assim que a página carregar
-          window.onload = () => loadDebugQRCode(false);
+          // Construir a URL da API
+          const apiUrl = `/api/whatsapp/qr/${id}`;
+          document.getElementById(
+            "debugInfo"
+          ).textContent = `Carregando QR code para ID: ${id}`;
+
+          // Fazer a requisição para a API
+          fetch(apiUrl)
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(`Erro na requisição: ${response.status}`);
+              }
+              return response.json();
+            })
+            .then((data) => {
+              if (data.status === "success" && data.qrCode) {
+                document.getElementById("qrDebugImage").src = data.qrCode;
+                document.getElementById(
+                  "debugInfo"
+                ).textContent = `QR code carregado com sucesso para ID: ${id}`;
+              } else {
+                document.getElementById("debugInfo").textContent = `Erro: ${
+                  data.message || "QR code não disponível"
+                }`;
+              }
+            })
+            .catch((error) => {
+              document.getElementById(
+                "debugInfo"
+              ).textContent = `Erro ao carregar QR code: ${error.message}`;
+            });
         } else {
-          document.getElementById("debugInfo").textContent = "ID não fornecido na URL";
-          showStatusMessage("ID não fornecido na URL", "error");
+          document.getElementById("debugInfo").textContent =
+            "ID não fornecido na URL";
         }
       } else {
         // Comportamento normal para o modo não-debug
@@ -344,46 +199,30 @@
               if (data.authenticated) {
                 document.getElementById("loader").style.display = "none";
                 document.getElementById("qrCodeImage").style.display = "none";
-                document.getElementById("instructions").style.display = "none";
-                document.getElementById("retryMessage").style.display = "block";
-                document.getElementById("retryMessage").innerHTML =
-                  "Autenticado com sucesso!<br>Você pode fechar esta janela.";
+                document.getElementById("retryMessage").style.display = "none";
+                document.getElementById("instructions").innerHTML =
+                  "<p>O cliente já está autenticado. Você já pode usar o WhatsApp!</p>";
                 clearTimeout(reloadTimer);
               } else if (data.qrCodeUrl) {
                 document.getElementById("loader").style.display = "none";
                 document.getElementById("qrCodeImage").src = data.qrCodeUrl;
                 document.getElementById("qrCodeImage").style.display = "block";
-                document.getElementById("instructions").style.display = "block";
                 document.getElementById("retryMessage").style.display = "none";
-                // Recarregar após 30 segundos para obter um novo QR code se necessário
-                clearTimeout(reloadTimer);
-                reloadTimer = setTimeout(loadQRCode, 30000);
               } else {
-                document.getElementById("loader").style.display = "block";
-                document.getElementById("qrCodeImage").style.display = "none";
                 document.getElementById("retryMessage").style.display = "block";
-                // Tentar novamente após 5 segundos
-                clearTimeout(reloadTimer);
-                reloadTimer = setTimeout(loadQRCode, 5000);
               }
             } else {
-              document.getElementById("loader").style.display = "none";
-              document.getElementById("retryMessage").style.display = "block";
-              document.getElementById("retryMessage").innerHTML =
-                "Erro ao carregar o QR Code.<br>Tente novamente em alguns instantes.";
-              // Tentar novamente após 10 segundos
-              clearTimeout(reloadTimer);
-              reloadTimer = setTimeout(loadQRCode, 10000);
+              throw new Error("Resposta não ok");
             }
           } catch (error) {
-            document.getElementById("loader").style.display = "none";
+            console.error("Erro ao carregar QR Code:", error);
+            document.getElementById("retryMessage").innerText =
+              "Erro ao carregar QR Code. Tentando novamente...";
             document.getElementById("retryMessage").style.display = "block";
-            document.getElementById("retryMessage").innerHTML =
-              "Erro ao carregar o QR Code.<br>Tente novamente em alguns instantes.";
-            // Tentar novamente após 10 segundos
-            clearTimeout(reloadTimer);
-            reloadTimer = setTimeout(loadQRCode, 10000);
           }
+
+          // Agendar próxima recarga
+          reloadTimer = setTimeout(loadQRCode, 5000);
         }
 
         // Carregar o QR Code assim que a página carregar
