@@ -12,10 +12,12 @@ require('dotenv').config();
 const {
     availabilityFunction,
     plansFunction,
+    paymentMethodsFunction,
     bookingFunction,
     transcribeAudio,
     getAvailableAppointments,
     getPlans,
+    getPaymentMethods,
     bookAppointment,
     checkAvailability
 } = require('./tools');
@@ -67,7 +69,7 @@ async function getChatGPTResponse(messages, nome) {
             {
                 model: "gpt-4o", 
                 messages: messagesWithSystem,
-                functions: [availabilityFunction, plansFunction, bookingFunction],
+                functions: [availabilityFunction, plansFunction, paymentMethodsFunction, bookingFunction],
                 function_call: "auto",
                 max_tokens: 300,
                 temperature: 0.7
@@ -92,9 +94,11 @@ module.exports = {
     transcribeAudio,
     availabilityFunction,
     plansFunction,
+    paymentMethodsFunction,
     bookingFunction,
     getAvailableAppointments,
     getPlans,
+    getPaymentMethods,
     bookAppointment,
     checkAvailability,
     isBotActive // Exportando a função para uso em outros módulos se necessário

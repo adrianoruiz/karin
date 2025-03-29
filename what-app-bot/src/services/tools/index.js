@@ -5,6 +5,7 @@ const { availabilityFunction, getAvailableAppointments } = require('./availabili
 const { plansFunction, getPlans } = require('./plans');
 const { transcribeAudio } = require('./audio');
 const { bookingFunction, bookAppointment, checkAvailability } = require('./booking');
+const { paymentMethodsFunction, getPaymentMethods, getPaymentMethodIdByName } = require('./payment');
 
 module.exports = {
     availabilityFunction,
@@ -14,5 +15,8 @@ module.exports = {
     transcribeAudio,
     bookingFunction,
     bookAppointment,
-    checkAvailability
+    checkAvailability,
+    paymentMethodsFunction,
+    getPaymentMethods,
+    getPaymentMethodIdByName
 };

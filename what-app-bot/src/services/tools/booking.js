@@ -44,6 +44,14 @@ const bookingFunction = {
             is_online: {
                 type: "boolean",
                 description: "Se a consulta será online (true) ou presencial (false)"
+            },
+            payment_method: {
+                type: "string",
+                description: "Método de pagamento (cartão de crédito, cartão de débito, pix)"
+            },
+            plan_id: {
+                type: "number",
+                description: "ID do plano escolhido"
             }
         },
         required: ["name", "cpf", "phone", "birthdate", "date", "time"]
@@ -77,6 +85,87 @@ function convertDateFormat(date) {
 }
 
 /**
+ * Determina o ID do plano com base na modalidade (online/presencial)
+ * @param {boolean} isOnline - Se a consulta é online
+ * @param {number|null} planId - ID do plano fornecido (opcional)
+ * @returns {Promise<number>} - ID do plano
+ */
+async function determinePlanId(isOnline, planId = null) {
+    // Se o ID do plano já foi fornecido, retorna ele
+    if (planId) {
+        return planId;
+    }
+    
+    try {
+        // Importa a função getPlans do módulo plans
+        const { getPlans } = require('./plans');
+        
+        // Obtém todos os planos disponíveis
+        const plans = await getPlans();
+        
+        // Filtra os planos pelo tipo (consulta avulsa) e modalidade (online/presencial)
+        const modalityType = isOnline ? 'online' : 'presencial';
+        const filteredPlans = plans.filter(plan => 
+            plan.type === 'consulta_avulsa' && 
+            plan.modality === modalityType
+        );
+        
+        // Se encontrou algum plano, retorna o ID do primeiro
+        if (filteredPlans.length > 0) {
+            console.log(`[DEBUG] Plano encontrado para modalidade ${modalityType}: ${filteredPlans[0].name} (ID: ${filteredPlans[0].id})`);
+            return filteredPlans[0].id;
+        }
+        
+        // Se não encontrou plano específico, retorna o ID do primeiro plano disponível
+        if (plans.length > 0) {
+            console.log(`[DEBUG] Usando plano padrão: ${plans[0].name} (ID: ${plans[0].id})`);
+            return plans[0].id;
+        }
+        
+        // Se não encontrou nenhum plano, retorna 1 como padrão
+        console.log(`[DEBUG] Nenhum plano encontrado, usando ID padrão: 1`);
+        return 1;
+    } catch (error) {
+        console.error(`[ERROR] Erro ao determinar o ID do plano:`, error);
+        // Retorna 1 como ID padrão em caso de erro
+        return 1;
+    }
+}
+
+/**
+ * Determina o ID do método de pagamento com base no nome
+ * @param {string|null} paymentMethod - Nome do método de pagamento
+ * @returns {Promise<number>} - ID do método de pagamento
+ */
+async function determinePaymentMethodId(paymentMethod = null) {
+    // Se não foi fornecido um método de pagamento, retorna 2 (cartão de débito) como padrão
+    if (!paymentMethod) {
+        return 2;
+    }
+    
+    try {
+        // Importa a função getPaymentMethodIdByName do módulo payment
+        const { getPaymentMethodIdByName } = require('./payment');
+        
+        // Obtém o ID do método de pagamento pelo nome
+        const paymentMethodId = await getPaymentMethodIdByName(paymentMethod);
+        
+        // Se encontrou o ID, retorna ele
+        if (paymentMethodId) {
+            return paymentMethodId;
+        }
+        
+        // Se não encontrou, retorna 2 (cartão de débito) como padrão
+        console.log(`[DEBUG] Método de pagamento não encontrado, usando ID padrão: 2`);
+        return 2;
+    } catch (error) {
+        console.error(`[ERROR] Erro ao determinar o ID do método de pagamento:`, error);
+        // Retorna 2 como ID padrão em caso de erro
+        return 2;
+    }
+}
+
+/**
  * Agenda uma consulta para o paciente na API
  * @param {Object} appointmentData - Dados da consulta
  * @returns {Promise<Object>} - Resultado do agendamento
@@ -105,6 +194,15 @@ async function bookAppointment(appointmentData) {
         // Converter a data de nascimento do formato brasileiro para o formato americano
         const formattedBirthdate = convertDateFormat(appointmentData.birthdate);
         
+        // Determinar se a consulta é online ou presencial
+        const isOnline = appointmentData.is_online !== undefined ? appointmentData.is_online : false;
+        
+        // Determinar o ID do plano com base na modalidade
+        const planId = await determinePlanId(isOnline, appointmentData.plan_id);
+        
+        // Determinar o ID do método de pagamento
+        const paymentMethodId = await determinePaymentMethodId(appointmentData.payment_method);
+        
         // Preparar os dados para a API
         const apiData = {
             name: appointmentData.name,
@@ -113,8 +211,11 @@ async function bookAppointment(appointmentData) {
             birthday: formattedBirthdate, // Data de nascimento convertida
             doctor_id: 2, // ID fixo da Dra. Karin
             appointment_datetime: `${appointmentData.date} ${appointmentData.time}:00`, // Combina data e hora
-            observations: appointmentData.observations || '',
-            is_online: appointmentData.is_online !== undefined ? appointmentData.is_online : false
+            status: "agendada",
+            observations: appointmentData.observations || 'Primeira consulta.',
+            is_online: isOnline,
+            plan_id: planId,
+            payment_method_id: paymentMethodId
         };
         
         console.log(`[DEBUG] Dados formatados para API:`, JSON.stringify(apiData, null, 2));
@@ -146,10 +247,26 @@ async function bookAppointment(appointmentData) {
         // Verificar se o agendamento foi bem-sucedido
         if (response.data.success) {
             console.log(`[DEBUG] Agendamento realizado com sucesso:`, JSON.stringify(response.data, null, 2));
+            
+            // Obter informações do plano para retornar o link de pagamento
+            let paymentLink = null;
+            try {
+                const { getPlans } = require('./plans');
+                const plans = await getPlans();
+                const selectedPlan = plans.find(plan => plan.id === planId);
+                if (selectedPlan && selectedPlan.link) {
+                    paymentLink = selectedPlan.link;
+                }
+            } catch (error) {
+                console.error(`[ERROR] Erro ao obter link de pagamento:`, error);
+            }
+            
             return {
                 success: true,
                 message: "Consulta agendada com sucesso!",
-                appointment: response.data.appointment
+                appointment: response.data.appointment,
+                payment_link: paymentLink,
+                payment_method_id: paymentMethodId
             };
         } else {
             console.log(`[DEBUG] Erro ao agendar consulta:`, JSON.stringify(response.data, null, 2));

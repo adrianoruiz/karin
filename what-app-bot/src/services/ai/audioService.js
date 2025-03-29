@@ -18,8 +18,8 @@ async function downloadAudio(message) {
             fs.mkdirSync(tempDir, { recursive: true });
         }
         
-        // Gerar nome de arquivo único
-        const fileName = `audio_${Date.now()}_${Math.floor(Math.random() * 10000)}.ogg`;
+        // Gerar nome de arquivo único e curto para evitar erro ENAMETOOLONG
+        const fileName = `audio_${Date.now().toString().slice(-6)}_${Math.floor(Math.random() * 1000)}.ogg`;
         const filePath = path.join(tempDir, fileName);
         
         // Baixar mídia

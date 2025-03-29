@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const path = require('path');
-const { getQRCode, clientManager } = require('../src/services/qr/qrcode');
+const { getQRCode, clientManager, forceNewQRCode } = require('../src/services/qr/qrcode');
 const authMiddleware = require('../src/middleware/auth'); // Importar o middleware
 
 // Rotas que não precisam de autenticação (para debug)
@@ -15,19 +15,39 @@ router.get('/debug/:id', (req, res) => {
 // Rota para API de QR code para debug (sem autenticação)
 router.get('/api/whatsapp/qr/:id', (req, res) => {
     const { id } = req.params;
+    const forceNew = req.query.force === 'true';
     
     try {
+        console.log(`Solicitação de QR code para ID ${id}, forçar novo: ${forceNew}`);
+        
+        // Verificar se devemos forçar um novo QR code
+        if (forceNew) {
+            console.log(`Forçando geração de novo QR code para ID ${id}`);
+            forceNewQRCode(id);
+            return res.status(202).json({ 
+                status: "pending", 
+                message: "Gerando novo QR code, tente novamente em alguns segundos" 
+            });
+        }
+        
         let client = clientManager.getClient(id);
 
         // Inicializar o cliente se não existir
         if (!client) {
             console.log(`Cliente não encontrado para ID ${id}, inicializando...`);
             client = clientManager.initializeClient(id);
+            
+            // Retornar status pendente, pois o cliente está sendo inicializado
+            return res.status(202).json({ 
+                status: "pending", 
+                message: "Cliente sendo inicializado, tente novamente em alguns segundos" 
+            });
         }
 
         // Verificar se o cliente já está autenticado
         if (client && client.isAuthenticated) {
-            res.status(200).json({ 
+            console.log(`Cliente ${id} já está autenticado`);
+            return res.status(200).json({ 
                 status: "success", 
                 message: "Cliente já autenticado", 
                 authenticated: true 
@@ -35,12 +55,14 @@ router.get('/api/whatsapp/qr/:id', (req, res) => {
         } else {
             const qrCode = getQRCode(id);
             if (qrCode) {
-                res.status(200).json({ 
+                console.log(`QR code encontrado para ID ${id}`);
+                return res.status(200).json({ 
                     status: "success", 
                     qrCode: qrCode 
                 });
             } else {
-                res.status(200).json({ 
+                console.log(`QR code ainda não disponível para ID ${id}`);
+                return res.status(202).json({ 
                     status: "pending", 
                     message: "QR code ainda não disponível, tente novamente em alguns segundos" 
                 });
@@ -48,6 +70,27 @@ router.get('/api/whatsapp/qr/:id', (req, res) => {
         }
     } catch (error) {
         console.error(`Erro ao obter QR code para ID ${id}:`, error);
+        res.status(500).json({ 
+            status: "error", 
+            message: "Erro ao processar a solicitação" 
+        });
+    }
+});
+
+// Rota para forçar a geração de um novo QR code para debug
+router.get('/api/whatsapp/force-qr/:id', (req, res) => {
+    const { id } = req.params;
+    
+    try {
+        console.log(`Forçando geração de novo QR code para ID ${id}`);
+        forceNewQRCode(id);
+        
+        res.status(202).json({ 
+            status: "pending", 
+            message: "Gerando novo QR code, tente novamente em alguns segundos" 
+        });
+    } catch (error) {
+        console.error(`Erro ao forçar geração de QR code para ID ${id}:`, error);
         res.status(500).json({ 
             status: "error", 
             message: "Erro ao processar a solicitação" 
