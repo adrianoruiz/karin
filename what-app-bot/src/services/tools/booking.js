@@ -88,8 +88,7 @@ async function bookAppointment(appointmentData) {
             phone: appointmentData.phone.replace(/\D/g, ''), // Remove caracteres não numéricos
             birthday: appointmentData.birthdate, // Mapeia birthdate para birthday
             doctor_id: 2, // ID fixo da Dra. Karin
-            date: appointmentData.date,
-            time: appointmentData.time,
+            appointment_datetime: `${appointmentData.date} ${appointmentData.time}:00`, // Combina data e hora
             observations: appointmentData.observations || '',
             is_online: appointmentData.is_online !== undefined ? appointmentData.is_online : false
         };
@@ -98,8 +97,7 @@ async function bookAppointment(appointmentData) {
         
         // Parâmetros da requisição
         const params = {
-            doctor_id: 2, // ID fixo da Dra. Karin
-            date: appointmentData.date
+            doctor_id: 2 // ID fixo da Dra. Karin
         };
         
         console.log(`[DEBUG] Parâmetros da requisição:`, JSON.stringify(params, null, 2));
