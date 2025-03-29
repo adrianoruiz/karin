@@ -175,6 +175,12 @@ async function processAudioMessage(message, nome, phoneNumber, clinicaId, client
         // Processar o texto transcrito com o ChatGPT
         const gptResponse = await processMessageWithGPT(transcription, nome, phoneNumber, clinicaId);
         
+        // Verificar se o bot está desativado (retorno null)
+        if (gptResponse === null) {
+            console.log('Bot está desativado. Não será enviada resposta.');
+            return null;
+        }
+        
         // Enviar resposta ao usuário usando o serviço de WhatsApp que suporta voz
         if (sendWhatsAppMessage) {
             // Passando true como último parâmetro para indicar que é uma resposta a uma mensagem de áudio

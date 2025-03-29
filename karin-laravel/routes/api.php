@@ -117,10 +117,11 @@ Route::middleware('auth:api')->group(function () {
 
 // Rotas para gerenciamento de logs de chat
 //Todo voltar a testar com rota autenticada
-Route::apiResource('chat-logs', ChatLogController::class);
+Route::apiResource('chat-log', ChatLogController::class);
 Route::prefix('chat-logs')->group(function () {
     Route::get('/unread/messages', [ChatLogController::class, 'getUnreadMessages']);
     Route::post('/mark-all-as-read', [ChatLogController::class, 'markAllAsRead']);
+    Route::post('/active-bot', [ChatLogController::class, 'activeBot']);
 });
 
 // Rota pública para teste de chat-logs

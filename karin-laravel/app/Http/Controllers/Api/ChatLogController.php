@@ -26,6 +26,47 @@ use Illuminate\Support\{
 
 class ChatLogController extends Controller
 {
+        /**
+     * Ativa ou desativa o bot GPT para uma conversa específica
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function activeBot(Request $request){
+        return response()->json([
+            'is_bot_active' => true,
+            'message' => 'GPT ativado com sucesso'
+        ]);
+
+        // is_bot_active implementar depois
+        // $validated = $request->validate([
+        //     'doctor_id' => 'required|exists:users,id',
+        //     'phone_user' => 'required|string',
+        //     'is_active' => 'required|boolean'
+        // ]);
+        
+        // // Busca todas as mensagens entre este médico e paciente
+        // $chatLogs = ChatLog::where('doctor_id', $validated['doctor_id'])
+        //                    ->where('phone_user', $validated['phone_user'])
+        //                    ->get();
+        
+        // // Atualiza o status do bot para todas as mensagens desta conversa
+        // foreach ($chatLogs as $chatLog) {
+        //     $chatLog->is_bot_active = $validated['is_active'];
+        //     $chatLog->save();
+        // }
+        
+        // return response()->json([
+        //     'status' => true,
+        //     'message' => $validated['is_active'] ? 'GPT ativado com sucesso' : 'GPT desativado com sucesso',
+        //     'data' => [
+        //         'doctor_id' => $validated['doctor_id'],
+        //         'phone_user' => $validated['phone_user'],
+        //         'is_bot_active' => $validated['is_active']
+        //     ]
+        // ]);
+    }
+
     /**
      * Display a listing of the resource.
      * 

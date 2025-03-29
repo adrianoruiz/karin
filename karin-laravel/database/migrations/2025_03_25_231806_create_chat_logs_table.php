@@ -6,8 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -26,6 +25,7 @@ return new class extends Migration
             $table->string('file_mime_type')->nullable()->comment('Tipo MIME do arquivo');
             $table->boolean('is_read')->default(false)->comment('Se a mensagem foi lida pelo destinatário');
             $table->timestamp('read_at')->nullable()->comment('Quando a mensagem foi lida');
+            $table->boolean('is_bot_active')->default(false)->comment('Se o bot GPT está ativado para esta conversa');
             $table->timestamps();
             
             // Índices para otimização de consultas

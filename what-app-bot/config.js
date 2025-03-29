@@ -15,5 +15,6 @@ module.exports = {
     reactLink: desenv
         ? 'drakarin.com.br'
         : 'drakarin.com.br',
-    greetingCacheTTL: 86400 // TTL de 24 horas
+    greetingCacheTTL: 86400, // TTL de 24 horas
+    checkBotStatus: true // Verifica se o bot está ativo através da API antes de responder
 };

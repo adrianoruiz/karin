@@ -3,7 +3,7 @@ const axios = require('axios');
 const NodeCache = require('node-cache');
 const config = require('../../config');
 const { formatPhoneNumber } = require('./formattedNumber');
-const { getChatGPTResponse } = require('./gpt');
+const { getChatGPTResponse, isBotActive } = require('./gpt');
 const { transcribeAudio, downloadAudio, processAudioMessage } = require('./ai/audioService');
 const { textToSpeech, cleanupTempAudioFiles } = require('./ai/speechService');
 const fs = require('fs');
@@ -202,6 +202,15 @@ async function formatAvailableAppointments(appointmentData) {
 // Função para processar mensagem com ChatGPT
 async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
     try {
+        // Verificar se o bot está ativo (apenas se a configuração checkBotStatus estiver habilitada)
+        if (config.checkBotStatus) {
+            const botActive = await isBotActive();
+            if (!botActive) {
+                console.log('Bot está desativado. Não será enviada resposta.');
+                return null;
+            }
+        }
+
         const conversationKey = createConversationKey(clinicaId, phoneNumber);
         let conversation = conversationCache.get(conversationKey) || [];
         
@@ -263,6 +272,13 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
                 
                 // Chamar o ChatGPT novamente para gerar a resposta final
                 const finalResponse = await getChatGPTResponse(conversation, nome);
+                
+                // Verificar se o bot está desativado (retorno null)
+                if (finalResponse === null) {
+                    console.log('Bot está desativado. Enviando mensagem de desativação.');
+                    return "Desculpe, o bot está desativado no momento. Por favor, tente novamente mais tarde.";
+                }
+                
                 console.log('[DEBUG] Resposta final do ChatGPT:', finalResponse);
                 
                 // Adicionar a resposta final ao histórico
@@ -297,6 +313,12 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
                 // Chamar o ChatGPT novamente para gerar a resposta final
                 const finalResponse = await getChatGPTResponse(conversation, nome);
                 
+                // Verificar se o bot está desativado (retorno null)
+                if (finalResponse === null) {
+                    console.log('Bot está desativado. Enviando mensagem de desativação.');
+                    return "Desculpe, o bot está desativado no momento. Por favor, tente novamente mais tarde.";
+                }
+                
                 // Adicionar a resposta final ao histórico
                 conversation.push({
                     role: "assistant",
@@ -329,6 +351,13 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
                 
                 // Chamar o ChatGPT novamente para gerar a resposta final
                 const finalResponse = await getChatGPTResponse(conversation, nome);
+                
+                // Verificar se o bot está desativado (retorno null)
+                if (finalResponse === null) {
+                    console.log('Bot está desativado. Enviando mensagem de desativação.');
+                    return "Desculpe, o bot está desativado no momento. Por favor, tente novamente mais tarde.";
+                }
+                
                 console.log('[DEBUG] Resposta final do ChatGPT:', finalResponse);
                 
                 // Adicionar a resposta final ao histórico
@@ -602,11 +631,27 @@ async function setupWhatsAppListeners(client, clinicaId) {
 async function sendWhatsAppMessage(client, number, message, clinicaId, isUserAudioMessage = false) {
     const formattedNumber = formatPhoneNumber(number);
     console.log(`Enviando mensagem para: ${formattedNumber}`);
+    
+    // Se a mensagem for null (bot desativado), não enviar resposta
+    if (message === null) {
+        console.log('Mensagem nula (bot desativado). Não será enviada resposta.');
+        return { status: 'skipped', message: 'Bot desativado' };
+    }
+    
     try {
         let response;
         
         // Importar a configuração
         const config = require('../../config');
+        
+        // Verificar se o bot está ativo (apenas se a configuração checkBotStatus estiver habilitada)
+        if (config.checkBotStatus) {
+            const botActive = await isBotActive();
+            if (!botActive) {
+                console.log('Bot está desativado. Não será enviada resposta.');
+                return { status: 'skipped', message: 'Bot desativado' };
+            }
+        }
         
         // Verificar se deve usar resposta por voz (apenas se o usuário enviou áudio E useVoiceResponse está ativado)
         if (isUserAudioMessage && config.useVoiceResponse) {
