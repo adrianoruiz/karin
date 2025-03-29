@@ -17,10 +17,6 @@ const bookingFunction = {
                 type: "string",
                 description: "Nome completo do paciente"
             },
-            email: {
-                type: "string",
-                description: "Email do paciente"
-            },
             cpf: {
                 type: "string",
                 description: "CPF do paciente (apenas números ou formatado)"
@@ -31,7 +27,7 @@ const bookingFunction = {
             },
             birthdate: {
                 type: "string",
-                description: "Data de nascimento do paciente no formato YYYY-MM-DD"
+                description: "Data de nascimento do paciente no formato DD/MM/AAAA"
             },
             date: {
                 type: "string",
@@ -50,9 +46,35 @@ const bookingFunction = {
                 description: "Se a consulta será online (true) ou presencial (false)"
             }
         },
-        required: ["name", "email", "cpf", "phone", "birthdate", "date", "time"]
+        required: ["name", "cpf", "phone", "birthdate", "date", "time"]
     }
 };
+
+/**
+ * Converte data do formato brasileiro (DD/MM/AAAA) para o formato americano (YYYY-MM-DD)
+ * @param {string} date - Data no formato brasileiro
+ * @returns {string} - Data no formato americano
+ */
+function convertDateFormat(date) {
+    // Verifica se a data já está no formato americano
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return date;
+    }
+    
+    // Converte do formato DD/MM/AAAA para YYYY-MM-DD
+    const parts = date.split(/[\/.-]/);
+    if (parts.length === 3) {
+        // Se o primeiro número tem 4 dígitos, assume que já está no formato americano
+        if (parts[0].length === 4) {
+            return date;
+        }
+        // Caso contrário, converte do formato brasileiro para o americano
+        return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+    }
+    
+    // Retorna a data original se não conseguir converter
+    return date;
+}
 
 /**
  * Agenda uma consulta para o paciente na API
@@ -65,7 +87,7 @@ async function bookAppointment(appointmentData) {
         console.log(`[DEBUG] Dados recebidos:`, JSON.stringify(appointmentData, null, 2));
         
         // Verificar se todos os campos obrigatórios estão presentes
-        const requiredFields = ["name", "email", "cpf", "phone", "birthdate", "date", "time"];
+        const requiredFields = ["name", "cpf", "phone", "birthdate", "date", "time"];
         const missingFields = requiredFields.filter(field => !appointmentData[field]);
         
         if (missingFields.length > 0) {
@@ -80,13 +102,15 @@ async function bookAppointment(appointmentData) {
             };
         }
         
+        // Converter a data de nascimento do formato brasileiro para o formato americano
+        const formattedBirthdate = convertDateFormat(appointmentData.birthdate);
+        
         // Preparar os dados para a API
         const apiData = {
             name: appointmentData.name,
-            email: appointmentData.email,
             cpf: appointmentData.cpf.replace(/\D/g, ''), // Remove caracteres não numéricos
             phone: appointmentData.phone.replace(/\D/g, ''), // Remove caracteres não numéricos
-            birthday: appointmentData.birthdate, // Mapeia birthdate para birthday
+            birthday: formattedBirthdate, // Data de nascimento convertida
             doctor_id: 2, // ID fixo da Dra. Karin
             appointment_datetime: `${appointmentData.date} ${appointmentData.time}:00`, // Combina data e hora
             observations: appointmentData.observations || '',
