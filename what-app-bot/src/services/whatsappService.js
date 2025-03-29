@@ -145,7 +145,7 @@ async function formatAvailableAppointments(availableTimes) {
             message += '\n';
         }
         
-        message += "Gostaria de agendar em algum desses horários?";
+        message += "Gostaria de agendar em algum desses horários? Por favor, me informe a data e horário desejados.";
         return message;
     } catch (error) {
         console.error('Erro ao formatar horários disponíveis:', error);

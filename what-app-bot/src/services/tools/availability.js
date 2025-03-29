@@ -5,6 +5,46 @@ const axios = require('axios');
 const config = require('../../../config');
 
 /**
+ * Converte uma data em linguagem natural para o formato YYYY-MM-DD
+ * @param {string} dateText - Data em linguagem natural (hoje, amanhã) ou no formato DD/MM/YYYY
+ * @returns {string} - Data no formato YYYY-MM-DD
+ */
+function parseDateInput(dateText) {
+    if (!dateText) return null;
+    
+    // Normaliza o texto removendo acentos e convertendo para minúsculas
+    const normalizedText = dateText.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    
+    const today = new Date();
+    
+    // Verifica se é "hoje"
+    if (normalizedText === 'hoje' || normalizedText === 'hj') {
+        return today.toISOString().split('T')[0];
+    }
+    
+    // Verifica se é "amanhã"
+    if (normalizedText === 'amanha' || normalizedText === 'amanhã') {
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        return tomorrow.toISOString().split('T')[0];
+    }
+    
+    // Verifica se é uma data no formato DD/MM/YYYY
+    const dateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+    const match = normalizedText.match(dateRegex);
+    
+    if (match) {
+        const day = match[1].padStart(2, '0');
+        const month = match[2].padStart(2, '0');
+        const year = match[3];
+        return `${year}-${month}-${day}`;
+    }
+    
+    // Retorna null se não conseguir interpretar a data
+    return null;
+}
+
+/**
  * Definição da função de disponibilidade para o GPT
  */
 const availabilityFunction = {
@@ -34,8 +74,11 @@ const availabilityFunction = {
  */
 async function getAvailableAppointments(date = null, doctorId = 2) {
     try {
-        // Se a data não for fornecida, usa a data atual
-        const currentDate = date || new Date().toISOString().split('T')[0];
+        // Processa a entrada de data, se fornecida
+        const parsedDate = parseDateInput(date);
+        
+        // Se a data não for fornecida ou não puder ser interpretada, usa a data atual
+        const currentDate = parsedDate || new Date().toISOString().split('T')[0];
         
         console.log(`Consultando horários disponíveis para a data: ${currentDate}`);
         
@@ -48,19 +91,27 @@ async function getAvailableAppointments(date = null, doctorId = 2) {
         
         console.log(`Resposta da API de disponibilidades:`, JSON.stringify(response.data, null, 2));
         
-        // Filtra apenas os horários com status "available" para a data solicitada
-        const availableTimes = response.data.availabilities
-            .filter(slot => {
-                // Extrai a data do formato ISO para YYYY-MM-DD
-                const slotDate = slot.date.split('T')[0];
-                return slot.status === "available" && slotDate === currentDate;
-            })
+        // Verificar se a resposta contém a propriedade availabilities e se é um array
+        if (!response.data || !response.data.availabilities || !Array.isArray(response.data.availabilities)) {
+            console.error('Resposta da API não contém um array de disponibilidades:', response.data);
+            return [];
+        }
+        
+        // Filtra apenas os horários com status "available"
+        let availableTimes = response.data.availabilities
+            .filter(slot => slot.status === "available")
             .map(slot => ({
                 date: slot.date.split('T')[0],
                 time: slot.time
             }));
         
-        console.log(`Horários disponíveis encontrados:`, availableTimes);
+        // Se uma data específica foi fornecida, filtra apenas os horários dessa data
+        if (date) {
+            availableTimes = availableTimes.filter(slot => slot.date === currentDate);
+            console.log(`Horários disponíveis filtrados para a data ${currentDate}:`, availableTimes);
+        } else {
+            console.log(`Horários disponíveis encontrados (sem filtro de data):`, availableTimes);
+        }
         
         return availableTimes;
     } catch (error) {
@@ -71,5 +122,6 @@ async function getAvailableAppointments(date = null, doctorId = 2) {
 
 module.exports = {
     availabilityFunction,
-    getAvailableAppointments
+    getAvailableAppointments,
+    parseDateInput
 };
