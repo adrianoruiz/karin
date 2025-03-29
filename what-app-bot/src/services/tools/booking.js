@@ -200,8 +200,12 @@ async function bookAppointment(appointmentData) {
         // Determinar o ID do plano com base na modalidade
         const planId = await determinePlanId(isOnline, appointmentData.plan_id);
         
+        // Se o método de pagamento não for informado, assume PIX como padrão
+        const paymentMethod = appointmentData.payment_method || 'pix';
+        console.log(`[DEBUG] Método de pagamento (original ou padrão): ${paymentMethod}`);
+        
         // Determinar o ID do método de pagamento
-        const paymentMethodId = await determinePaymentMethodId(appointmentData.payment_method);
+        const paymentMethodId = await determinePaymentMethodId(paymentMethod);
         
         // Preparar os dados para a API
         const apiData = {

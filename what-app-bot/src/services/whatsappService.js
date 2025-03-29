@@ -152,6 +152,13 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
         const conversationKey = createConversationKey(clinicaId, phoneNumber);
         let conversation = conversationCache.get(conversationKey) || [];
         
+        // Verificar se a mensagem está no formato de lista de dados
+        const processedMessage = processListFormat(message);
+        if (processedMessage !== message) {
+            console.log('Mensagem processada do formato de lista:', processedMessage);
+            message = processedMessage;
+        }
+        
         // Verificar temas sensíveis
         const sensitiveResponse = detectSensitiveTopics(message);
         if (sensitiveResponse) {
@@ -283,9 +290,31 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
                 // Formatar a resposta com base no resultado do agendamento
                 let formattedResponse = finalResponse.content;
                 
-                // Se o agendamento foi bem-sucedido e há um link de pagamento, adiciona-o à resposta
-                if (bookingResult.success && bookingResult.payment_link) {
-                    formattedResponse += `\n\nAqui está o link para pagamento: ${bookingResult.payment_link}\n\nNo link de pagamento você pode escolher se quer pagar no cartão de crédito/débito ou PIX.`;
+                // Sempre adicionar o link de pagamento quando o agendamento for bem-sucedido
+                if (bookingResult.success) {
+                    // Obter o link de pagamento do plano
+                    let paymentLink = bookingResult.payment_link;
+                    
+                    // Se não tiver o link no resultado, tentar obter diretamente
+                    if (!paymentLink) {
+                        try {
+                            const { getPlans } = require('./tools');
+                            const plans = await getPlans();
+                            const selectedPlan = plans.find(plan => plan.id === bookingResult.appointment.plan_id);
+                            if (selectedPlan && selectedPlan.link) {
+                                paymentLink = selectedPlan.link;
+                            }
+                        } catch (error) {
+                            console.error('Erro ao obter link de pagamento:', error);
+                        }
+                    }
+                    
+                    // Adicionar o link de pagamento à resposta
+                    if (paymentLink) {
+                        formattedResponse += `\n\nAqui está o link para pagamento: ${paymentLink}\n\nNo link de pagamento você pode escolher se quer pagar no cartão de crédito/débito ou PIX.`;
+                    } else {
+                        console.error('Link de pagamento não encontrado para o plano');
+                    }
                 }
                 
                 return formattedResponse;
@@ -355,6 +384,61 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
         console.error('Erro ao processar mensagem com GPT:', error);
         return "Desculpe, houve um erro ao processar sua mensagem. Por favor, tente novamente mais tarde.";
     }
+}
+
+/**
+ * Processa mensagens no formato de lista (name: valor, cpf: valor, etc.)
+ * e converte para um formato que o GPT possa entender melhor
+ * @param {string} message - Mensagem original
+ * @returns {string} - Mensagem processada
+ */
+function processListFormat(message) {
+    // Verifica se a mensagem tem o formato de lista de dados
+    const listPattern = /^(name|cpf|phone|birthdate|cartao):\s*(.*?)$/im;
+    
+    if (listPattern.test(message)) {
+        // Extrai os dados da mensagem
+        const lines = message.split('\n');
+        const data = {};
+        
+        // Processa cada linha para extrair os dados
+        lines.forEach(line => {
+            const match = line.match(/^(name|cpf|phone|birthdate|cartao):\s*(.*?)$/i);
+            if (match) {
+                const key = match[1].toLowerCase();
+                const value = match[2].trim();
+                data[key] = value;
+            }
+        });
+        
+        // Verifica se temos os dados necessários
+        if (Object.keys(data).length > 0) {
+            // Constrói uma mensagem formatada para o GPT
+            let formattedMessage = "Quero agendar uma consulta com os seguintes dados:\n";
+            
+            if (data.name) formattedMessage += `Nome: ${data.name}\n`;
+            if (data.cpf) formattedMessage += `CPF: ${data.cpf}\n`;
+            if (data.phone) formattedMessage += `Telefone: ${data.phone}\n`;
+            if (data.birthdate) formattedMessage += `Data de nascimento: ${data.birthdate}\n`;
+            
+            // Processa o método de pagamento
+            if (data.cartao) {
+                const paymentMethod = data.cartao.toLowerCase();
+                if (paymentMethod.includes('credito') || paymentMethod.includes('crédito')) {
+                    formattedMessage += "Método de pagamento: cartão de crédito\n";
+                } else if (paymentMethod.includes('debito') || paymentMethod.includes('débito')) {
+                    formattedMessage += "Método de pagamento: cartão de débito\n";
+                } else {
+                    formattedMessage += `Método de pagamento: ${data.cartao}\n`;
+                }
+            }
+            
+            return formattedMessage;
+        }
+    }
+    
+    // Se não for no formato de lista ou não tiver dados suficientes, retorna a mensagem original
+    return message;
 }
 
 async function setupWhatsAppListeners(client, clinicaId) {
