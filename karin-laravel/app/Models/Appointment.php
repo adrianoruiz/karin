@@ -2,13 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\{
+    PaymentMethod,
+    Plan,
+    User
+};
 use Illuminate\Database\Eloquent\{
     Factories\HasFactory,
     Model
 };
-use App\Models\User;
-use App\Models\Plan;
-use App\Models\PaymentMethod;
+
+
 
 class Appointment extends Model
 {

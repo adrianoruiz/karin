@@ -46,10 +46,9 @@ class PlanController extends Controller
     }
 
     public function publicShow(Request $request, Plan $plan)
-{
-    // Remover a verificação de doctor_id para permitir acesso público
-    return response()->json($plan);
-}
+    {
+        return response()->json($plan);
+    }
 
     public function update(Request $request, Plan $plan)
     {
