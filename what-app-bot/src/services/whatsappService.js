@@ -3,12 +3,18 @@ const axios = require('axios');
 const NodeCache = require('node-cache');
 const config = require('../../config');
 const { formatPhoneNumber } = require('./formattedNumber');
-const { getChatGPTResponse, getAvailableAppointments, getPlans } = require('./gpt');
+const { getChatGPTResponse } = require('./gpt');
 const { transcribeAudio, downloadAudio, processAudioMessage } = require('./ai/audioService');
 const { textToSpeech, cleanupTempAudioFiles } = require('./ai/speechService');
 const fs = require('fs');
 const path = require('path');
 const { MessageMedia } = require('whatsapp-web.js');
+
+// Importar as ferramentas da pasta tools
+const {
+    getAvailableAppointments,
+    getPlans
+} = require('./tools');
 
 const greetingCache = new NodeCache({ stdTTL: config.greetingCacheTTL });
 const conversationCache = new NodeCache({ stdTTL: 3600 }); // Cache para armazenar histórico de conversas (1 hora)
@@ -104,7 +110,9 @@ async function getMessageType(messageType, nome, avatar, phoneNumber, clinicaId)
 // Função para formatar horários disponíveis em uma mensagem legível
 async function formatAvailableAppointments(availableTimes) {
     try {
-        if (availableTimes.length === 0) {
+        console.log('Formatando horários disponíveis:', JSON.stringify(availableTimes, null, 2));
+        
+        if (!availableTimes || availableTimes.length === 0) {
             return "Não encontrei horários disponíveis para essa data. Gostaria de verificar outra data?";
         }
         
@@ -125,12 +133,19 @@ async function formatAvailableAppointments(availableTimes) {
             const [year, month, day] = date.split('-');
             const formattedDate = `${day}/${month}/${year}`;
             
-            message += `*${formattedDate}*: `;
-            message += times.join(', ');
+            // Ordenar os horários
+            times.sort();
+            
+            message += `*${formattedDate}*:\n`;
+            // Agrupar horários em blocos de 3 para melhor visualização
+            for (let i = 0; i < times.length; i += 3) {
+                const timeBlock = times.slice(i, i + 3).join(' | ');
+                message += `${timeBlock}\n`;
+            }
             message += '\n';
         }
         
-        message += "\nGostaria de agendar em algum desses horários?";
+        message += "Gostaria de agendar em algum desses horários?";
         return message;
     } catch (error) {
         console.error('Erro ao formatar horários disponíveis:', error);
@@ -473,10 +488,13 @@ async function sendWhatsAppMessage(client, number, message, clinicaId, isUserAud
     try {
         let response;
         
-        // Verificar se deve usar resposta por voz (apenas se o usuário enviou áudio)
-        if (isUserAudioMessage) {
+        // Importar a configuração
+        const config = require('../../config');
+        
+        // Verificar se deve usar resposta por voz (apenas se o usuário enviou áudio E useVoiceResponse está ativado)
+        if (isUserAudioMessage && config.useVoiceResponse) {
             try {
-                console.log('Usando resposta por voz para a mensagem (usuário enviou áudio)');
+                console.log('Usando resposta por voz para a mensagem (usuário enviou áudio e useVoiceResponse está ativado)');
                 
                 // Converter texto em áudio
                 const audioFilePath = await textToSpeech(message);

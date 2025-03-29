@@ -35,114 +35,124 @@ class AppointmentController extends Controller
     /**
  * Criar um novo agendamento
  */
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'doctor_id' => 'required|exists:users,id',
-            'appointment_datetime' => 'required|date',
-            'status' => 'sometimes|string|max:50',
-            'observations' => 'nullable|string',
-            // Campos para verificação do paciente
-            'user_id' => 'nullable|exists:users,id',
-            'cpf' => 'required_without:user_id|string',
-            'phone' => 'required_without:user_id|string',
-            // Campos adicionais para caso seja necessário criar um novo usuário
-            'name' => 'required_without:user_id|string|max:255',
-            'email' => 'nullable|email|max:255|unique:users,email',
-            'birthday' => 'nullable|date'
-        ]);
+public function store(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'doctor_id' => 'required|exists:users,id',
+        'appointment_datetime' => 'required|date',
+        'status' => 'sometimes|string|max:50',
+        'observations' => 'nullable|string',
+        'is_online' => 'nullable|boolean',
+        'plan_id' => 'nullable|exists:plans,id',
+        'payment_method_id' => 'nullable|exists:payment_methods,id',
+        // Campos para verificação do paciente
+        'user_id' => 'nullable|exists:users,id',
+        'cpf' => 'required_without:user_id|string',
+        'phone' => 'required_without:user_id|string',
+        // Campos adicionais para caso seja necessário criar um novo usuário
+        'name' => 'required_without:user_id|string|max:255',
+        'email' => 'nullable|email|max:255|unique:users,email', // agora é opcional
+        'birthday' => 'nullable|date'
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        // Verifica se o horário está disponível
-        $appointmentDate = date('Y-m-d', strtotime($request->appointment_datetime));
-        $appointmentTime = date('H:i', strtotime($request->appointment_datetime));
-
-        $availability = DoctorAvailability::where('doctor_id', $request->doctor_id)
-            ->whereDate('date', $appointmentDate)
-            ->whereTime('time', $appointmentTime)
-            ->where('status', 'available')
-            ->first();
-
-        if (!$availability) {
-            return response()->json([
-                'message' => 'Horário indisponível para agendamento',
-                'errors' => ['appointment_datetime' => ['O horário selecionado não está disponível']]
-            ], 422);
-        }
-
-        $role = RoleService::findSlug(ValidRoles::PATIENT);
-
-        // Preparar dados para criação ou busca de usuário
-        $userId = $request->user_id;
-        
-        // Se não foi fornecido um user_id, tenta encontrar ou criar o usuário
-        if (!$userId) {
-            // Limpa CPF e telefone para conter apenas números
-            $cpf = preg_replace('/[^0-9]/', '', $request->cpf);
-            $phone = preg_replace('/[^0-9]/', '', $request->phone);
-            
-            // Procura usuário pelo CPF
-            $userData = UserData::where('cpf', $cpf)->first();
-            
-            if ($userData) {
-                // Encontrou pelo CPF
-                $userId = $userData->user_id;
-            } else {
-                // Procura usuário pelo telefone
-                $user = User::where('phone', $phone)->first();
-                
-                if ($user) {
-                    // Encontrou pelo telefone
-                    $userId = $user->id;
-                } else {
-                    // Não encontrou, então cria um novo usuário
-                    $user = User::create([
-                        'name' => $request->name,
-                        'email' => $request->email,
-                        'phone' => $phone,
-                        'is_whatsapp_user' => $request->is_whatsapp_user ?? false,
-                        'status' => true,
-                        'password' => bcrypt(substr($cpf, -4)) // Usa os 4 últimos dígitos do CPF como senha inicial
-                    ]);
-                    
-                    // Cria os dados adicionais do usuário
-                    $userData = [
-                        'user_id' => $user->id,
-                        'cpf' => $cpf,
-                        'birthday' => $request->birthday,
-                    ];
-                    $user->userData()->create($userData);
-
-                    $user->roles()->sync([$role]);
-                    
-                    $userId = $user->id;
-                }
-            }
-        }
-
-        // Cria o agendamento com o user_id encontrado ou criado
-        $appointmentData = [
-            'user_id' => $userId,
-            'doctor_id' => $request->doctor_id,
-            'appointment_datetime' => $request->appointment_datetime,
-            'status' => $request->status ?? 'agendada',
-            'observations' => $request->observations
-        ];
-
-        $appointment = Appointment::create($appointmentData);
-
-        // Marca o horário como reservado
-        $availability->markAsBooked();
-
-        return response()->json([
-            'message' => 'Consulta agendada com sucesso',
-            'appointment' => $appointment->load(['user', 'doctor'])
-        ], 201);
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
     }
     
+    // Se o email não for informado, atribui o valor do telefone
+    if (!$request->filled('email')) {
+        $request->merge(['email' => $request->phone]);
+    }
+
+    // Verifica se o horário está disponível
+    $appointmentDate = date('Y-m-d', strtotime($request->appointment_datetime));
+    $appointmentTime = date('H:i', strtotime($request->appointment_datetime));
+
+    $availability = DoctorAvailability::where('doctor_id', $request->doctor_id)
+        ->whereDate('date', $appointmentDate)
+        ->whereTime('time', $appointmentTime)
+        ->where('status', 'available')
+        ->first();
+
+    if (!$availability) {
+        return response()->json([
+            'message' => 'Horário indisponível para agendamento',
+            'errors' => ['appointment_datetime' => ['O horário selecionado não está disponível']]
+        ], 422);
+    }
+
+    $role = RoleService::findSlug(ValidRoles::PATIENT);
+
+    // Preparar dados para criação ou busca de usuário
+    $userId = $request->user_id;
+    
+    // Se não foi fornecido um user_id, tenta encontrar ou criar o usuário
+    if (!$userId) {
+        // Limpa CPF e telefone para conter apenas números
+        $cpf = preg_replace('/[^0-9]/', '', $request->cpf);
+        $phone = preg_replace('/[^0-9]/', '', $request->phone);
+        
+        // Procura usuário pelo CPF
+        $userData = UserData::where('cpf', $cpf)->first();
+        
+        if ($userData) {
+            // Encontrou pelo CPF
+            $userId = $userData->user_id;
+        } else {
+            // Procura usuário pelo telefone
+            $user = User::where('phone', $phone)->first();
+            
+            if ($user) {
+                // Encontrou pelo telefone
+                $userId = $user->id;
+            } else {
+                // Não encontrou, então cria um novo usuário
+                $user = User::create([
+                    'name' => $request->name,
+                    'email' => $request->email, // já terá o telefone se não foi informado
+                    'phone' => $phone,
+                    'is_whatsapp_user' => $request->is_whatsapp_user ?? false,
+                    'status' => true,
+                    'password' => bcrypt(substr($cpf, -4)) // Usa os 4 últimos dígitos do CPF como senha inicial
+                ]);
+                
+                // Cria os dados adicionais do usuário
+                $userData = [
+                    'user_id' => $user->id,
+                    'cpf' => $cpf,
+                    'birthday' => $request->birthday,
+                ];
+                $user->userData()->create($userData);
+
+                $user->roles()->sync([$role]);
+                
+                $userId = $user->id;
+            }
+        }
+    }
+
+    // Cria o agendamento com o user_id encontrado ou criado
+    $appointmentData = [
+        'user_id' => $userId,
+        'doctor_id' => $request->doctor_id,
+        'appointment_datetime' => $request->appointment_datetime,
+        'status' => $request->status ?? 'agendada',
+        'observations' => $request->observations,
+        'is_online' => $request->is_online ?? false,
+        'plan_id' => $request->plan_id,
+        'payment_method_id' => $request->payment_method_id
+    ];
+
+    $appointment = Appointment::create($appointmentData);
+
+    // Marca o horário como reservado
+    $availability->markAsBooked();
+
+    return response()->json([
+        'message' => 'Consulta agendada com sucesso',
+        'appointment' => $appointment->load(['user', 'doctor'])
+    ], 201);
+}
     /**
      * Exibir um agendamento específico
      */
@@ -165,7 +175,10 @@ class AppointmentController extends Controller
             'doctor_id' => 'sometimes|exists:users,id',
             'appointment_datetime' => 'sometimes|date',
             'status' => 'sometimes|string|max:50',
-            'observations' => 'nullable|string'
+            'observations' => 'nullable|string',
+            'is_online' => 'nullable|boolean',
+            'plan_id' => 'nullable|exists:plans,id',
+            'payment_method_id' => 'nullable|exists:payment_methods,id'
         ]);
 
         if ($validator->fails()) {
@@ -207,4 +220,6 @@ class AppointmentController extends Controller
             'message' => 'Consulta excluída com sucesso'
         ]);
     }
+    
+    
 }

@@ -3,8 +3,13 @@
 namespace App\Services\Integration\WhatsApp;
 
 use Exception;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
+
+use Illuminate\Support\Facades\{
+    Http,
+    Log
+};
+
+
 
 class MessageHandlerService
 {
@@ -13,10 +18,10 @@ class MessageHandlerService
      *
      * @param string $phone Número de telefone do destinatário
      * @param string $message Mensagem a ser enviada
-     * @param int $petshopId ID do petshop/consultório
+     * @param int $clinicaId ID do petshop/consultório
      * @return bool
      */
-    public function sendMessage($phone, $message, $petshopId)
+    public function sendMessage($phone, $message, $clinicaId)
     {
         $baseUrl = config('services.whatsapp.base_url');
         $url = "{$baseUrl}/send-message";
@@ -26,13 +31,13 @@ class MessageHandlerService
         Log::info('Tentando enviar mensagem WhatsApp', [
             'url' => $url,
             'phone' => $whatsappPhone,
-            'petshopId' => $petshopId,
+            'clinicaId' => $clinicaId,
             'message' => $message
         ]);
 
         try {
             $nodeResponse = Http::post($url, [
-                'petshopId' => $petshopId,
+                'clinicaId' => (int)$clinicaId, // Convertendo para inteiro para garantir formato correto
                 'number' => $whatsappPhone,
                 'message' => $message
             ]);

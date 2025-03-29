@@ -7,6 +7,7 @@ use App\Http\Controllers\{
     Api\AuthController,
     Api\ChatLogController,
     Api\DoctorAvailabilityController,
+    Api\PatientAppointmentController,
     Api\PlanController,
     Api\WhatsappController,
     ChatbotController,
@@ -57,6 +58,16 @@ Route::group([
 Route::apiResource('appointments', AppointmentController::class);
 
 
+// Rotas para pacientes agendarem consultas
+Route::prefix('patient')->group(function () {
+    Route::get('available-times', [PatientAppointmentController::class, 'getAvailableTimes']);
+    Route::post('book-appointment', [PatientAppointmentController::class, 'bookAppointment']);
+    Route::post('check-availability', [PatientAppointmentController::class, 'checkAvailability']);
+    Route::get('available-plans/{doctor_id}', [PatientAppointmentController::class, 'getAvailablePlans']);
+    Route::get('payment-methods/{doctor_id}', [PatientAppointmentController::class, 'getDoctorPaymentMethods']);
+});
+
+
 // Rotas de Chatbot - CRUD
 Route::group([
     'prefix' => 'chatbots-crud',
@@ -100,16 +111,17 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/recurring', [DoctorAvailabilityController::class, 'storeRecurring']);
     });
 
-});
+ });
 
 
 
 // Rotas para gerenciamento de logs de chat
 //Todo voltar a testar com rota autenticada
-Route::apiResource('chat-logs', ChatLogController::class);
+Route::apiResource('chat-log', ChatLogController::class);
 Route::prefix('chat-logs')->group(function () {
     Route::get('/unread/messages', [ChatLogController::class, 'getUnreadMessages']);
     Route::post('/mark-all-as-read', [ChatLogController::class, 'markAllAsRead']);
+    Route::post('/active-bot', [ChatLogController::class, 'activeBot']);
 });
 
 // Rota pública para teste de chat-logs

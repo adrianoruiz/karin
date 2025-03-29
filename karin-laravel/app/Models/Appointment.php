@@ -2,6 +2,11 @@
 
 namespace App\Models;
 
+use App\Models\{
+    PaymentMethod,
+    Plan,
+    User
+};
 use Illuminate\Database\Eloquent\{
     Factories\HasFactory,
     Model
@@ -18,9 +23,12 @@ class Appointment extends Model
     protected $fillable = [
         'user_id',
         'doctor_id',
+        'plan_id',
+        'payment_method_id',
         'appointment_datetime',
         'status',
-        'observations'
+        'observations',
+        'is_online'
     ];
     
     /**
@@ -45,5 +53,21 @@ class Appointment extends Model
     public function userData()
     {
         return $this->user->userData();
+    }
+
+    /**
+     * Relacionamento com o plano escolhido
+     */
+    public function plan()
+    {
+        return $this->belongsTo(Plan::class, 'plan_id');
+    }
+
+    /**
+     * Relacionamento com a forma de pagamento escolhida
+     */
+    public function paymentMethod()
+    {
+        return $this->belongsTo(PaymentMethod::class, 'payment_method_id');
     }
 }
