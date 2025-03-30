@@ -11,6 +11,11 @@ const { textToSpeech, cleanupTempAudioFiles } = require('./ai/speechService');
 const fs = require('fs');
 const path = require('path');
 const { MessageMedia } = require('whatsapp-web.js');
+const DateUtils = require('../utils/dateUtils');
+const Logger = require('../utils/logger');
+
+// Inicializa o logger
+const logger = new Logger(process.env.NODE_ENV !== 'production');
 
 // Importar as ferramentas da pasta tools
 const {
@@ -26,7 +31,7 @@ const conversationCache = new NodeCache({ stdTTL: 3600 }); // Cache para armazen
 // Função para normalizar texto
 function normalizeText(text) {
     if (text == null) {
-        console.warn('Tentativa de normalizar texto nulo ou indefinido');
+        logger.log('Tentativa de normalizar texto nulo ou indefinido');
         return '';
     }
     return text.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -55,7 +60,7 @@ async function getMessageType(messageType, nome, avatar, phoneNumber, clinicaId)
         });
         return response.data;
     } catch (error) {
-        console.error('Erro ao chamar a API Laravel:', error);
+        logger.log('Erro ao chamar a API Laravel:', error);
         return null;
     }
 }
@@ -70,7 +75,7 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
         // Verificar se a mensagem está no formato de lista de dados
         const processedMessage = processListFormat(message);
         if (processedMessage !== message) {
-            console.log('Mensagem processada do formato de lista:', processedMessage);
+            logger.log('Mensagem processada do formato de lista:', processedMessage);
             message = processedMessage;
         }
         
@@ -106,7 +111,7 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
         
         // Verificar se a resposta contém uma chamada de função
         if (gptResponse.function_call) {
-            console.log('Detectada chamada de função:', gptResponse.function_call.name);
+            logger.log('Detectada chamada de função:', gptResponse.function_call.name);
             
             // Extrair nome da função e argumentos
             const { name, arguments: args } = gptResponse.function_call;
@@ -116,8 +121,19 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
                 // Parsear os argumentos
                 const parsedArgs = JSON.parse(args);
                 
+                // Verificar se a mensagem original contém a palavra "amanhã"
+                const originalMessage = conversation[conversation.length - 1].content.toLowerCase();
+                let dateParam = parsedArgs.date;
+                
+                // Se a mensagem contém "amanhã" mas o GPT não extraiu corretamente
+                if ((originalMessage.includes("amanha") || originalMessage.includes("amanhã")) && 
+                    (!dateParam || dateParam === "hoje" || dateParam === "hj")) {
+                    logger.log("Detectada menção a 'amanhã' na mensagem original. Forçando data para amanhã.");
+                    dateParam = "amanhã";
+                }
+                
                 // Chamar a função para obter horários disponíveis
-                const availableTimes = await getAvailableAppointments(parsedArgs.date);
+                const availableTimes = await getAvailableAppointments(dateParam);
                 
                 // Adicionar o resultado da função ao histórico da conversa
                 conversation.push({
@@ -173,7 +189,7 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
             }
             // Verificar se é a função de agendamento
             else if (name === 'bookAppointment') {
-                console.log('Processando agendamento de consulta...');
+                logger.log('Processando agendamento de consulta...', parsedArgs);
                 
                 // Parsear os argumentos
                 const parsedArgs = JSON.parse(args);
@@ -181,7 +197,7 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
                 // Chamar a função para agendar a consulta
                 const bookingResult = await bookAppointment(parsedArgs);
                 
-                console.log('Resultado do agendamento:', JSON.stringify(bookingResult, null, 2));
+                logger.log('Resultado do agendamento:', bookingResult);
                 
                 // Adicionar o resultado da função ao histórico da conversa
                 conversation.push({
@@ -220,7 +236,7 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
                                 paymentLink = selectedPlan.link;
                             }
                         } catch (error) {
-                            console.error('Erro ao obter link de pagamento:', error);
+                            logger.log('Erro ao obter link de pagamento:', error);
                         }
                     }
                     
@@ -228,7 +244,7 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
                     if (paymentLink) {
                         formattedResponse += `\n\nAqui está o link para pagamento: ${paymentLink}\n\nNo link de pagamento você pode escolher se quer pagar no cartão de crédito/débito ou PIX.`;
                     } else {
-                        console.error('Link de pagamento não encontrado para o plano');
+                        logger.log('Link de pagamento não encontrado para o plano');
                     }
                 }
                 
@@ -236,7 +252,7 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
             }
             // Verificar se é a função de atualização de agendamento
             else if (name === 'updateAppointment') {
-                console.log('Processando atualização de agendamento...');
+                logger.log('Processando atualização de agendamento...', parsedArgs);
                 
                 // Parsear os argumentos
                 const parsedArgs = JSON.parse(args);
@@ -244,7 +260,7 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
                 // Chamar a função para atualizar o agendamento
                 const updateResult = await updateAppointment(parsedArgs);
                 
-                console.log('Resultado da atualização:', JSON.stringify(updateResult, null, 2));
+                logger.log('Resultado da atualização:', updateResult);
                 
                 // Adicionar o resultado da função ao histórico da conversa
                 conversation.push({
@@ -296,7 +312,7 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
         
         return responseContent;
     } catch (error) {
-        console.error('Erro ao processar mensagem com GPT:', error);
+        logger.log('Erro ao processar mensagem com GPT:', error);
         return "Desculpe, houve um erro ao processar sua mensagem. Por favor, tente novamente mais tarde.";
     }
 }
@@ -357,14 +373,14 @@ function processListFormat(message) {
 }
 
 async function setupWhatsAppListeners(client, clinicaId) {
-    console.log(`Configurando listeners do WhatsApp para clinica ${clinicaId}`);
+    logger.log(`Configurando listeners do WhatsApp para clinica ${clinicaId}`);
 
     client.on('ready', () => {
-        console.log(`WhatsApp client para clinica ${clinicaId} está pronto!`);
+        logger.log(`WhatsApp client para clinica ${clinicaId} está pronto!`);
     });
 
     client.on('message', async (message) => {
-        console.log(`Mensagem recebida para clinica ${clinicaId}:`, {
+        logger.log(`Mensagem recebida para clinica ${clinicaId}:`, {
             body: message.body,
             from: message.from,
             isGroupMsg: message.isGroupMsg,
@@ -372,24 +388,24 @@ async function setupWhatsAppListeners(client, clinicaId) {
         });
 
         if (!client.isAuthenticated) {
-            console.log(`Cliente para clinica ${clinicaId} não está autenticado.`);
+            logger.log(`Cliente para clinica ${clinicaId} não está autenticado.`);
             return;
         }
 
         try {
             if (message.from === 'status@broadcast') {
-                console.log('Mensagem de status recebida e ignorada');
+                logger.log('Mensagem de status recebida e ignorada');
                 return;
             }
 
             // Nova verificação de grupo usando o formato do ID
             if (message.from.endsWith('@g.us')) {
-                console.log('Mensagem de grupo detectada pelo ID e ignorada:', message.from);
+                logger.log('Mensagem de grupo detectada pelo ID e ignorada:', message.from);
                 return;
             }
 
             if (message.isGroupMsg) {
-                console.log('Mensagem de grupo detectada e ignorada (isGroupMsg):', {
+                logger.log('Mensagem de grupo detectada e ignorada (isGroupMsg):', {
                     from: message.from,
                     author: message.author,
                     participant: message.participant
@@ -398,14 +414,14 @@ async function setupWhatsAppListeners(client, clinicaId) {
             }
 
             const chat = await message.getChat();
-            console.log('Informações do chat:', {
+            logger.log('Informações do chat:', {
                 id: chat.id,
                 name: chat.name,
                 isGroup: chat.isGroup
             });
             
             if (chat.isGroup) {
-                console.log('Mensagem de grupo detectada e ignorada (chat.isGroup):', chat.name);
+                logger.log('Mensagem de grupo detectada e ignorada (chat.isGroup):', chat.name);
                 return;
             }
 
@@ -413,34 +429,34 @@ async function setupWhatsAppListeners(client, clinicaId) {
             const nome = contact.name || contact.pushname || "Cliente";
             const phoneNumber = contact.number;
 
-            console.log(`Processando mensagem individual de: ${nome}, Número: ${phoneNumber}`);
+            logger.log(`Processando mensagem individual de: ${nome}, Número: ${phoneNumber}`);
 
             let profilePicUrl = null;
             try {
                 profilePicUrl = await contact.getProfilePicUrl();
             } catch (picError) {
-                console.log('Não foi possível obter a foto do perfil:', picError);
+                logger.log('Não foi possível obter a foto do perfil:', picError);
             }
 
             // Verificar se é uma mensagem de áudio
             if (message.type === 'ptt' || message.type === 'audio') {
-                console.log('Mensagem de áudio detectada');
+                logger.log('Mensagem de áudio detectada');
                 
                 const cacheKey = createCacheKey(clinicaId, phoneNumber);
                 const greetedToday = greetingCache.get(cacheKey);
                 
                 if (!greetedToday && nome !== "Cliente") {
-                    console.log(`Enviando saudação antes de processar áudio para: ${phoneNumber} (clinica ${clinicaId})`);
+                    logger.log(`Enviando saudação antes de processar áudio para: ${phoneNumber} (clinica ${clinicaId})`);
                     greetingCache.set(cacheKey, true);
                     
                     try {
                         const sentMessage = await getMessageType('greeting', nome, profilePicUrl, phoneNumber, clinicaId);
-                        console.log(`Saudação enviada com sucesso para: ${phoneNumber}`);
+                        logger.log(`Saudação enviada com sucesso para: ${phoneNumber}`);
                         
                         // Aguarda um momento para garantir que a mensagem foi processada
                         await new Promise(resolve => setTimeout(resolve, 4000));
                     } catch (error) {
-                        console.error('Erro ao processar saudação:', error);
+                        logger.log('Erro ao processar saudação:', error);
                         greetingCache.del(cacheKey);
                     }
                 }
@@ -449,7 +465,7 @@ async function setupWhatsAppListeners(client, clinicaId) {
                 try {
                     await processAudioMessage(message, nome, phoneNumber, clinicaId, client, processMessageWithGPT, sendWhatsAppMessage);
                 } catch (error) {
-                    console.error('Erro ao processar mensagem de áudio:', error);
+                    logger.log('Erro ao processar mensagem de áudio:', error);
                     await sendWhatsAppMessage(client, phoneNumber, "Desculpe, não consegui processar seu áudio. Poderia enviar sua mensagem em texto?", clinicaId);
                 }
                 return;
@@ -460,7 +476,7 @@ async function setupWhatsAppListeners(client, clinicaId) {
             if (messageBodyNormalized === 'reset oi') {
                 const cacheKey = createCacheKey(clinicaId, phoneNumber);
                 greetingCache.del(cacheKey);
-                console.log(`Estado de saudação resetado para o número: ${phoneNumber} no clinica ${clinicaId}`);
+                logger.log(`Estado de saudação resetado para o número: ${phoneNumber} no clinica ${clinicaId}`);
                 await sendWhatsAppMessage(client, phoneNumber, 'Seu estado de saudação foi resetado. Você receberá a próxima saudação.', clinicaId);
                 return;
             }
@@ -469,48 +485,48 @@ async function setupWhatsAppListeners(client, clinicaId) {
             const greetedToday = greetingCache.get(cacheKey);
 
             if (!greetedToday && nome !== "Cliente") {
-                console.log(`Enviando saudação para: ${phoneNumber} (clinica ${clinicaId})`);
+                logger.log(`Enviando saudação para: ${phoneNumber} (clinica ${clinicaId})`);
 
                 greetingCache.set(cacheKey, true);
 
                 try {
                     const sentMessage = await getMessageType('greeting', nome, profilePicUrl, phoneNumber, clinicaId);
-                    console.log(`Saudação enviada com sucesso para: ${phoneNumber}`);
+                    logger.log(`Saudação enviada com sucesso para: ${phoneNumber}`);
                     
                     // Aguarda um momento para garantir que a mensagem foi processada
                     await new Promise(resolve => setTimeout(resolve, 4000));
 
                     // Marca a conversa como não lida por último
                     await chat.markUnread();
-                    console.log('Conversa marcada como não lida');
+                    logger.log('Conversa marcada como não lida');
                 } catch (error) {
-                    console.error('Erro ao processar saudação:', error);
+                    logger.log('Erro ao processar saudação:', error);
                     greetingCache.del(cacheKey);
                 }
             } else {
-                console.log(`Cliente já foi saudado hoje: ${phoneNumber} (clinica ${clinicaId})`);
+                logger.log(`Cliente já foi saudado hoje: ${phoneNumber} (clinica ${clinicaId})`);
                 
                 // Processar a mensagem com o ChatGPT e enviar resposta
                 try {
-                    console.log(`Processando mensagem com ChatGPT: "${message.body}"`);
+                    logger.log(`Processando mensagem com ChatGPT: "${message.body}"`);
                     const gptResponse = await processMessageWithGPT(message.body, nome, phoneNumber, clinicaId);
-                    console.log(`Resposta do ChatGPT: "${gptResponse}"`);
+                    logger.log(`Resposta do ChatGPT: "${gptResponse}"`);
                     
                     // Enviar resposta ao usuário
                     await sendWhatsAppMessage(client, phoneNumber, gptResponse, clinicaId, false);
-                    console.log(`Resposta enviada para ${phoneNumber}`);
+                    logger.log(`Resposta enviada para ${phoneNumber}`);
                 } catch (error) {
-                    console.error('Erro ao processar mensagem com ChatGPT:', error);
+                    logger.log('Erro ao processar mensagem com ChatGPT:', error);
                 }
             }
 
         } catch (error) {
-            console.error('Erro ao processar mensagem:', error);
+            logger.log('Erro ao processar mensagem:', error);
         }
     });
 
     client.on('message_create', async (message) => {
-        console.log(`Mensagem enviada pelo clinica ${clinicaId}: ${message.body}`);
+        logger.log(`Mensagem enviada pelo clinica ${clinicaId}: ${message.body}`);
         if (!client.isAuthenticated) return;
 
         if (message.isGroupMsg) {
@@ -518,17 +534,17 @@ async function setupWhatsAppListeners(client, clinicaId) {
         }
 
         if (message.fromMe) {
-            console.log(`Mensagem enviada pelo celular da loja (clinica ${clinicaId})`);
+            logger.log(`Mensagem enviada pelo celular da loja (clinica ${clinicaId})`);
 
             try {
                 const chat = await message.getChat();
                 const phoneNumber = chat.id.user;
 
-                console.log(`Número de telefone do destinatário: ${phoneNumber}`);
+                logger.log(`Número de telefone do destinatário: ${phoneNumber}`);
 
                 if (!message.body.includes('Seu estado de saudação foi resetado')) {
                     const cacheKey = createCacheKey(clinicaId, phoneNumber);
-                    console.log(`Desativando saudações para o dia para este contato (clinica ${clinicaId})`);
+                    logger.log(`Desativando saudações para o dia para este contato (clinica ${clinicaId})`);
                     greetingCache.set(cacheKey, true);
                     
                     // Adicionar mensagem do atendente ao histórico da conversa
@@ -550,7 +566,7 @@ async function setupWhatsAppListeners(client, clinicaId) {
                 }
 
             } catch (err) {
-                console.error('Erro ao processar mensagem enviada:', err);
+                logger.log('Erro ao processar mensagem enviada:', err);
             }
         }
     });
@@ -558,7 +574,7 @@ async function setupWhatsAppListeners(client, clinicaId) {
 
 async function sendWhatsAppMessage(client, number, message, clinicaId, isUserAudioMessage = false) {
     const formattedNumber = formatPhoneNumber(number);
-    console.log(`Enviando mensagem para: ${formattedNumber}`);
+    logger.log(`Enviando mensagem para: ${formattedNumber}`);
     try {
         let response;
         
@@ -568,7 +584,7 @@ async function sendWhatsAppMessage(client, number, message, clinicaId, isUserAud
         // Verificar se deve usar resposta por voz (apenas se o usuário enviou áudio E useVoiceResponse está ativado)
         if (isUserAudioMessage && config.useVoiceResponse) {
             try {
-                console.log('Usando resposta por voz para a mensagem (usuário enviou áudio e useVoiceResponse está ativado)');
+                logger.log('Usando resposta por voz para a mensagem (usuário enviou áudio e useVoiceResponse está ativado)');
                 
                 // Converter texto em áudio
                 const audioFilePath = await textToSpeech(message);
@@ -586,9 +602,9 @@ async function sendWhatsAppMessage(client, number, message, clinicaId, isUserAud
                 // Limpar arquivos temporários mais antigos que 30 minutos
                 cleanupTempAudioFiles(30);
                 
-                console.log('Mensagem de áudio enviada com sucesso');
+                logger.log('Mensagem de áudio enviada com sucesso');
             } catch (error) {
-                console.error('Erro ao enviar mensagem de áudio, enviando como texto:', error);
+                logger.log('Erro ao enviar mensagem de áudio, enviando como texto:', error);
                 // Fallback para texto em caso de erro
                 response = await client.sendMessage(formattedNumber, message);
             }
@@ -597,17 +613,17 @@ async function sendWhatsAppMessage(client, number, message, clinicaId, isUserAud
             response = await client.sendMessage(formattedNumber, message);
         }
         
-        console.log('Mensagem enviada com sucesso:', response);
+        logger.log('Mensagem enviada com sucesso:', response);
         return { status: 'success', message: 'Mensagem enviada', response };
     } catch (err) {
-        console.error('Falha ao enviar mensagem:', err);
+        logger.log('Falha ao enviar mensagem:', err);
         throw err;
     }
 }
 
 function resetGreetingState() {
     greetingCache.flushAll();
-    console.log('Estado de saudação resetado para todos os usuários.');
+    logger.log('Estado de saudação resetado para todos os usuários.');
 }
 
 module.exports = {

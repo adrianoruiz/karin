@@ -1,0 +1,138 @@
+/**
+ * Utilitários para manipulação de datas
+ */
+
+// Importa o logger
+const Logger = require('./logger');
+const logger = new Logger(process.env.NODE_ENV !== 'production');
+
+/**
+ * Classe para manipulação de datas
+ */
+class DateUtils {
+  /**
+   * Converte uma data em linguagem natural para o formato YYYY-MM-DD
+   * @param {string} dateText - Data em linguagem natural (hoje, amanhã) ou no formato DD/MM/YYYY
+   * @returns {string|null} - Data no formato YYYY-MM-DD ou null se inválida
+   */
+  static parseDate(dateText) {
+    if (!dateText || typeof dateText !== 'string') {
+      return null;
+    }
+    
+    logger.log(`Processando entrada de data: "${dateText}"`);
+    
+    // Normaliza o texto removendo acentos e convertendo para minúsculas
+    const normalizedText = dateText
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+    
+    logger.log(`Texto normalizado: "${normalizedText}"`);
+    
+    const today = new Date();
+    
+    // Mapeamento de termos para datas relativas
+    const dateTerms = {
+      hoje: 0,
+      hj: 0,
+      amanha: 1,
+      amanhã: 1
+    };
+    
+    // Verifica termos exatos como "hoje" ou "amanhã"
+    if (normalizedText in dateTerms) {
+      const targetDate = new Date(today);
+      targetDate.setDate(targetDate.getDate() + dateTerms[normalizedText]);
+      const formattedDate = targetDate.toISOString().split('T')[0];
+      logger.log(`Identificado como termo específico: ${formattedDate}`);
+      return formattedDate;
+    }
+    
+    // Verifica se contém "amanhã" em qualquer parte
+    if (normalizedText.includes('amanha')) {
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const formattedDate = tomorrow.toISOString().split('T')[0];
+      logger.log(`Texto contém "amanhã": ${formattedDate}`);
+      return formattedDate;
+    }
+    
+    // Verifica formato DD/MM/YYYY
+    const dateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+    const match = normalizedText.match(dateRegex);
+    
+    if (match) {
+      const [, day, month, year] = match;
+      
+      // Validação básica de data
+      const dayNum = parseInt(day, 10);
+      const monthNum = parseInt(month, 10);
+      
+      if (dayNum < 1 || dayNum > 31 || monthNum < 1 || monthNum > 12) {
+        logger.error(`Data inválida: ${normalizedText}`);
+        return null;
+      }
+      
+      const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      logger.log(`Identificado como data formatada: ${formattedDate}`);
+      
+      // Verificação adicional da validade da data
+      const dateObj = new Date(formattedDate);
+      if (isNaN(dateObj.getTime())) {
+        logger.error(`Data inválida após conversão: ${formattedDate}`);
+        return null;
+      }
+      
+      return formattedDate;
+    }
+    
+    logger.log(`Não foi possível interpretar a data: "${dateText}"`);
+    return null;
+  }
+  
+  /**
+   * Formata uma data para exibição ao usuário
+   * @param {string} isoDate - Data no formato YYYY-MM-DD
+   * @returns {string} - Data formatada como DD/MM/YYYY
+   */
+  static formatDateForDisplay(isoDate) {
+    if (!isoDate) return '';
+    
+    const [year, month, day] = isoDate.split('-');
+    return `${day}/${month}/${year}`;
+  }
+  
+  /**
+   * Obtém a data de hoje no formato YYYY-MM-DD
+   * @returns {string} - Data de hoje
+   */
+  static getToday() {
+    return new Date().toISOString().split('T')[0];
+  }
+  
+  /**
+   * Obtém a data de amanhã no formato YYYY-MM-DD
+   * @returns {string} - Data de amanhã
+   */
+  static getTomorrow() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  }
+  
+  /**
+   * Adiciona um número de dias a uma data
+   * @param {string|Date} date - Data base
+   * @param {number} days - Número de dias a adicionar
+   * @returns {string} - Nova data no formato YYYY-MM-DD
+   */
+  static addDays(date, days) {
+    const dateObj = typeof date === 'string' ? new Date(date) : new Date(date);
+    dateObj.setDate(dateObj.getDate() + days);
+    return dateObj.toISOString().split('T')[0];
+  }
+}
+
+module.exports = DateUtils;
