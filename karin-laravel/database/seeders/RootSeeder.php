@@ -24,7 +24,7 @@ class RootSeeder extends Seeder
         $user = User::create([
             "name" => "Adriano Boldarini",
             "email" => "ruiz@7cliques.com.br",
-            "password" => Hash::make("admin#94007"),
+            "password" => Hash::make("admin#9407"),
             'phone' => '45999110509',
             'avatar'=> 'https://media.licdn.com/dms/image/v2/D4D03AQFQTIh0FmPebw/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1673705998921?e=2147483647&v=beta&t=Tm8gjYgyLYsaWaMozUaosoAc1OSrDWJD9_W8csZi0qc',
             'status' => 1,
@@ -34,7 +34,7 @@ class RootSeeder extends Seeder
         $user2 = User::create([
             "name" => "Dra. karin",
             "email" => "karin@drakarin.com.br",
-            "password" => Hash::make("admin#94008"),
+            "password" => Hash::make("karin#9407"),
             'phone' => '47996947825',
             'status' => 1,
             'avatar' => "https://drakarin.com.br/images/karin-psiq.png",
