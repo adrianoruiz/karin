@@ -2,7 +2,9 @@
 const axios = require('axios');
 const NodeCache = require('node-cache');
 const config = require('../../config');
-const { formatPhoneNumber } = require('./formattedNumber');
+const { formatPhoneNumber } = require('../utils/formattedNumber');
+const { detectSensitiveTopics } = require('../utils/detectSensitiveTopics');
+const { formatAvailableAppointments } = require('../utils/formatAvailableAppointments');
 const { getChatGPTResponse } = require('./gpt');
 const { transcribeAudio, downloadAudio, processAudioMessage } = require('./ai/audioService');
 const { textToSpeech, cleanupTempAudioFiles } = require('./ai/speechService');
@@ -30,48 +32,6 @@ function normalizeText(text) {
     return text.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }
 
-// Função para detectar temas sensíveis e retornar a resposta padrão apropriada
-function detectSensitiveTopics(message) {
-    const lowerMessage = message.toLowerCase();
-    
-    // Mapeamento de palavras-chave para respostas padrão
-    const sensitiveTopics = [
-     
-     
-        {
-            keywords: ['receita', 'renovar receita', 'renovacao', 'prescrição', 'prescricao', 
-                      'remédio', 'remedio', 'medicamento', 'medicação', 'medicacao'],
-            response: "Para renovação de receita, é necessário agendar uma consulta, pois a Dra. precisa avaliar sua situação clínica atual. Você gostaria de marcar um horário?"
-        },
-        {
-            keywords: ['desconto', 'mais barato', 'promoção', 'promocao', 'valor menor', 'preço', 'preco', 
-                      'custo', 'abatimento', 'redução', 'reducao'],
-            response: "Atualmente, trabalhamos com valores fixos e pacotes para facilitar o tratamento. Posso te passar mais detalhes?"
-        },
-        {
-            keywords: ['sintoma', 'sintomas', 'diagnóstico', 'diagnostico', 'doença', 'doenca', 
-                      'tratamento', 'terapia', 'remédio', 'remedio', 'medicamento'],
-            response: "Não podemos dar um diagnóstico ou prescrição pelo WhatsApp. Recomendo agendar uma consulta para avaliação detalhada."
-        },
-        {
-            keywords: ['ajuda', 'socorro', 'urgente', 'emergência', 'emergencia', 'grave', 'piorou', 
-                      'piorando', 'mal', 'ruim'],
-            response: "Compreendo sua situação. Para receber o atendimento adequado, é necessário agendar uma consulta com a Dra. Karin. Quando seria um bom momento para você?"
-        }
-    ];
-    
-    // Verificar se a mensagem contém alguma das palavras-chave
-    for (const topic of sensitiveTopics) {
-        for (const keyword of topic.keywords) {
-            if (lowerMessage.includes(keyword)) {
-                return topic.response;
-            }
-        }
-    }
-    
-    // Nenhum tema sensível detectado
-    return null;
-}
 
 // Função para criar chave composta
 function createCacheKey(clinicaId, phoneNumber) {
@@ -100,51 +60,6 @@ async function getMessageType(messageType, nome, avatar, phoneNumber, clinicaId)
     }
 }
 
-// Função para formatar horários disponíveis em uma mensagem legível
-async function formatAvailableAppointments(availableTimes) {
-    try {
-        console.log('Formatando horários disponíveis:', JSON.stringify(availableTimes, null, 2));
-        
-        if (!availableTimes || availableTimes.length === 0) {
-            return "Não encontrei horários disponíveis para essa data. Gostaria de verificar outra data?";
-        }
-        
-        // Agrupar horários por data
-        const appointmentsByDate = {};
-        availableTimes.forEach(slot => {
-            if (!appointmentsByDate[slot.date]) {
-                appointmentsByDate[slot.date] = [];
-            }
-            appointmentsByDate[slot.date].push(slot.time);
-        });
-        
-        // Formatar a mensagem de resposta
-        let message = "Encontrei os seguintes horários disponíveis:\n\n";
-        
-        for (const [date, times] of Object.entries(appointmentsByDate)) {
-            // Formatar a data (de YYYY-MM-DD para DD/MM/YYYY)
-            const [year, month, day] = date.split('-');
-            const formattedDate = `${day}/${month}/${year}`;
-            
-            // Ordenar os horários
-            times.sort();
-            
-            message += `*${formattedDate}*:\n`;
-            // Agrupar horários em blocos de 3 para melhor visualização
-            for (let i = 0; i < times.length; i += 3) {
-                const timeBlock = times.slice(i, i + 3).join(' | ');
-                message += `${timeBlock}\n`;
-            }
-            message += '\n';
-        }
-        
-        message += "Gostaria de agendar em algum desses horários? Por favor, me informe a data e horário desejados.";
-        return message;
-    } catch (error) {
-        console.error('Erro ao formatar horários disponíveis:', error);
-        return "Desculpe, estou com dificuldades para verificar os horários disponíveis no momento. Por favor, tente novamente mais tarde.";
-    }
-}
 
 // Função para processar mensagem com ChatGPT
 async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
