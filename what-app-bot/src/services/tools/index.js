@@ -7,6 +7,7 @@ const { transcribeAudio } = require('./audio');
 const { bookingFunction, bookAppointment, checkAvailability } = require('./booking');
 const { paymentMethodsFunction, getPaymentMethods, getPaymentMethodIdByName } = require('./payment');
 const { updateBookingFunction, updateAppointment } = require('./updateBooking');
+const { finishAppointmentFunction, finishAppointment } = require('./finishAppointment');
 
 module.exports = {
     availabilityFunction,
@@ -21,5 +22,7 @@ module.exports = {
     getPaymentMethods,
     getPaymentMethodIdByName,
     updateBookingFunction,
-    updateAppointment
+    updateAppointment,
+    finishAppointmentFunction,
+    finishAppointment
 };

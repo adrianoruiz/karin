@@ -15,10 +15,12 @@ const {
     paymentMethodsFunction,
     bookingFunction,
     updateBookingFunction,
+    finishAppointmentFunction,
     transcribeAudio,
     getAvailableAppointments,
     getPlans,
-    updateAppointment
+    updateAppointment,
+    finishAppointment
 } = require('./tools');
 
 async function getChatGPTResponse(messages, nome) {
@@ -36,7 +38,7 @@ async function getChatGPTResponse(messages, nome) {
             {
                 model: "gpt-4o", 
                 messages: messagesWithSystem,
-                functions: [availabilityFunction, plansFunction, paymentMethodsFunction, bookingFunction, updateBookingFunction],
+                functions: [availabilityFunction, plansFunction, paymentMethodsFunction, bookingFunction, updateBookingFunction, finishAppointmentFunction],
                 function_call: "auto",
                 max_tokens: 300,
                 temperature: 0.7
@@ -64,7 +66,9 @@ module.exports = {
     paymentMethodsFunction,
     bookingFunction,
     updateBookingFunction,
+    finishAppointmentFunction,
     getAvailableAppointments,
     getPlans,
-    updateAppointment
+    updateAppointment,
+    finishAppointment
 };

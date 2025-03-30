@@ -45,9 +45,19 @@ async function getPlans(date = null, doctorId = 2) {
             }
         });
         
-        // Retorna os planos diretamente, sem filtrar por status
-        // A API já retorna os planos disponíveis
-        const plans = response.data;
+        // Verifica se a resposta é um array ou um objeto
+        let plans = response.data;
+        
+        // Se for um objeto e não um array, tenta extrair os planos
+        if (plans && !Array.isArray(plans)) {
+            if (plans.data && Array.isArray(plans.data)) {
+                plans = plans.data;
+            } else {
+                // Se não conseguir extrair um array, retorna um array vazio
+                console.log('Resposta da API não é um array:', plans);
+                return [];
+            }
+        }
         
         return plans;
     } catch (error) {

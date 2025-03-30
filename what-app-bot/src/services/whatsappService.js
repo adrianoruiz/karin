@@ -22,7 +22,8 @@ const {
     getAvailableAppointments,
     getPlans,
     bookAppointment,
-    updateAppointment
+    updateAppointment,
+    finishAppointment
 } = require('./tools');
 
 const greetingCache = new NodeCache({ stdTTL: config.greetingCacheTTL });
@@ -140,9 +141,9 @@ function removeDuplicateMessages(formattedResponse) {
     return dedupedResponse;
 }
 
-async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
+async function processMessageWithGPT(message, nome, number, clinicaId) {
     try {
-        const conversationKey = createConversationKey(clinicaId, phoneNumber);
+        const conversationKey = createConversationKey(clinicaId, number);
         let conversation = conversationCache.get(conversationKey) || [];
         
         // Verificar se a mensagem está no formato de lista de dados
@@ -289,6 +290,76 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
                         content: JSON.stringify(bookingResult)
                     });
                     
+                    // Verificar se o agendamento foi bem-sucedido
+                    // Considera sucesso se bookingResult.success é true OU se a mensagem contém "sucesso"
+                    const isBookingSuccessful = bookingResult.success || 
+                        (bookingResult.message && bookingResult.message.toLowerCase().includes('sucesso'));
+                    
+                    // Se o agendamento foi bem-sucedido, chamar automaticamente finishAppointment
+                    if (isBookingSuccessful) {
+                        try {
+                            logger.log('Agendamento bem-sucedido, chamando finishAppointment automaticamente');
+                            
+                            // Preparar os dados para finishAppointment
+                            const finishData = {
+                                patient_name: parsedArgs.name,
+                                patient_phone: parsedArgs.phone,
+                                appointment_date: parsedArgs.date,
+                                appointment_time: parsedArgs.time,
+                                is_online: bookingResult.is_online !== undefined ? bookingResult.is_online : 
+                                          (parsedArgs.modality && parsedArgs.modality.toLowerCase().includes('online')),
+                                payment_method: parsedArgs.payment_method || 'Não informado',
+                                observations: parsedArgs.observations || 'Primeira consulta'
+                            };
+                            
+                            logger.log('Dados para finishAppointment:', finishData);
+                            
+                            // Chamar a função finishAppointment
+                            const finishResult = await finishAppointment(finishData);
+                            
+                            logger.log('Resultado do finishAppointment:', finishResult);
+                            
+                            // Adicionar o resultado da função ao histórico da conversa
+                            conversation.push({
+                                role: "function",
+                                name: "finishAppointment",
+                                content: JSON.stringify(finishResult)
+                            });
+                            
+                            // Atualizar o resultado do agendamento com as informações do finishAppointment
+                            if (finishResult.success) {
+                                bookingResult.payment_link = finishResult.payment_link;
+                                bookingResult.payment_message = finishResult.payment_message;
+                                
+                                // Determinar o link de pagamento com fallback
+                                let paymentLink = finishResult.payment_link;
+                                
+                                // Se não tiver link no resultado, usar o fallback baseado na modalidade
+                                if (!paymentLink) {
+                                    const isOnline = finishData.is_online;
+                                    logger.log(`Link não encontrado no resultado, usando fallback. Modalidade: ${isOnline ? 'online' : 'presencial'}`);
+                                    paymentLink = isOnline ? 'https://mpago.li/2cc49wX' : 'https://mpago.li/2Nz1i2h';
+                                    
+                                    // Atualizar o resultado com o link de fallback
+                                    bookingResult.payment_link = paymentLink;
+                                    bookingResult.payment_message = `Aqui está o link para pagamento: ${paymentLink}\n\nNo link de pagamento você pode escolher se quer pagar no cartão de crédito/débito ou PIX.`;
+                                }
+                                
+                                // Enviar o link de pagamento imediatamente após o agendamento
+                                const paymentMessage = `Aqui está o link para pagamento: ${paymentLink}\n\nNo link de pagamento você pode escolher se quer pagar no cartão de crédito/débito ou PIX.`;
+                                
+                                // Enviar a mensagem com o link de pagamento
+                                logger.log(`Enviando link de pagamento para ${number}. Modalidade: ${finishData.is_online ? 'online' : 'presencial'}, Link: ${paymentLink}`);
+                                await sendWhatsAppMessage(client, number, paymentMessage, clinicaId);
+                                logger.log(`Link de pagamento enviado com sucesso para ${number}`);
+                            } else {
+                                logger.error(`Falha ao finalizar agendamento: ${finishResult.message || 'Erro desconhecido'}`);
+                            }
+                        } catch (error) {
+                            logger.error('Erro ao chamar finishAppointment automaticamente:', error);
+                        }
+                    }
+                    
                     // Chamar o ChatGPT novamente para gerar a resposta final
                     const finalResponse = await getChatGPTResponse(conversation, nome);
                     
@@ -304,30 +375,27 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
                     // Formatar a resposta com base no resultado do agendamento
                     let formattedResponse = finalResponse.content;
                     
-                    // Sempre adicionar o link de pagamento quando o agendamento for bem-sucedido
+                    // Adicionar o link de pagamento quando o agendamento for bem-sucedido
                     if (bookingResult.success) {
-                        // Obter o link de pagamento do plano
-                        let paymentLink = bookingResult.payment_link;
-                        
-                        // Se não tiver o link no resultado, tentar obter diretamente
-                        if (!paymentLink) {
-                            try {
-                                const { getPlans } = require('./tools');
-                                const plans = await getPlans();
-                                const selectedPlan = plans.find(plan => plan.id === bookingResult.appointment.plan_id);
-                                if (selectedPlan && selectedPlan.link) {
-                                    paymentLink = selectedPlan.link;
+                        // Verificar se a resposta já inclui o link de pagamento
+                        if (bookingResult.payment_message && !formattedResponse.includes('link de pagamento') && !formattedResponse.includes('link para pagamento')) {
+                            // Se a resposta já confirma o agendamento, apenas adicione o link
+                            if (formattedResponse.includes('agendada') || formattedResponse.includes('marcada') || formattedResponse.includes('sucesso')) {
+                                // Verificar se a resposta termina com ponto final ou outro sinal de pontuação
+                                if (/[.!?]$/.test(formattedResponse)) {
+                                    formattedResponse += ` ${bookingResult.payment_message}`;
+                                } else {
+                                    formattedResponse += `. ${bookingResult.payment_message}`;
                                 }
-                            } catch (error) {
-                                logger.log('Erro ao obter link de pagamento:', error);
+                            } else {
+                                // Se não confirma explicitamente, adicione uma confirmação junto com o link
+                                formattedResponse += `\n\nA consulta foi agendada com sucesso! ${bookingResult.payment_message}`;
                             }
                         }
                         
-                        // Adicionar o link de pagamento à resposta
-                        if (paymentLink) {
-                            formattedResponse += `\n\nAqui está o link para pagamento: ${paymentLink}\n\nNo link de pagamento você pode escolher se quer pagar no cartão de crédito/débito ou PIX.`;
-                        } else {
-                            logger.log('Link de pagamento não encontrado para o plano');
+                        // Não adicionar mensagem sobre envio automático do link se já estamos enviando o link
+                        if (formattedResponse.includes('será enviado automaticamente') && !formattedResponse.includes('link de pagamento') && !formattedResponse.includes('link para pagamento')) {
+                            formattedResponse = formattedResponse.replace('O link de pagamento será enviado automaticamente.', 'Aqui está o link para pagamento: ' + bookingResult.payment_link);
                         }
                     }
                     
@@ -335,6 +403,75 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
                 } catch (error) {
                     logger.error('Erro ao processar agendamento:', error);
                     return "Desculpe, houve um erro ao processar seu agendamento. Por favor, tente novamente informando todos os dados necessários (nome, CPF, telefone, data de nascimento, data e horário desejados).";
+                }
+            }
+            // Verificar se é a função de finalização de agendamento
+            else if (name === 'finishAppointment') {
+                try {
+                    // Parsear os argumentos
+                    const parsedArgs = JSON.parse(args);
+                    
+                    logger.log('Processando finalização de agendamento...', parsedArgs);
+                    
+                    // Verificar se já temos todas as informações necessárias
+                    const requiredFields = ["patient_name", "appointment_date", "appointment_time", "is_online"];
+                    const missingFields = requiredFields.filter(field => !parsedArgs[field]);
+                    
+                    if (missingFields.length > 0) {
+                        logger.log(`Campos obrigatórios ausentes: ${missingFields.join(', ')}`);
+                        return `Preciso de algumas informações adicionais para finalizar o agendamento: ${missingFields.join(', ')}. Poderia me informar?`;
+                    }
+                    
+                    // Chamar a função para finalizar o agendamento
+                    const finishResult = await finishAppointment(parsedArgs);
+                    
+                    logger.log('Resultado da finalização:', finishResult);
+                    
+                    // Adicionar o resultado da função ao histórico da conversa
+                    conversation.push({
+                        role: "function",
+                        name: name,
+                        content: JSON.stringify(finishResult)
+                    });
+                    
+                    // Chamar o ChatGPT novamente para gerar a resposta final
+                    const finalResponse = await getChatGPTResponse(conversation, nome);
+                    
+                    // Adicionar a resposta final ao histórico
+                    conversation.push({
+                        role: "assistant",
+                        content: finalResponse.content
+                    });
+                    
+                    // Salvar conversa atualizada no cache
+                    conversationCache.set(conversationKey, conversation);
+                    
+                    // Formatar a resposta com base no resultado da finalização
+                    let formattedResponse = finalResponse.content;
+                    
+                    // Sempre adicionar o link de pagamento quando a finalização for bem-sucedida
+                    if (finishResult.success) {
+                        // Adicionar o link de pagamento à resposta automaticamente
+                        if (finishResult.payment_message && !formattedResponse.includes('link de pagamento') && !formattedResponse.includes('link para pagamento')) {
+                            // Se a resposta já confirma o agendamento, apenas adicione o link
+                            if (formattedResponse.includes('agendada') || formattedResponse.includes('marcada') || formattedResponse.includes('sucesso')) {
+                                // Verificar se a resposta termina com ponto final ou outro sinal de pontuação
+                                if (/[.!?]$/.test(formattedResponse)) {
+                                    formattedResponse += ` ${finishResult.payment_message}`;
+                                } else {
+                                    formattedResponse += `. ${finishResult.payment_message}`;
+                                }
+                            } else {
+                                // Se não confirma explicitamente, adicione uma confirmação junto com o link
+                                formattedResponse += `\n\nA consulta foi agendada com sucesso! ${finishResult.payment_message}`;
+                            }
+                        }
+                    }
+                    
+                    return removeDuplicateMessages(formattedResponse);
+                } catch (error) {
+                    logger.error('Erro ao processar finalização de agendamento:', error);
+                    return "Desculpe, houve um erro ao finalizar seu agendamento. Por favor, tente novamente mais tarde.";
                 }
             }
             // Verificar se é a função de atualização de agendamento
@@ -412,7 +549,7 @@ async function processMessageWithGPT(message, nome, phoneNumber, clinicaId) {
  */
 function processListFormat(message) {
     // Verifica se a mensagem tem o formato de lista de dados
-    const listPattern = /^(name|cpf|phone|birthdate|cartao):\s*(.*?)$/im;
+    const listPattern = /^(name|cpf|phone|birthdate|pagamento):\s*(.*?)$/im;
     
     if (listPattern.test(message)) {
         // Extrai os dados da mensagem
@@ -421,11 +558,30 @@ function processListFormat(message) {
         
         // Processa cada linha para extrair os dados
         lines.forEach(line => {
-            const match = line.match(/^(name|cpf|phone|birthdate|cartao):\s*(.*?)$/i);
-            if (match) {
-                const key = match[1].toLowerCase();
-                const value = match[2].trim();
-                data[key] = value;
+            // Verifica se a linha contém informação de pagamento
+            if (line.toLowerCase().includes('pagamento') || line.toLowerCase().includes('cartao') || line.toLowerCase().includes('cartão')) {
+                const paymentLine = line.toLowerCase();
+                if (paymentLine.includes('pix')) {
+                    data['payment_method'] = 'pix';
+                } else if (paymentLine.includes('credito') || paymentLine.includes('crédito')) {
+                    data['payment_method'] = 'cartão de crédito';
+                } else if (paymentLine.includes('debito') || paymentLine.includes('débito')) {
+                    data['payment_method'] = 'cartão de débito';
+                } else {
+                    // Extrai o método de pagamento da linha
+                    const paymentMatch = line.match(/:\s*(.*?)$/);
+                    if (paymentMatch) {
+                        data['payment_method'] = paymentMatch[1].trim();
+                    }
+                }
+            } else {
+                // Processa outros campos normalmente
+                const match = line.match(/^(name|cpf|phone|birthdate):\s*(.*?)$/i);
+                if (match) {
+                    const key = match[1].toLowerCase();
+                    const value = match[2].trim();
+                    data[key] = value;
+                }
             }
         });
         
@@ -439,18 +595,15 @@ function processListFormat(message) {
             if (data.phone) formattedMessage += `Telefone: ${data.phone}\n`;
             if (data.birthdate) formattedMessage += `Data de nascimento: ${data.birthdate}\n`;
             
-            // Processa o método de pagamento
-            if (data.cartao) {
-                const paymentMethod = data.cartao.toLowerCase();
-                if (paymentMethod.includes('credito') || paymentMethod.includes('crédito')) {
-                    formattedMessage += "Método de pagamento: cartão de crédito\n";
-                } else if (paymentMethod.includes('debito') || paymentMethod.includes('débito')) {
-                    formattedMessage += "Método de pagamento: cartão de débito\n";
-                } else {
-                    formattedMessage += `Método de pagamento: ${data.cartao}\n`;
-                }
+            // Adiciona o método de pagamento
+            if (data.payment_method) {
+                formattedMessage += `Método de pagamento: ${data.payment_method}\n`;
             }
             
+            // Adiciona uma instrução explícita para agendar a consulta
+            formattedMessage += "\nPor favor, agende esta consulta usando a função bookAppointment.";
+            
+            logger.log(`Mensagem formatada para agendamento: ${formattedMessage}`);
             return formattedMessage;
         }
     }
@@ -514,9 +667,9 @@ async function setupWhatsAppListeners(client, clinicaId) {
 
             const contact = await message.getContact();
             const nome = contact.name || contact.pushname || "Cliente";
-            const phoneNumber = contact.number;
+            const number = contact.number;
 
-            logger.log(`Processando mensagem individual de: ${nome}, Número: ${phoneNumber}`);
+            logger.log(`Processando mensagem individual de: ${nome}, Número: ${number}`);
 
             let profilePicUrl = null;
             try {
@@ -529,16 +682,16 @@ async function setupWhatsAppListeners(client, clinicaId) {
             if (message.type === 'ptt' || message.type === 'audio') {
                 logger.log('Mensagem de áudio detectada');
                 
-                const cacheKey = createCacheKey(clinicaId, phoneNumber);
+                const cacheKey = createCacheKey(clinicaId, number);
                 const greetedToday = greetingCache.get(cacheKey);
                 
                 if (!greetedToday && nome !== "Cliente") {
-                    logger.log(`Enviando saudação antes de processar áudio para: ${phoneNumber} (clinica ${clinicaId})`);
+                    logger.log(`Enviando saudação antes de processar áudio para: ${number} (clinica ${clinicaId})`);
                     greetingCache.set(cacheKey, true);
                     
                     try {
-                        const sentMessage = await getMessageType('greeting', nome, profilePicUrl, phoneNumber, clinicaId);
-                        logger.log(`Saudação enviada com sucesso para: ${phoneNumber}`);
+                        const sentMessage = await getMessageType('greeting', nome, profilePicUrl, number, clinicaId);
+                        logger.log(`Saudação enviada com sucesso para: ${number}`);
                         
                         // Aguarda um momento para garantir que a mensagem foi processada
                         await new Promise(resolve => setTimeout(resolve, 4000));
@@ -550,10 +703,10 @@ async function setupWhatsAppListeners(client, clinicaId) {
                 
                 // Processar o áudio usando a função do audioService
                 try {
-                    await processAudioMessage(message, nome, phoneNumber, clinicaId, client, processMessageWithGPT, sendWhatsAppMessage);
+                    await processAudioMessage(message, nome, number, clinicaId, client, processMessageWithGPT, sendWhatsAppMessage);
                 } catch (error) {
                     logger.log('Erro ao processar mensagem de áudio:', error);
-                    await sendWhatsAppMessage(client, phoneNumber, "Desculpe, não consegui processar seu áudio. Poderia enviar sua mensagem em texto?", clinicaId);
+                    await sendWhatsAppMessage(client, number, "Desculpe, não consegui processar seu áudio. Poderia enviar sua mensagem em texto?", clinicaId);
                 }
                 return;
             }
@@ -561,24 +714,24 @@ async function setupWhatsAppListeners(client, clinicaId) {
             const messageBodyNormalized = normalizeText(message.body.trim());
 
             if (messageBodyNormalized === 'reset oi') {
-                const cacheKey = createCacheKey(clinicaId, phoneNumber);
+                const cacheKey = createCacheKey(clinicaId, number);
                 greetingCache.del(cacheKey);
-                logger.log(`Estado de saudação resetado para o número: ${phoneNumber} no clinica ${clinicaId}`);
-                await sendWhatsAppMessage(client, phoneNumber, 'Seu estado de saudação foi resetado. Você receberá a próxima saudação.', clinicaId);
+                logger.log(`Estado de saudação resetado para o número: ${number} no clinica ${clinicaId}`);
+                await sendWhatsAppMessage(client, number, 'Seu estado de saudação foi resetado. Você receberá a próxima saudação.', clinicaId);
                 return;
             }
 
-            const cacheKey = createCacheKey(clinicaId, phoneNumber);
+            const cacheKey = createCacheKey(clinicaId, number);
             const greetedToday = greetingCache.get(cacheKey);
 
             if (!greetedToday && nome !== "Cliente") {
-                logger.log(`Enviando saudação para: ${phoneNumber} (clinica ${clinicaId})`);
+                logger.log(`Enviando saudação para: ${number} (clinica ${clinicaId})`);
 
                 greetingCache.set(cacheKey, true);
 
                 try {
-                    const sentMessage = await getMessageType('greeting', nome, profilePicUrl, phoneNumber, clinicaId);
-                    logger.log(`Saudação enviada com sucesso para: ${phoneNumber}`);
+                    const sentMessage = await getMessageType('greeting', nome, profilePicUrl, number, clinicaId);
+                    logger.log(`Saudação enviada com sucesso para: ${number}`);
                     
                     // Aguarda um momento para garantir que a mensagem foi processada
                     await new Promise(resolve => setTimeout(resolve, 4000));
@@ -591,20 +744,20 @@ async function setupWhatsAppListeners(client, clinicaId) {
                     greetingCache.del(cacheKey);
                 }
             } else {
-                logger.log(`Cliente já foi saudado hoje: ${phoneNumber} (clinica ${clinicaId})`);
+                logger.log(`Cliente já foi saudado hoje: ${number} (clinica ${clinicaId})`);
                 
                 // Processar a mensagem com o ChatGPT e enviar resposta
                 try {
                     logger.log(`Processando mensagem com ChatGPT: "${message.body}"`);
-                    const gptResponse = await processMessageWithGPT(message.body, nome, phoneNumber, clinicaId);
+                    const gptResponse = await processMessageWithGPT(message.body, nome, number, clinicaId);
                     logger.log(`Resposta do ChatGPT: "${gptResponse}"`);
                     
                     // Remover possíveis duplicações na resposta
                     const cleanResponse = removeDuplicateMessages(gptResponse);
                     
                     // Enviar resposta ao usuário
-                    await sendWhatsAppMessage(client, phoneNumber, cleanResponse, clinicaId, false);
-                    logger.log(`Resposta enviada para ${phoneNumber}`);
+                    await sendWhatsAppMessage(client, number, cleanResponse, clinicaId, false);
+                    logger.log(`Resposta enviada para ${number}`);
                 } catch (error) {
                     logger.log('Erro ao processar mensagem com ChatGPT:', error);
                 }
@@ -628,17 +781,17 @@ async function setupWhatsAppListeners(client, clinicaId) {
 
             try {
                 const chat = await message.getChat();
-                const phoneNumber = chat.id.user;
+                const number = chat.id.user;
 
-                logger.log(`Número de telefone do destinatário: ${phoneNumber}`);
+                logger.log(`Número de telefone do destinatário: ${number}`);
 
                 if (!message.body.includes('Seu estado de saudação foi resetado')) {
-                    const cacheKey = createCacheKey(clinicaId, phoneNumber);
+                    const cacheKey = createCacheKey(clinicaId, number);
                     logger.log(`Desativando saudações para o dia para este contato (clinica ${clinicaId})`);
                     greetingCache.set(cacheKey, true);
                     
                     // Adicionar mensagem do atendente ao histórico da conversa
-                    const conversationKey = createConversationKey(clinicaId, phoneNumber);
+                    const conversationKey = createConversationKey(clinicaId, number);
                     let conversation = conversationCache.get(conversationKey) || [];
                     
                     conversation.push({
