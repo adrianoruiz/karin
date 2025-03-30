@@ -140,23 +140,64 @@ async function determinePlanId(isOnline, planId = null) {
 async function determinePaymentMethodId(paymentMethod = null) {
     // Se não foi fornecido um método de pagamento, retorna 2 (cartão de débito) como padrão
     if (!paymentMethod) {
+        console.log(`[DEBUG] Método de pagamento não fornecido, usando ID padrão: 2`);
         return 2;
     }
     
     try {
-        // Importa a função getPaymentMethodIdByName do módulo payment
-        const { getPaymentMethodIdByName } = require('./payment');
+        // Normaliza o método de pagamento para comparação
+        const normalizedPayment = paymentMethod.toString().toLowerCase().trim();
         
-        // Obtém o ID do método de pagamento pelo nome
-        const paymentMethodId = await getPaymentMethodIdByName(paymentMethod);
+        // Mapeamento direto para métodos de pagamento comuns
+        const paymentMethodMap = {
+            'pix': 3,
+            'cartão de crédito': 1,
+            'cartao de credito': 1,
+            'credito': 1,
+            'crédito': 1,
+            'cartão de débito': 2,
+            'cartao de debito': 2,
+            'débito': 2,
+            'debito': 2
+        };
         
-        // Se encontrou o ID, retorna ele
-        if (paymentMethodId) {
-            return paymentMethodId;
+        // Verifica se o método de pagamento está no mapeamento direto
+        if (paymentMethodMap[normalizedPayment]) {
+            console.log(`[DEBUG] Método de pagamento encontrado no mapeamento direto: ${normalizedPayment} => ID ${paymentMethodMap[normalizedPayment]}`);
+            return paymentMethodMap[normalizedPayment];
+        }
+        
+        // Tenta importar a função getPaymentMethodIdByName do módulo payment
+        try {
+            const { getPaymentMethodIdByName } = require('./payment');
+            
+            // Obtém o ID do método de pagamento pelo nome
+            const paymentMethodId = await getPaymentMethodIdByName(paymentMethod);
+            
+            // Se encontrou o ID, retorna ele
+            if (paymentMethodId) {
+                console.log(`[DEBUG] Método de pagamento encontrado via API: ${normalizedPayment} => ID ${paymentMethodId}`);
+                return paymentMethodId;
+            }
+        } catch (importError) {
+            console.error(`[ERROR] Erro ao importar ou usar getPaymentMethodIdByName:`, importError);
+            // Continua com a lógica abaixo se não conseguir importar
+        }
+        
+        // Verifica se contém palavras-chave para determinar o método
+        if (normalizedPayment.includes('pix')) {
+            console.log(`[DEBUG] Método de pagamento contém 'pix', usando ID 3`);
+            return 3;
+        } else if (normalizedPayment.includes('cred') || normalizedPayment.includes('créd')) {
+            console.log(`[DEBUG] Método de pagamento contém referência a crédito, usando ID 1`);
+            return 1;
+        } else if (normalizedPayment.includes('deb') || normalizedPayment.includes('déb')) {
+            console.log(`[DEBUG] Método de pagamento contém referência a débito, usando ID 2`);
+            return 2;
         }
         
         // Se não encontrou, retorna 2 (cartão de débito) como padrão
-        console.log(`[DEBUG] Método de pagamento não encontrado, usando ID padrão: 2`);
+        console.log(`[DEBUG] Método de pagamento não identificado: ${normalizedPayment}, usando ID padrão: 2`);
         return 2;
     } catch (error) {
         console.error(`[ERROR] Erro ao determinar o ID do método de pagamento:`, error);
@@ -378,5 +419,7 @@ async function checkAvailability(data) {
 module.exports = {
     bookingFunction,
     bookAppointment,
-    checkAvailability
+    checkAvailability,
+    determinePaymentMethodId,
+    convertDateFormat
 };

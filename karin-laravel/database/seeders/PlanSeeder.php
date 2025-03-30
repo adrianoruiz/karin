@@ -15,7 +15,7 @@ class PlanSeeder extends Seeder
         $plans = [
             [
                 'user_id'       => $doctor_id,
-                'name'          => 'Consulta Avulsa Online',
+                'name'          => 'Consulta Online',
                 'modality'      => 'online',
                 'type'          => 'consulta_avulsa',
                 'consultations' => null,
@@ -27,7 +27,7 @@ class PlanSeeder extends Seeder
             ],
             [
                 'user_id'       => $doctor_id,
-                'name'          => 'Consulta Avulsa Presencial',
+                'name'          => 'Consulta Presencial',
                 'modality'      => 'presencial',
                 'type'          => 'consulta_avulsa',
                 'consultations' => null,
