@@ -60,6 +60,13 @@ class AvailabilityService {
       // Filtra apenas os horários com status "available"
       const availableTimes = this._processAvailabilities(response.data.availabilities, parsedDate);
       
+      // Se não houver horários disponíveis para a data solicitada e não foi fornecida uma data específica,
+      // busca horários para os próximos 7 dias
+      if (availableTimes.length === 0 && !parsedDate) {
+        logger.log('Nenhum horário disponível para a data atual, buscando para os próximos dias');
+        return await this._findNextAvailableDates(doctorId);
+      }
+      
       return availableTimes;
     } catch (error) {
       // Tratamento de erros específicos
@@ -98,7 +105,8 @@ class AvailabilityService {
       .map(slot => ({
         date: slot.date?.split('T')[0] || '',
         time: slot.time || '',
-        formattedDate: DateUtils.formatDateForDisplay(slot.date?.split('T')[0] || '')
+        formattedDate: DateUtils.formatDateForDisplay(slot.date?.split('T')[0] || ''),
+        dayOfWeek: DateUtils.getDayOfWeekName(slot.date?.split('T')[0] || '')
       }))
       .filter(slot => slot.date && slot.time); // Remove slots sem data ou hora
     
@@ -111,6 +119,73 @@ class AvailabilityService {
     }
     
     return availableTimes;
+  }
+  
+  /**
+   * Busca horários disponíveis para os próximos dias
+   * @private
+   * @param {number} doctorId - ID do médico
+   * @param {number} daysToCheck - Número de dias a verificar
+   * @returns {Promise<Array>} - Lista de horários disponíveis
+   */
+  async _findNextAvailableDates(doctorId, daysToCheck = 7) {
+    const today = new Date();
+    let allAvailableTimes = [];
+    
+    // Verifica cada dia, um por um
+    for (let i = 1; i <= daysToCheck; i++) {
+      const nextDate = DateUtils.addDays(today, i);
+      
+      try {
+        logger.log(`Verificando disponibilidade para o dia ${nextDate}`);
+        
+        const response = await axios.get(`${this.apiUrl}availabilities`, {
+          params: {
+            doctor_id: doctorId,
+            date: nextDate
+          },
+          timeout: 5000
+        });
+        
+        if (response.data && response.data.availabilities) {
+          const availableTimes = this._processAvailabilities(response.data.availabilities, nextDate);
+          
+          if (availableTimes.length > 0) {
+            logger.log(`Encontrados ${availableTimes.length} horários para ${nextDate}`);
+            allAvailableTimes = allAvailableTimes.concat(availableTimes);
+            
+            // Se encontrou pelo menos 3 dias com horários disponíveis, interrompe a busca
+            if (Object.keys(this._groupByDate(allAvailableTimes)).length >= 3) {
+              break;
+            }
+          }
+        }
+      } catch (error) {
+        logger.error(`Erro ao verificar disponibilidade para ${nextDate}:`, error);
+        // Continua verificando os próximos dias mesmo em caso de erro
+      }
+    }
+    
+    return allAvailableTimes;
+  }
+  
+  /**
+   * Agrupa horários por data
+   * @private
+   * @param {Array} availableTimes - Lista de horários disponíveis
+   * @returns {Object} - Horários agrupados por data
+   */
+  _groupByDate(availableTimes) {
+    const grouped = {};
+    
+    availableTimes.forEach(slot => {
+      if (!grouped[slot.date]) {
+        grouped[slot.date] = [];
+      }
+      grouped[slot.date].push(slot);
+    });
+    
+    return grouped;
   }
 }
 
@@ -128,7 +203,7 @@ const availabilityFunction = {
     properties: {
       date: {
         type: "string",
-        description: "Data no formato DD/MM/YYYY ou em linguagem natural (hoje, amanhã) para verificar disponibilidade"
+        description: "Data no formato DD/MM/YYYY ou em linguagem natural (hoje, amanhã, segunda, terça, etc.) para verificar disponibilidade"
       },
       doctorId: {
         type: "number",

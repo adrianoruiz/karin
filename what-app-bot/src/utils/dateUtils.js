@@ -59,6 +59,44 @@ class DateUtils {
       return formattedDate;
     }
     
+    // Mapeamento de dias da semana (0 = domingo, 1 = segunda, etc.)
+    const weekDays = {
+      domingo: 0,
+      segunda: 1,
+      'segunda-feira': 1,
+      'segunda feira': 1,
+      terca: 2,
+      terça: 2,
+      'terca-feira': 2,
+      'terça-feira': 2,
+      'terca feira': 2,
+      'terça feira': 2,
+      quarta: 3,
+      'quarta-feira': 3,
+      'quarta feira': 3,
+      quinta: 4,
+      'quinta-feira': 4,
+      'quinta feira': 4,
+      sexta: 5,
+      'sexta-feira': 5,
+      'sexta feira': 5,
+      sabado: 6,
+      sábado: 6
+    };
+    
+    // Verificar dias da semana de forma mais precisa
+    for (const [dayName, dayNumber] of Object.entries(weekDays)) {
+      // Verificar se o texto contém o dia da semana como palavra completa
+      const regex = new RegExp(`\\b${dayName}\\b`, 'i');
+      if (regex.test(normalizedText)) {
+        // Calcula a próxima ocorrência desse dia da semana
+        const nextDate = this.getNextDayOfWeek(today, dayNumber);
+        const formattedDate = nextDate.toISOString().split('T')[0];
+        logger.log(`Identificado dia da semana "${dayName}" como palavra completa: ${formattedDate}`);
+        return formattedDate;
+      }
+    }
+    
     // Verifica formato DD/MM/YYYY
     const dateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
     const match = normalizedText.match(dateRegex);
@@ -93,6 +131,30 @@ class DateUtils {
   }
   
   /**
+   * Calcula a próxima ocorrência de um determinado dia da semana
+   * @param {Date} fromDate - Data de referência
+   * @param {number} dayOfWeek - Dia da semana (0 = domingo, 1 = segunda, ..., 6 = sábado)
+   * @returns {Date} - Data da próxima ocorrência do dia da semana
+   */
+  static getNextDayOfWeek(fromDate, dayOfWeek) {
+    const date = new Date(fromDate);
+    const currentDay = date.getDay();
+    
+    // Calcula quantos dias adicionar
+    let daysToAdd = dayOfWeek - currentDay;
+    
+    // Se o dia da semana já passou esta semana, vai para a próxima
+    if (daysToAdd <= 0) {
+      daysToAdd += 7;
+    }
+    
+    // Adiciona os dias calculados
+    date.setDate(date.getDate() + daysToAdd);
+    
+    return date;
+  }
+  
+  /**
    * Formata uma data para exibição ao usuário
    * @param {string} isoDate - Data no formato YYYY-MM-DD
    * @returns {string} - Data formatada como DD/MM/YYYY
@@ -102,6 +164,40 @@ class DateUtils {
     
     const [year, month, day] = isoDate.split('-');
     return `${day}/${month}/${year}`;
+  }
+  
+  /**
+   * Obtém o nome do dia da semana para uma data
+   * @param {string|Date} date - Data para obter o nome do dia
+   * @returns {string} - Nome do dia da semana em português
+   */
+  static getDayOfWeekName(date) {
+    // Se a data for uma string no formato YYYY-MM-DD
+    let dateObj;
+    if (typeof date === 'string') {
+      // Certifique-se de criar a data no fuso horário local
+      const [year, month, day] = date.split('-').map(num => parseInt(num, 10));
+      dateObj = new Date(year, month - 1, day); // Mês em JS é 0-indexed
+    } else {
+      dateObj = new Date(date);
+    }
+    
+    // Verificar se a data é válida
+    if (isNaN(dateObj.getTime())) {
+      logger.error(`Data inválida para obter nome do dia da semana: ${date}`);
+      return '';
+    }
+    
+    const weekDays = [
+      'Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 
+      'Quinta-feira', 'Sexta-feira', 'Sábado'
+    ];
+    
+    // Certifique-se de que estamos usando o dia correto
+    const dayOfWeek = dateObj.getDay();
+    logger.log(`Data: ${dateObj.toISOString().split('T')[0]}, Dia da semana: ${dayOfWeek} (${weekDays[dayOfWeek]})`);
+    
+    return weekDays[dayOfWeek];
   }
   
   /**
