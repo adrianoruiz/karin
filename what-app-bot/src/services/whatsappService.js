@@ -27,7 +27,8 @@ const {
 } = require('./tools');
 
 const greetingCache = new NodeCache({ stdTTL: config.greetingCacheTTL });
-const conversationCache = new NodeCache({ stdTTL: 3600 }); // Cache para armazenar histórico de conversas (1 hora)
+const conversationCache = new NodeCache({ stdTTL: 14400 }); // Cache para armazenar histórico de conversas (1 hora)
+const messageCache = new NodeCache({ stdTTL: 60, checkperiod: 120 }); // Cache para controle de mensagens duplicadas
 
 // Função para normalizar texto
 function normalizeText(text) {
@@ -65,81 +66,7 @@ async function getMessageType(messageType, nome, avatar, phoneNumber, clinicaId)
     }
 }
 
-// Função para remover mensagens duplicadas
-function removeDuplicateMessages(formattedResponse) {
-    // Se a resposta for vazia ou undefined, retornar como está
-    if (!formattedResponse) {
-        return formattedResponse;
-    }
-    
-    // Verificar se a resposta contém texto duplicado (como perguntas repetidas)
-    const lines = formattedResponse.split('\n').filter(line => line.trim() !== '');
-    
-    // Se não houver linhas, retornar a resposta original
-    if (lines.length === 0) {
-        return formattedResponse;
-    }
-    
-    const uniqueLines = [];
-    const seenLines = new Set();
-    const questionPattern = /\?.*📅/; // Padrão para detectar perguntas com emoji de calendário
-    
-    // Verificar se há frases repetidas (especialmente perguntas)
-    let hasRepeatedQuestion = false;
-    const questions = [];
-    
-    for (const line of lines) {
-        // Verificar se é uma pergunta sobre consulta
-        if (questionPattern.test(line) && 
-            (line.includes("online") || line.includes("presencial")) && 
-            line.includes("consulta")) {
-            questions.push(line);
-            if (questions.length > 1) {
-                hasRepeatedQuestion = true;
-                logger.log(`Detectada pergunta repetida sobre tipo de consulta: "${line}"`);
-            }
-        }
-        
-        const normalizedLine = line.trim().toLowerCase();
-        if (!seenLines.has(normalizedLine)) {
-            seenLines.add(normalizedLine);
-            uniqueLines.push(line);
-        } else {
-            logger.log(`Removendo linha duplicada: "${line}"`);
-        }
-    }
-    
-    // Se detectou perguntas repetidas, manter apenas a última
-    let dedupedResponse;
-    if (hasRepeatedQuestion && questions.length > 0) {
-        // Remover todas as ocorrências da pergunta exceto a última
-        const filteredLines = uniqueLines.filter(line => 
-            !questions.slice(0, -1).some(q => line.includes(q))
-        );
-        
-        // Se após a filtragem não sobrou nenhuma linha, manter pelo menos a última pergunta
-        if (filteredLines.length === 0 && questions.length > 0) {
-            filteredLines.push(questions[questions.length - 1]);
-            logger.log(`Mantendo a última pergunta: "${questions[questions.length - 1]}"`);
-        }
-        
-        dedupedResponse = filteredLines.join('\n');
-        logger.log(`Removidas ${questions.length - 1} perguntas repetidas sobre tipo de consulta`);
-    } else {
-        dedupedResponse = uniqueLines.join('\n');
-    }
-    
-    // Se após todo o processamento a resposta ficou vazia, retornar a resposta original
-    if (!dedupedResponse.trim()) {
-        logger.log('A resposta ficou vazia após remoção de duplicações. Mantendo a última linha da resposta original.');
-        return lines[lines.length - 1];
-    }
-    
-    logger.log(`Resposta original: "${formattedResponse}"`);
-    logger.log(`Resposta sem duplicações: "${dedupedResponse}"`);
-    
-    return dedupedResponse;
-}
+
 
 async function processMessageWithGPT(message, nome, number, clinicaId) {
     try {
@@ -230,7 +157,7 @@ async function processMessageWithGPT(message, nome, number, clinicaId) {
                 
                 // Formatar os horários disponíveis para uma mensagem legível
                 const formattedResponse = await formatAvailableAppointments(availableTimes);
-                return removeDuplicateMessages(formattedResponse);
+                return formattedResponse;
             }
             // Verificar se é a função de planos
             else if (name === 'getAvailablePlans') {
@@ -399,7 +326,7 @@ async function processMessageWithGPT(message, nome, number, clinicaId) {
                         }
                     }
                     
-                    return removeDuplicateMessages(formattedResponse);
+                    return formattedResponse;
                 } catch (error) {
                     logger.error('Erro ao processar agendamento:', error);
                     return "Desculpe, houve um erro ao processar seu agendamento. Por favor, tente novamente informando todos os dados necessários (nome, CPF, telefone, data de nascimento, data e horário desejados).";
@@ -468,7 +395,7 @@ async function processMessageWithGPT(message, nome, number, clinicaId) {
                         }
                     }
                     
-                    return removeDuplicateMessages(formattedResponse);
+                    return formattedResponse;
                 } catch (error) {
                     logger.error('Erro ao processar finalização de agendamento:', error);
                     return "Desculpe, houve um erro ao finalizar seu agendamento. Por favor, tente novamente mais tarde.";
@@ -513,7 +440,7 @@ async function processMessageWithGPT(message, nome, number, clinicaId) {
                     formattedResponse += `\n\nAqui está o link para pagamento: ${updateResult.payment_link}\n\nNo link de pagamento você pode escolher se quer pagar no cartão de crédito/débito ou PIX.`;
                 }
                 
-                return removeDuplicateMessages(formattedResponse);
+                return formattedResponse;
             }
         }
         
@@ -534,7 +461,7 @@ async function processMessageWithGPT(message, nome, number, clinicaId) {
         // Salvar conversa atualizada no cache
         conversationCache.set(conversationKey, conversation);
         
-        return removeDuplicateMessages(responseContent);
+        return responseContent;
     } catch (error) {
         logger.log('Erro ao processar mensagem com GPT:', error);
         return "Desculpe, houve um erro ao processar sua mensagem. Por favor, tente novamente mais tarde.";
@@ -746,17 +673,43 @@ async function setupWhatsAppListeners(client, clinicaId) {
             } else {
                 logger.log(`Cliente já foi saudado hoje: ${number} (clinica ${clinicaId})`);
                 
+                // Criar uma chave única para esta mensagem específica
+                const messageId = `${number}_${Date.now()}`;
+                
+                // Verificar se já processamos uma mensagem similar recentemente
+                const recentMessages = messageCache.get(number) || [];
+                const isDuplicate = recentMessages.some(msg => 
+                    Date.now() - msg.timestamp < 10000 && // Mensagens nos últimos 10 segundos
+                    msg.body === message.body
+                );
+                
+                if (isDuplicate) {
+                    logger.log(`Mensagem duplicada detectada e ignorada: "${message.body}"`);
+                    return;
+                }
+                
+                // Registrar esta mensagem no cache
+                recentMessages.push({
+                    id: messageId,
+                    body: message.body,
+                    timestamp: Date.now()
+                });
+                
+                // Manter apenas as 5 mensagens mais recentes
+                if (recentMessages.length > 5) {
+                    recentMessages.shift();
+                }
+                
+                messageCache.set(number, recentMessages);
+                
                 // Processar a mensagem com o ChatGPT e enviar resposta
                 try {
                     logger.log(`Processando mensagem com ChatGPT: "${message.body}"`);
                     const gptResponse = await processMessageWithGPT(message.body, nome, number, clinicaId);
                     logger.log(`Resposta do ChatGPT: "${gptResponse}"`);
                     
-                    // Remover possíveis duplicações na resposta
-                    const cleanResponse = removeDuplicateMessages(gptResponse);
-                    
                     // Enviar resposta ao usuário
-                    await sendWhatsAppMessage(client, number, cleanResponse, clinicaId, false);
+                    await sendWhatsAppMessage(client, number, gptResponse, clinicaId, false);
                     logger.log(`Resposta enviada para ${number}`);
                 } catch (error) {
                     logger.log('Erro ao processar mensagem com ChatGPT:', error);
@@ -873,7 +826,7 @@ module.exports = {
     setupWhatsAppListeners,
     sendWhatsAppMessage,
     processMessageWithGPT,
-    removeDuplicateMessages,
+    
     getMessageType,
     resetGreetingState
 };

@@ -36,7 +36,7 @@ async function getChatGPTResponse(messages, nome) {
         const response = await axios.post(
             'https://api.openai.com/v1/chat/completions',
             {
-                model: "gpt-4o", 
+                model: "gpt-4o-mini", 
                 messages: messagesWithSystem,
                 functions: [availabilityFunction, plansFunction, paymentMethodsFunction, bookingFunction, updateBookingFunction, finishAppointmentFunction],
                 function_call: "auto",
