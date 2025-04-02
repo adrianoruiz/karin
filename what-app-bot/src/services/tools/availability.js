@@ -34,36 +34,39 @@ class AvailabilityService {
       
       // Processa a entrada de data, se fornecida
       const parsedDate = date ? DateUtils.parseDate(date) : null;
+      const dateToQuery = parsedDate || DateUtils.getToday(); // Se não houver data, consulta hoje
       
-      // Se a data não for fornecida ou não puder ser interpretada, usa a data atual
-      const currentDate = parsedDate || DateUtils.getToday();
-      
-      logger.log(`Consultando horários disponíveis para a data: ${currentDate}`);
+      logger.log(`Consultando horários disponíveis para a data: ${dateToQuery}`);
       
       // Consulta a API de disponibilidades
       const response = await axios.get(`${this.apiUrl}availabilities`, {
         params: {
           doctor_id: doctorId,
-          date: currentDate
+          date: dateToQuery
         },
         timeout: 5000 // Timeout de 5 segundos
       });
       
-      logger.log(`Resposta da API recebida`, response.data);
+      logger.log(`Resposta da API recebida para ${dateToQuery}`, response.data);
       
       // Verificar se a resposta é válida
       if (!response.data || !response.data.availabilities) {
         logger.error('Resposta da API inválida ou vazia');
+        // Mesmo com resposta inválida, tentar buscar nos próximos dias se nenhuma data específica foi pedida
+        if (!parsedDate) {
+            logger.log('Resposta inválida para data atual, buscando próximos dias...');
+            return await this._findNextAvailableDates(doctorId);
+        }
         return [];
       }
       
-      // Filtra apenas os horários com status "available"
-      const availableTimes = this._processAvailabilities(response.data.availabilities, parsedDate);
+      // Processa e filtra as disponibilidades para a data consultada
+      const availableTimes = this._processAvailabilities(response.data.availabilities, dateToQuery);
       
-      // Se não houver horários disponíveis para a data solicitada e não foi fornecida uma data específica,
-      // busca horários para os próximos 7 dias
-      if (availableTimes.length === 0 && !parsedDate) {
-        logger.log('Nenhum horário disponível para a data atual, buscando para os próximos dias');
+      // Se não houver horários disponíveis para a data solicitada (seja específica ou hoje),
+      // busca horários para os próximos 10 dias
+      if (availableTimes.length === 0) {
+        logger.log(`Nenhum horário disponível para ${dateToQuery}, buscando para os próximos dias`);
         return await this._findNextAvailableDates(doctorId);
       }
       
@@ -73,6 +76,11 @@ class AvailabilityService {
       if (error.response) {
         // Erro de resposta da API (status diferente de 2xx)
         logger.error(`Erro na resposta da API (${error.response.status}):`, error.response.data);
+        // Tentar buscar nos próximos dias mesmo em erro, se nenhuma data específica foi pedida
+        if (!parsedDate) {
+             logger.log('Erro na API para data atual, buscando próximos dias...');
+            return await this._findNextAvailableDates(doctorId);
+        }
         throw new Error(`Erro ao consultar disponibilidade: ${error.response.status}`);
       } else if (error.request) {
         // Erro na requisição (sem resposta)
