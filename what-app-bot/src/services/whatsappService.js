@@ -346,9 +346,11 @@ async function processMessageWithGPT(message, nome, number, clinicaId) {
                     let formattedResponse = finalResponse.content;
                     
                     // Adicionar o link de pagamento quando o agendamento for bem-sucedido
-                    if (bookingResult.success) {
+                    if (isBookingSuccessful && bookingResult.payment_message) {
                         // Verificar se a resposta já inclui o link de pagamento
-                        if (bookingResult.payment_message && !formattedResponse.includes('link de pagamento') && !formattedResponse.includes('link para pagamento')) {
+                        if (!formattedResponse.includes('link de pagamento') && 
+                            !formattedResponse.includes('link para pagamento') && 
+                            !formattedResponse.includes(bookingResult.payment_link)) {
                             // Se a resposta já confirma o agendamento, apenas adicione o link
                             if (formattedResponse.includes('agendada') || formattedResponse.includes('marcada') || formattedResponse.includes('sucesso')) {
                                 // Verificar se a resposta termina com ponto final ou outro sinal de pontuação
@@ -359,13 +361,19 @@ async function processMessageWithGPT(message, nome, number, clinicaId) {
                                 }
                             } else {
                                 // Se não confirma explicitamente, adicione uma confirmação junto com o link
-                                formattedResponse += `\n\nA consulta foi agendada com sucesso! ${bookingResult.payment_message}`;
+                                formattedResponse += `\n\nSua consulta foi agendada com sucesso! ${bookingResult.payment_message}`;
                             }
                         }
                         
                         // Não adicionar mensagem sobre envio automático do link se já estamos enviando o link
-                        if (formattedResponse.includes('será enviado automaticamente') && !formattedResponse.includes('link de pagamento') && !formattedResponse.includes('link para pagamento')) {
-                            formattedResponse = formattedResponse.replace('O link de pagamento será enviado automaticamente.', 'Aqui está o link para pagamento: ' + bookingResult.payment_link);
+                        if (formattedResponse.includes('será enviado automaticamente') && 
+                            (formattedResponse.includes('link de pagamento') || 
+                             formattedResponse.includes('link para pagamento') || 
+                             formattedResponse.includes(bookingResult.payment_link))) {
+                            formattedResponse = formattedResponse.replace('O link de pagamento será enviado automaticamente.', '');
+                        } else if (formattedResponse.includes('será enviado automaticamente')) {
+                            // Se a mensagem não contém o link, substitui a frase pelo link
+                            formattedResponse = formattedResponse.replace('O link de pagamento será enviado automaticamente.', bookingResult.payment_message);
                         }
                     }
                     

@@ -124,7 +124,7 @@ async function finishAppointment(data) {
             message: "Agendamento finalizado com sucesso!",
             payment_link: paymentLink,
             is_online: data.is_online,
-            payment_message: `Aqui está o link para pagamento: ${paymentLink}\n\nNo link de pagamento você pode escolher se quer pagar no cartão de crédito/débito ou PIX.`
+            payment_message: `Para efetuar seu pagamento, basta clicar no link a seguir: 👉 ${paymentLink}\nVocê pode escolher pagar no cartão de crédito, débito ou PIX. 💳`
         };
     } catch (error) {
         console.error(`[ERROR] Erro ao finalizar agendamento:`, error);

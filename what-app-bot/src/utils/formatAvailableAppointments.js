@@ -56,10 +56,6 @@ async function formatAvailableAppointments(availableTimes) {
                  }
             }
             
-            // Indicar se há mais horários naquele dia
-            if (dateInfo.times.length > 2) {
-                 message += `   (e mais ${dateInfo.times.length - (dateInfo.suggestedTimes.length > 0 ? dateInfo.suggestedTimes.length : 2)} outros horários)\n`;
-            }
             message += '\n';
         }
         
