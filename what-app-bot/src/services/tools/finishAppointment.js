@@ -63,7 +63,9 @@ async function finishAppointment(data) {
         
         // Verificar se todos os campos obrigatórios estão presentes
         const requiredFields = ["patient_name", "appointment_date", "appointment_time", "is_online"];
-        const missingFields = requiredFields.filter(field => !data[field]);
+        const missingFields = requiredFields.filter(field => {
+            return data[field] === null || data[field] === undefined || data[field] === '';
+        });
         
         if (missingFields.length > 0) {
             console.log(`[DEBUG] Campos obrigatórios ausentes: ${missingFields.join(', ')}`);
