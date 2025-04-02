@@ -1,7 +1,7 @@
 // routes/whatsappRoutes.js
 const express = require('express');
 const router = express.Router();
-const { sendWhatsAppMessage } = require('../src/services/whatsappService');
+const { sendWhatsAppMessage, resetManualResponseState, resetGreetingState } = require('../src/services/whatsappService');
 const { clientManager } = require('../src/services/qr/qrcode');
 
 router.post('/send-message', async (req, res) => {
@@ -33,6 +33,66 @@ router.post('/send-message', async (req, res) => {
     } catch (err) {
         console.error('Falha ao enviar mensagem:', err);
         res.status(500).send({ status: 'error', message: 'Falha ao enviar mensagem', error: err.toString() });
+    }
+});
+
+// Rota para resetar o estado de resposta manual para um usuário específico (via query parameters)
+router.get('/reset-manual-state', (req, res) => {
+    const { clinicaId, number } = req.query;
+    
+    if (!clinicaId) {
+        return res.status(400).send({ status: 'error', message: 'Parâmetro clinicaId é obrigatório.' });
+    }
+    
+    try {
+        const result = resetManualResponseState(clinicaId, number);
+        if (result) {
+            return res.status(200).send({ 
+                status: 'success', 
+                message: number 
+                    ? `Estado de resposta manual resetado para o número ${number} na clínica ${clinicaId}.` 
+                    : `Estado de resposta manual resetado para todos os números na clínica ${clinicaId}.` 
+            });
+        } else {
+            return res.status(500).send({ status: 'error', message: 'Falha ao resetar estado de resposta manual.' });
+        }
+    } catch (err) {
+        console.error('Falha ao resetar estado de resposta manual:', err);
+        return res.status(500).send({ status: 'error', message: 'Falha ao resetar estado de resposta manual.', error: err.toString() });
+    }
+});
+
+// Rota alternativa para resetar o estado de resposta manual (via parâmetros na URL)
+router.get('/reset-manual-state/:clinicaId', (req, res) => {
+    const { clinicaId } = req.params;
+    const { number } = req.query;
+    
+    try {
+        const result = resetManualResponseState(clinicaId, number);
+        if (result) {
+            return res.status(200).send({ 
+                status: 'success', 
+                message: number 
+                    ? `Estado de resposta manual resetado para o número ${number} na clínica ${clinicaId}.` 
+                    : `Estado de resposta manual resetado para todos os números na clínica ${clinicaId}.` 
+            });
+        } else {
+            return res.status(500).send({ status: 'error', message: 'Falha ao resetar estado de resposta manual.' });
+        }
+    } catch (err) {
+        console.error('Falha ao resetar estado de resposta manual:', err);
+        return res.status(500).send({ status: 'error', message: 'Falha ao resetar estado de resposta manual.', error: err.toString() });
+    }
+});
+
+// Rota para resetar o estado de saudação para um usuário específico
+router.get('/reset-greeting-state', (req, res) => {
+    try {
+        resetGreetingState();
+        return res.status(200).send({ status: 'success', message: 'Estado de saudação resetado para todos os usuários.' });
+    } catch (err) {
+        console.error('Falha ao resetar estado de saudação:', err);
+        return res.status(500).send({ status: 'error', message: 'Falha ao resetar estado de saudação.', error: err.toString() });
     }
 });
 

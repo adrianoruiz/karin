@@ -29,6 +29,11 @@ const {
 const greetingCache = new NodeCache({ stdTTL: config.greetingCacheTTL });
 const conversationCache = new NodeCache({ stdTTL: 14400 }); // Cache para armazenar histórico de conversas (1 hora)
 const messageCache = new NodeCache({ stdTTL: 60, checkperiod: 120 }); // Cache para controle de mensagens duplicadas
+// Novo cache para armazenar os números que devem ter o chatbot desativado
+const manualResponseCache = new NodeCache({ stdTTL: config.manualResponseTTL || 86400 }); // 24 horas por padrão
+
+// Adicionar um cache para rastrear quais mensagens foram enviadas pelo GPT
+const botResponseCache = new NodeCache({ stdTTL: 300 }); // 5 minutos de TTL
 
 // Função para normalizar texto
 function normalizeText(text) {
@@ -49,6 +54,32 @@ function createConversationKey(clinicaId, phoneNumber) {
     return `conv:${clinicaId}:${phoneNumber}`;
 }
 
+// Função para criar chave para o cache de respostas manuais
+function createManualResponseKey(clinicaId, phoneNumber) {
+    return `manual:${clinicaId}:${phoneNumber}`;
+}
+
+// Função para marcar uma mensagem como enviada pelo bot
+function markMessageAsSentByBot(clinicaId, messageBody) {
+    const messageKey = `bot_msg:${clinicaId}:${messageBody.substring(0, 50)}`;
+    botResponseCache.set(messageKey, true);
+    logger.log(`Mensagem marcada como enviada pelo bot: ${messageKey}`);
+    return messageKey;
+}
+
+// Função para verificar se uma mensagem foi enviada pelo bot
+function isMessageSentByBot(clinicaId, messageBody) {
+    // Criar uma chave usando os primeiros 50 caracteres da mensagem
+    const messageKey = `bot_msg:${clinicaId}:${messageBody.substring(0, 50)}`;
+    const result = botResponseCache.get(messageKey);
+    
+    if (result) {
+        logger.log(`Mensagem reconhecida como enviada pelo bot: ${messageKey}`);
+    }
+    
+    return !!result;
+}
+
 async function getMessageType(messageType, nome, avatar, phoneNumber, clinicaId) {
     try {
         const nomeSemEmojis = nome.replace(/[\u{1F600}-\u{1F6FF}]/gu, ''); // Remove emojis
@@ -65,8 +96,6 @@ async function getMessageType(messageType, nome, avatar, phoneNumber, clinicaId)
         return null;
     }
 }
-
-
 
 async function processMessageWithGPT(message, nome, number, clinicaId) {
     try {
@@ -598,6 +627,15 @@ async function setupWhatsAppListeners(client, clinicaId) {
 
             logger.log(`Processando mensagem individual de: ${nome}, Número: ${number}`);
 
+            // Verificar se o chatbot está desativado para este número
+            const manualResponseKey = createManualResponseKey(clinicaId, number);
+            const chatbotDisabled = manualResponseCache.get(manualResponseKey);
+            
+            if (chatbotDisabled) {
+                logger.log(`Chatbot desativado para ${number} devido a atendimento manual anterior`);
+                return; // Não processa a mensagem com o chatbot
+            }
+
             let profilePicUrl = null;
             try {
                 profilePicUrl = await contact.getProfilePicUrl();
@@ -743,6 +781,21 @@ async function setupWhatsAppListeners(client, clinicaId) {
                     logger.log(`Desativando saudações para o dia para este contato (clinica ${clinicaId})`);
                     greetingCache.set(cacheKey, true);
                     
+                    // Verificar se esta mensagem foi enviada pelo bot ou por um humano
+                    const isBotMessage = isMessageSentByBot(clinicaId, message.body);
+                    
+                    if (!isBotMessage) {
+                        // Mensagem enviada por um humano, não pelo bot
+                        logger.log(`Mensagem enviada manualmente por um humano, desativando chatbot para ${number}`);
+                        
+                        // Desativar o chatbot para este número por 24 horas
+                        const manualResponseKey = createManualResponseKey(clinicaId, number);
+                        manualResponseCache.set(manualResponseKey, true);
+                        logger.log(`Chatbot desativado para ${number} por ${config.manualResponseTTL || 86400} segundos devido a resposta manual`);
+                    } else {
+                        logger.log(`Mensagem reconhecida como enviada pelo bot, chatbot permanece ativo para ${number}`);
+                    }
+                    
                     // Adicionar mensagem do atendente ao histórico da conversa
                     const conversationKey = createConversationKey(clinicaId, number);
                     let conversation = conversationCache.get(conversationKey) || [];
@@ -809,6 +862,9 @@ async function sendWhatsAppMessage(client, number, message, clinicaId, isUserAud
             response = await client.sendMessage(formattedNumber, message);
         }
         
+        // Marcar esta mensagem como enviada pelo bot
+        markMessageAsSentByBot(clinicaId, message);
+        
         logger.log('Mensagem enviada com sucesso:', response);
         return { status: 'success', message: 'Mensagem enviada', response };
     } catch (err) {
@@ -822,11 +878,38 @@ function resetGreetingState() {
     logger.log('Estado de saudação resetado para todos os usuários.');
 }
 
+function resetManualResponseState(clinicaId, number) {
+    if (clinicaId && number) {
+        const manualResponseKey = createManualResponseKey(clinicaId, number);
+        manualResponseCache.del(manualResponseKey);
+        logger.log(`Estado de resposta manual resetado para o número: ${number} na clínica ${clinicaId}`);
+        return true;
+    } else if (clinicaId) {
+        // Reset para todos os números de uma clínica específica
+        const keys = manualResponseCache.keys();
+        let count = 0;
+        keys.forEach(key => {
+            if (key.includes(`manual:${clinicaId}:`)) {
+                manualResponseCache.del(key);
+                count++;
+            }
+        });
+        logger.log(`Estado de resposta manual resetado para ${count} números na clínica ${clinicaId}`);
+        return true;
+    } else {
+        // Reset global
+        manualResponseCache.flushAll();
+        logger.log('Estado de resposta manual resetado para todos os usuários.');
+        return true;
+    }
+}
+
 module.exports = {
     setupWhatsAppListeners,
     sendWhatsAppMessage,
     processMessageWithGPT,
     
     getMessageType,
-    resetGreetingState
+    resetGreetingState,
+    resetManualResponseState
 };

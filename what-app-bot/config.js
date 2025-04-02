@@ -15,5 +15,6 @@ module.exports = {
     reactLink: desenv
         ? 'drakarin.com.br'
         : 'drakarin.com.br',
-    greetingCacheTTL: 86400 // TTL de 24 horas
+    greetingCacheTTL: 86400, // TTL de 24 horas
+    manualResponseTTL: 86400 // Tempo em segundos para desativar o chatbot após resposta manual (24 horas)
 };
