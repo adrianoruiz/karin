@@ -1,4 +1,3 @@
-
 // Função para detectar temas sensíveis e retornar a resposta padrão apropriada
 function detectSensitiveTopics(message) {
     const lowerMessage = message.toLowerCase();
@@ -8,8 +7,7 @@ function detectSensitiveTopics(message) {
      
      
         {
-            keywords: ['receita', 'renovar receita', 'renovacao', 'prescrição', 'prescricao', 
-                      'remédio', 'remedio', 'medicamento', 'medicação', 'medicacao'],
+            keywords: ['receita', 'renovar receita', 'renovacao', 'prescrição', 'prescricao'],
             response: "Para renovação de receita, é necessário agendar uma consulta, pois a Dra. precisa avaliar sua situação clínica atual. Você gostaria de marcar um horário?"
         },
         {
@@ -18,9 +16,10 @@ function detectSensitiveTopics(message) {
             response: "Atualmente, trabalhamos com valores fixos e pacotes para facilitar o tratamento. Posso te passar mais detalhes?"
         },
         {
+            // Dúvidas sobre sintomas, diagnóstico, doença, tratamento, terapia, remédio, medicamento, medicação
             keywords: ['sintoma', 'sintomas', 'diagnóstico', 'diagnostico', 'doença', 'doenca', 
-                      'tratamento', 'terapia', 'remédio', 'remedio', 'medicamento'],
-            response: "Não podemos dar um diagnóstico ou prescrição pelo WhatsApp. Recomendo agendar uma consulta para avaliação detalhada."
+                      'tratamento', 'terapia', 'remédio', 'remedio', 'medicamento', 'medicação', 'medicacao'],
+            response: "Olá! Assim que possível, a Dra. Karin vai te responder com toda atenção, tá bom? Para facilitar e agilizar o retorno, envie sua dúvida em formato de texto, por gentileza."
         },
         {
             keywords: ['ajuda', 'socorro', 'urgente', 'emergência', 'emergencia', 'grave', 'piorou', 
@@ -32,7 +31,9 @@ function detectSensitiveTopics(message) {
     // Verificar se a mensagem contém alguma das palavras-chave
     for (const topic of sensitiveTopics) {
         for (const keyword of topic.keywords) {
-            if (lowerMessage.includes(keyword)) {
+            // Usar regex para garantir que a palavra-chave seja uma palavra completa
+            const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+            if (regex.test(lowerMessage)) {
                 return topic.response;
             }
         }
