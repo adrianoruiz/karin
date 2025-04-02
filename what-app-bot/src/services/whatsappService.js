@@ -90,6 +90,20 @@ async function getMessageType(messageType, nome, avatar, phoneNumber, clinicaId)
             avatar: avatar,
             phone_number: phoneNumber
         });
+        
+        // Marcar explicitamente todas as mensagens enviadas pela API como mensagens do bot
+        if (response.data) {
+            if (typeof response.data === 'string') {
+                // Marcar a resposta como enviada pelo bot para evitar desativação do chatbot
+                markMessageAsSentByBot(clinicaId, response.data);
+                logger.log(`Mensagem da API marcada como enviada pelo bot: ${response.data.substring(0, 30)}...`);
+            } else if (response.data.message) {
+                // Se a resposta estiver em um campo message (formato alternativo)
+                markMessageAsSentByBot(clinicaId, response.data.message);
+                logger.log(`Mensagem da API marcada como enviada pelo bot: ${response.data.message.substring(0, 30)}...`);
+            }
+        }
+        
         return response.data;
     } catch (error) {
         logger.log('Erro ao chamar a API Laravel:', error);
@@ -781,19 +795,44 @@ async function setupWhatsAppListeners(client, clinicaId) {
                     logger.log(`Desativando saudações para o dia para este contato (clinica ${clinicaId})`);
                     greetingCache.set(cacheKey, true);
                     
-                    // Verificar se esta mensagem foi enviada pelo bot ou por um humano
+                    // Verificar explicitamente no cache de respostas do bot
                     const isBotMessage = isMessageSentByBot(clinicaId, message.body);
                     
-                    if (!isBotMessage) {
-                        // Mensagem enviada por um humano, não pelo bot
-                        logger.log(`Mensagem enviada manualmente por um humano, desativando chatbot para ${number}`);
-                        
-                        // Desativar o chatbot para este número por 24 horas
-                        const manualResponseKey = createManualResponseKey(clinicaId, number);
-                        manualResponseCache.set(manualResponseKey, true);
-                        logger.log(`Chatbot desativado para ${number} por ${config.manualResponseTTL || 86400} segundos devido a resposta manual`);
+                    // Verificar padrões conhecidos de mensagens automáticas usando uma abordagem mais abrangente
+                    // Mensagens de saudação e outras mensagens automáticas comuns
+                    const lowerBody = message.body.toLowerCase();
+                    const isAutoMessage = 
+                        lowerBody.includes('olá') || 
+                        lowerBody.includes('ola ') ||
+                        lowerBody.includes('bom ver você') || 
+                        lowerBody.includes('como posso ajudar') ||
+                        lowerBody.includes('obrigada pelos seus dados') || 
+                        lowerBody.includes('confirmo sua consulta') ||
+                        lowerBody.includes('horários disponíveis') ||
+                        lowerBody.includes('link para pagamento') ||
+                        lowerBody.includes('temos os seguintes horários');
+                    
+                    // Verificar outras características de mensagens automáticas
+                    // Por exemplo, mensagens enviadas muito rapidamente após receber uma mensagem
+                    const isLikelyAutomatic = isAutoMessage || isBotMessage;
+                    
+                    if (isLikelyAutomatic) {
+                        // Marcar esta mensagem explicitamente como enviada pelo bot
+                        markMessageAsSentByBot(clinicaId, message.body);
+                        logger.log(`Mensagem identificada como automática/bot, chatbot permanece ativo para ${number}`);
                     } else {
-                        logger.log(`Mensagem reconhecida como enviada pelo bot, chatbot permanece ativo para ${number}`);
+                        // Verificação adicional - se a mensagem está no cache do bot
+                        if (!isBotMessage) {
+                            // Mensagem enviada por um humano, não pelo bot
+                            logger.log(`Mensagem enviada manualmente por um humano, desativando chatbot para ${number}`);
+                            
+                            // Desativar o chatbot para este número por 24 horas
+                            const manualResponseKey = createManualResponseKey(clinicaId, number);
+                            manualResponseCache.set(manualResponseKey, true);
+                            logger.log(`Chatbot desativado para ${number} por ${config.manualResponseTTL || 86400} segundos devido a resposta manual`);
+                        } else {
+                            logger.log(`Mensagem verificada como enviada pelo bot, chatbot permanece ativo para ${number}`);
+                        }
                     }
                     
                     // Adicionar mensagem do atendente ao histórico da conversa
@@ -911,5 +950,7 @@ module.exports = {
     
     getMessageType,
     resetGreetingState,
-    resetManualResponseState
+    resetManualResponseState,
+    markMessageAsSentByBot,
+    isMessageSentByBot
 };
