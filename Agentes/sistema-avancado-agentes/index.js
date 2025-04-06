@@ -1,10 +1,9 @@
 const { StateGraph, END } = require("@langchain/langgraph");
 const { RunnableLambda } = require("@langchain/core/runnables");
 const { decidirAgente } = require("./gerente");
-const { agendarConsulta } = require("./agentes/agendamento");
-const { consultarPlano } = require("./agentes/planos");
-const { verificarPagamento } = require("./agentes/pagamentos");
-const { adicionarMemoria, obterMemoria, buscarInformacaoMemoria } = require("./memoria");
+const { processarSolicitacaoNeusa } = require("./agentes/neusa");
+const { processarSolicitacaoCarla } = require("./agentes/carla");
+const { buscarNaMemoria } = require("./memoria");
 const readline = require("readline").createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -14,10 +13,10 @@ const readline = require("readline").createInterface({
 const graphState = {
   userInput: { value: null },
   userId: { value: null },
-  decisao: { value: null }, // agendamento, planos, pagamentos, desconhecido
-  dadosAgente: { value: null }, // Dados extraídos para o agente
-  resultadoAgente: { value: null },
+  agente: { value: null }, // neusa, carla, desconhecido
+  resposta: { value: null },
   erro: { value: null },
+  conversationHistory: { value: [] },
 };
 
 // --- Nós do Grafo ---
@@ -25,117 +24,151 @@ const graphState = {
 // 1. Nó Gerente: Decide qual agente chamar
 const nodeGerente = new RunnableLambda({
   func: async (state) => {
-    console.log("--- Nó Gerente ---");
-    const decisao = await decidirAgente(state.userInput);
-    // TODO: Adicionar lógica para extrair dados relevantes para o agente (e.g., data, hora, nome)
-    // Por enquanto, passamos null
-    return { decisao: decisao, dadosAgente: null };
+    console.log("--- Nó Gerente (Adriano) ---");
+    const agenteDesignado = await decidirAgente(state.userInput, state.userId);
+    console.log(`Gerente decidiu encaminhar para: ${agenteDesignado}`);
+    return { agente: agenteDesignado };
   },
 }).withConfig({ runName: "nodeGerente" });
 
-// 2. Nó Agente de Agendamento
-const nodeAgendamento = new RunnableLambda({
+// 2. Nó Secretária (Neusa)
+const nodeNeusa = new RunnableLambda({
   func: async (state) => {
-    console.log("--- Nó Agendamento ---");
+    console.log("--- Nó Secretária (Neusa) ---");
     try {
-      // Tenta obter paciente da memória, senão usa um padrão ou extrai do input
-      let paciente = await obterMemoria(state.userId, "paciente");
-      // TODO: Extrair data e hora do state.userInput ou state.dadosAgente
-      const data = "2024-07-20"; // Placeholder
-      const hora = "10:00"; // Placeholder
-      if (!paciente) {
-          // Tentar extrair o nome do paciente do userInput se não estiver na memória
-          // Exemplo simples: (precisa de lógica mais robusta de extração)
-          const match = state.userInput.match(/para (o|a) paciente (.+?)(?: em| às| amanhã|$)/i);
-          paciente = match ? match[2].trim() : "Cliente Padrão";
-          console.log(`Paciente não encontrado na memória, extraído/padrão: ${paciente}`);
-      }
-
-      const result = await agendarConsulta({ data, hora, paciente });
-      if (result.success) {
-        await adicionarMemoria(state.userId, "ultimo_agendamento_status", "sucesso");
-        await adicionarMemoria(state.userId, "paciente", paciente); // Guarda/atualiza paciente na memória
+      // Busca histórico de conversa recente na memória para contexto
+      const historico = state.conversationHistory || [];
+      
+      // Processa a solicitação através do agente Neusa
+      const resultado = await processarSolicitacaoNeusa({
+        userId: state.userId,
+        userInput: state.userInput,
+        conversationHistory: historico
+      });
+      
+      if (resultado.success) {
+        return { resposta: resultado.message };
       } else {
-        await adicionarMemoria(state.userId, "ultimo_agendamento_status", "falha");
+        return { 
+          erro: resultado.error || "Erro ao processar solicitação na Neusa",
+          resposta: resultado.message 
+        };
       }
-      return { resultadoAgente: result };
     } catch (error) {
-      console.error("Erro no nó de agendamento:", error);
-      return { erro: error.message, resultadoAgente: { success: false, message: "Erro interno no agendamento." } };
+      console.error("Erro no nó Neusa:", error);
+      return { 
+        erro: error.message, 
+        resposta: "Desculpe, tive um problema ao processar sua solicitação. Por favor, tente novamente em alguns instantes." 
+      };
     }
   },
-}).withConfig({ runName: "nodeAgendamento" });
+}).withConfig({ runName: "nodeNeusa" });
 
-// 3. Nó Agente de Planos
-const nodePlanos = new RunnableLambda({
+// 3. Nó Financeiro (Carla)
+const nodeCarla = new RunnableLambda({
   func: async (state) => {
-    console.log("--- Nó Planos ---");
+    console.log("--- Nó Financeiro (Carla) ---");
     try {
-      // TODO: Extrair tipo de plano do state.userInput ou state.dadosAgente
-      const tipo = "premium"; // Placeholder
-      const result = await consultarPlano({ tipo });
-      return { resultadoAgente: result };
+      // Busca histórico de conversa recente na memória para contexto
+      const historico = state.conversationHistory || [];
+      
+      // Processa a solicitação através do agente Carla
+      const resultado = await processarSolicitacaoCarla({
+        userId: state.userId,
+        userInput: state.userInput,
+        conversationHistory: historico
+      });
+      
+      if (resultado.success) {
+        return { resposta: resultado.message };
+      } else {
+        return { 
+          erro: resultado.error || "Erro ao processar solicitação na Carla",
+          resposta: resultado.message 
+        };
+      }
     } catch (error) {
-      console.error("Erro no nó de planos:", error);
-      return { erro: error.message, resultadoAgente: { success: false, message: "Erro interno na consulta de planos." } };
+      console.error("Erro no nó Carla:", error);
+      return { 
+        erro: error.message, 
+        resposta: "Desculpe, tive um problema ao processar informações financeiras. Por favor, tente novamente em alguns instantes." 
+      };
     }
   },
-}).withConfig({ runName: "nodePlanos" });
+}).withConfig({ runName: "nodeCarla" });
 
-// 4. Nó Agente de Pagamentos
-const nodePagamentos = new RunnableLambda({
-  func: async (state) => {
-    console.log("--- Nó Pagamentos ---");
-    try {
-      // Tenta obter paciente da memória, senão usa um padrão ou extrai
-      let paciente = await obterMemoria(state.userId, "paciente");
-       if (!paciente) {
-          const match = state.userInput.match(/(?:pagamento|situação) d[eo] (.+?)(?: está|$)/i);
-          paciente = match ? match[1].trim() : "Cliente Padrão";
-          console.log(`Paciente não encontrado na memória, extraído/padrão: ${paciente}`);
-      }
-      const result = await verificarPagamento({ paciente });
-       if (result.success) {
-        await adicionarMemoria(state.userId, "paciente", paciente); // Guarda/atualiza paciente na memória
-      }
-      return { resultadoAgente: result };
-    } catch (error) {
-      console.error("Erro no nó de pagamentos:", error);
-      return { erro: error.message, resultadoAgente: { success: false, message: "Erro interno na verificação de pagamentos." } };
-    }
-  },
-}).withConfig({ runName: "nodePagamentos" });
-
-// 5. Nó de Resposta Desconhecida/Fallback
+// 4. Nó Desconhecido (Fallback)
 const nodeDesconhecido = new RunnableLambda({
   func: async (state) => {
-    console.log("--- Nó Desconhecido ---");
-    // Tenta buscar algo relevante na memória com base no input do usuário
-    const infoMemoria = await buscarInformacaoMemoria(state.userId, state.userInput);
-    let message = "Desculpe, não entendi sua solicitação.";
-    if (infoMemoria) {
-      // Formata a informação da memória para a resposta (exemplo simples)
-      message += ` Lembrei que falamos sobre: ${JSON.stringify(infoMemoria)}. Isso ajuda?`;
+    console.log("--- Nó Desconhecido (Fallback) ---");
+    try {
+      // Tenta buscar algo relevante na memória com base no input do usuário
+      let message = "Desculpe, não entendi sua solicitação. Posso ajudar com agendamentos de consulta ou informações sobre valores e pagamentos.";
+      
+      try {
+        const memoriaResult = await buscarNaMemoria(state.userId, state.userInput);
+        console.log("Resultado da busca na memória:", memoriaResult);
+        
+        // Se encontrar algo relevante na memória, adiciona à resposta
+        if (memoriaResult && memoriaResult.length > 0 && memoriaResult[0].memory) {
+          const memoriaRelevante = memoriaResult[0].memory;
+          const ultimaRespostaAssistente = memoriaRelevante.findLast(m => m.role === 'assistant')?.content;
+          
+          if (ultimaRespostaAssistente) {
+            message += ` Notei que falamos sobre algo parecido anteriormente. Talvez isso ajude: "${ultimaRespostaAssistente}"`;
+          }
+        }
+      } catch (memoriaError) {
+        console.error("Erro ao buscar na memória no nó desconhecido:", memoriaError);
+      }
+      
+      return { resposta: message };
+    } catch (error) {
+      console.error("Erro no nó Desconhecido:", error);
+      return { 
+        erro: error.message, 
+        resposta: "Desculpe, ocorreu um erro ao processar sua solicitação. Por favor, tente novamente com uma pergunta sobre agendamentos ou valores." 
+      };
     }
-    return { resultadoAgente: { success: false, message: message } };
   },
 }).withConfig({ runName: "nodeDesconhecido" });
 
+// 5. Nó de Histórico - Busca histórico de conversa antes de qualquer processamento
+const nodeHistorico = new RunnableLambda({
+  func: async (state) => {
+    console.log("--- Nó Histórico (Carregando contexto) ---");
+    try {
+      // Busca histórico relevante na memória com base no input do usuário
+      const memoriaResult = await buscarNaMemoria(state.userId, state.userInput);
+      
+      let historico = [];
+      if (memoriaResult && memoriaResult.length > 0 && memoriaResult[0].memory) {
+        // Limita a 5 pares de mensagens (10 mensagens no total) para não sobrecarregar o contexto
+        historico = memoriaResult[0].memory.slice(-10);
+        console.log(`Carregados ${historico.length} mensagens do histórico para contexto`);
+      }
+      
+      return { conversationHistory: historico };
+    } catch (error) {
+      console.error("Erro ao carregar histórico:", error);
+      return { conversationHistory: [] }; // Retorna array vazio em caso de erro
+    }
+  },
+}).withConfig({ runName: "nodeHistorico" });
 
 // --- Lógica Condicional (Roteamento) ---
 function router(state) {
   console.log("--- Roteador ---");
-  console.log("Decisão para roteamento:", state.decisao);
-  switch (state.decisao) {
-    case "agendamento":
-      return "executar_agendamento";
-    case "planos":
-      return "executar_planos";
-    case "pagamentos":
-      return "executar_pagamentos";
+  console.log("Agente escolhido para roteamento:", state.agente);
+  
+  switch (state.agente) {
+    case "neusa":
+      return "processar_neusa";
+    case "carla":
+      return "processar_carla";
     case "desconhecido":
     default:
-      return "responder_desconhecido";
+      return "processar_desconhecido";
   }
 }
 
@@ -145,39 +178,38 @@ const workflow = new StateGraph({
 });
 
 // Adiciona os nós
+workflow.addNode("historico", nodeHistorico);
 workflow.addNode("gerente", nodeGerente);
-workflow.addNode("executar_agendamento", nodeAgendamento);
-workflow.addNode("executar_planos", nodePlanos);
-workflow.addNode("executar_pagamentos", nodePagamentos);
-workflow.addNode("responder_desconhecido", nodeDesconhecido);
+workflow.addNode("processar_neusa", nodeNeusa);
+workflow.addNode("processar_carla", nodeCarla);
+workflow.addNode("processar_desconhecido", nodeDesconhecido);
 
-// Define o ponto de entrada
-workflow.setEntryPoint("gerente");
+// Define o ponto de entrada e sequência inicial
+workflow.setEntryPoint("historico");
+workflow.addEdge("historico", "gerente");
 
-// Adiciona as arestas condicionais
+// Adiciona as arestas condicionais após o gerente
 workflow.addConditionalEdges(
-  "gerente", // Nó de origem
-  router,    // Função de roteamento
+  "gerente",     // Nó de origem
+  router,        // Função de roteamento
   {
-    "executar_agendamento": "executar_agendamento",
-    "executar_planos": "executar_planos",
-    "executar_pagamentos": "executar_pagamentos",
-    "responder_desconhecido": "responder_desconhecido",
+    "processar_neusa": "processar_neusa",
+    "processar_carla": "processar_carla",
+    "processar_desconhecido": "processar_desconhecido",
   }
 );
 
 // Adiciona arestas para o final (END)
-workflow.addEdge("executar_agendamento", END);
-workflow.addEdge("executar_planos", END);
-workflow.addEdge("executar_pagamentos", END);
-workflow.addEdge("responder_desconhecido", END);
+workflow.addEdge("processar_neusa", END);
+workflow.addEdge("processar_carla", END);
+workflow.addEdge("processar_desconhecido", END);
 
 // Compila o grafo
 const app = workflow.compile();
 
 // --- Função para Executar e Interagir ---
 async function iniciarConversa() {
-  console.log("\nBem-vindo ao Sistema Avançado de Agentes!");
+  console.log("\nBem-vindo ao Sistema Multiagente da Clínica da Dra. Karin Boldarini!");
   console.log("Digite sua solicitação (ou 'sair' para terminar):");
 
   const userId = `user_${Date.now()}`; // ID de usuário simples para teste
@@ -196,22 +228,20 @@ async function iniciarConversa() {
       const initialState = { userInput: input, userId: userId };
       const finalState = await app.invoke(initialState);
 
-      console.log("\n--- Resultado Final ---");
+      console.log("\n--- Resposta Final ---");
       if (finalState.erro) {
         console.error("Ocorreu um erro:", finalState.erro);
       }
-      if (finalState.resultadoAgente) {
-        console.log("Resposta:", finalState.resultadoAgente.message);
-        if (finalState.resultadoAgente.errors) {
-           console.warn("Detalhes da validação:", finalState.resultadoAgente.errors);
-        }
+      if (finalState.resposta) {
+        console.log(finalState.resposta);
       } else {
-        console.log("Não foi possível obter um resultado final claro.");
+        console.log("Não foi possível obter uma resposta clara.");
       }
     } catch (e) {
       console.error("\nErro crítico ao executar o grafo:", e);
     }
 
+    console.log("\n--- Aguardando sua próxima mensagem ---");
     readline.prompt();
   }).on("close", () => {
     console.log("\nSessão encerrada. Até logo!");
@@ -222,10 +252,10 @@ async function iniciarConversa() {
 // --- Inicialização ---
 // Verifica se as chaves API estão presentes
 if (!process.env.GEMINI_API_KEY) {
-  console.warn("AVISO: GEMINI_API_KEY não definida no .env. O gerente pode não funcionar corretamente.");
+  console.warn("AVISO: GEMINI_API_KEY não definida no .env. O sistema pode não funcionar corretamente.");
 }
 if (!process.env.MEM0_API_KEY) {
-  console.warn("AVISO: MEM0_API_KEY não definida no .env. A memória não funcionará.");
+  console.warn("AVISO: MEM0_API_KEY não definida no .env. A funcionalidade de memória não funcionará.");
 }
 
 iniciarConversa(); 
