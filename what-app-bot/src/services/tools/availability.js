@@ -3,10 +3,7 @@
  */
 const axios = require('axios');
 const config = require('../../../config');
-const DateUtils = require('../../utils/dateUtils');
-const Logger = require('../../utils/logger');
-
-// Instância global do logger - pode ser configurada baseada no ambiente
+const { DateUtils, Logger } = require('../../utils/index');
 const logger = new Logger(process.env.NODE_ENV !== 'production');
 
 /**

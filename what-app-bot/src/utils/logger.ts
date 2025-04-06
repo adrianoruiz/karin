@@ -3,34 +3,35 @@
  * Permite desativar logs em produção facilmente
  */
 class Logger {
-  constructor(enabled = true) {
+  private enabled: boolean;
+
+  constructor(enabled: boolean = true) {
     this.enabled = enabled;
   }
 
-  log(message, data) {
+  log(message: string, data?: any): void {
     if (this.enabled) {
       console.log(message, data ? JSON.stringify(data, null, 2) : '');
     }
   }
 
-  error(message, error) {
+  error(message: string, error?: any): void {
     if (this.enabled) {
       console.error(message, error);
     }
   }
   
-  warn(message, data) {
+  warn(message: string, data?: any): void {
     if (this.enabled) {
       console.warn(message, data ? JSON.stringify(data, null, 2) : '');
     }
   }
   
-  info(message, data) {
+  info(message: string, data?: any): void {
     if (this.enabled) {
       console.info(message, data ? JSON.stringify(data, null, 2) : '');
     }
   }
 }
 
-// Exporta a classe Logger e uma instância padrão
-module.exports = Logger;
+export default Logger;

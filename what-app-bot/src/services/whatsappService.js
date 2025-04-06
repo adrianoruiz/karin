@@ -11,10 +11,7 @@ const { textToSpeech, cleanupTempAudioFiles } = require('./ai/speechService');
 const fs = require('fs');
 const path = require('path');
 const { MessageMedia } = require('whatsapp-web.js');
-const DateUtils = require('../utils/dateUtils');
-const Logger = require('../utils/logger');
-
-// Inicializa o logger
+const { DateUtils, Logger } = require('../utils/index');
 const logger = new Logger(process.env.NODE_ENV !== 'production');
 
 // Importar as ferramentas da pasta tools

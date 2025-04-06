@@ -2,21 +2,83 @@
  * Utilitários para manipulação de datas
  */
 
-// Importa o logger
-const Logger = require('./logger');
+import { z } from 'zod';
+import Logger from './logger';
+
+// Cria o logger
 const logger = new Logger(process.env.NODE_ENV !== 'production');
+
+// Esquemas Zod para validação
+const DateSchema = z.union([
+  z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Data deve estar no formato YYYY-MM-DD' }),
+  z.date()
+]);
+
+const DateTextSchema = z.string().min(1, { message: 'Texto da data não pode ser vazio' });
+
+const DayOfWeekSchema = z.number().min(0).max(6);
+
+/**
+ * Interface para mapeamento de termos de data
+ */
+interface DateTerms {
+  [key: string]: number;
+}
+
+/**
+ * Interface para mapeamento de dias da semana
+ */
+interface WeekDays {
+  [key: string]: number;
+}
 
 /**
  * Classe para manipulação de datas
  */
 class DateUtils {
+  // Mapeamento de termos para datas relativas
+  private static dateTerms: DateTerms = {
+    hoje: 0,
+    hj: 0,
+    amanha: 1,
+    amanhã: 1
+  };
+
+  // Mapeamento de dias da semana (0 = domingo, 1 = segunda, etc.)
+  private static weekDays: WeekDays = {
+    domingo: 0,
+    segunda: 1,
+    'segunda-feira': 1,
+    'segunda feira': 1,
+    terca: 2,
+    terça: 2,
+    'terca-feira': 2,
+    'terça-feira': 2,
+    'terca feira': 2,
+    'terça feira': 2,
+    quarta: 3,
+    'quarta-feira': 3,
+    'quarta feira': 3,
+    quinta: 4,
+    'quinta-feira': 4,
+    'quinta feira': 4,
+    sexta: 5,
+    'sexta-feira': 5,
+    'sexta feira': 5,
+    sabado: 6,
+    sábado: 6
+  };
+
   /**
    * Converte uma data em linguagem natural para o formato YYYY-MM-DD
-   * @param {string} dateText - Data em linguagem natural (hoje, amanhã) ou no formato DD/MM/YYYY
-   * @returns {string|null} - Data no formato YYYY-MM-DD ou null se inválida
+   * @param dateText - Data em linguagem natural (hoje, amanhã) ou no formato DD/MM/YYYY
+   * @returns Data no formato YYYY-MM-DD ou null se inválida
    */
-  static parseDate(dateText) {
-    if (!dateText || typeof dateText !== 'string') {
+  static parseDate(dateText: string): string | null {
+    // Validação com Zod
+    const result = DateTextSchema.safeParse(dateText);
+    if (!result.success) {
+      logger.error(`Erro de validação: ${result.error.message}`);
       return null;
     }
     
@@ -33,18 +95,10 @@ class DateUtils {
     
     const today = new Date();
     
-    // Mapeamento de termos para datas relativas
-    const dateTerms = {
-      hoje: 0,
-      hj: 0,
-      amanha: 1,
-      amanhã: 1
-    };
-    
     // Verifica termos exatos como "hoje" ou "amanhã"
-    if (normalizedText in dateTerms) {
+    if (normalizedText in this.dateTerms) {
       const targetDate = new Date(today);
-      targetDate.setDate(targetDate.getDate() + dateTerms[normalizedText]);
+      targetDate.setDate(targetDate.getDate() + this.dateTerms[normalizedText]);
       const formattedDate = targetDate.toISOString().split('T')[0];
       logger.log(`Identificado como termo específico: ${formattedDate}`);
       return formattedDate;
@@ -59,33 +113,8 @@ class DateUtils {
       return formattedDate;
     }
     
-    // Mapeamento de dias da semana (0 = domingo, 1 = segunda, etc.)
-    const weekDays = {
-      domingo: 0,
-      segunda: 1,
-      'segunda-feira': 1,
-      'segunda feira': 1,
-      terca: 2,
-      terça: 2,
-      'terca-feira': 2,
-      'terça-feira': 2,
-      'terca feira': 2,
-      'terça feira': 2,
-      quarta: 3,
-      'quarta-feira': 3,
-      'quarta feira': 3,
-      quinta: 4,
-      'quinta-feira': 4,
-      'quinta feira': 4,
-      sexta: 5,
-      'sexta-feira': 5,
-      'sexta feira': 5,
-      sabado: 6,
-      sábado: 6
-    };
-    
     // Verificar dias da semana de forma mais precisa
-    for (const [dayName, dayNumber] of Object.entries(weekDays)) {
+    for (const [dayName, dayNumber] of Object.entries(this.weekDays)) {
       // Verificar se o texto contém o dia da semana como palavra completa
       const regex = new RegExp(`\\b${dayName}\\b`, 'i');
       if (regex.test(normalizedText)) {
@@ -116,6 +145,13 @@ class DateUtils {
       const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
       logger.log(`Identificado como data formatada: ${formattedDate}`);
       
+      // Verificação adicional da validade da data usando Zod
+      const dateValidation = DateSchema.safeParse(formattedDate);
+      if (!dateValidation.success) {
+        logger.error(`Data inválida após validação Zod: ${formattedDate}`);
+        return null;
+      }
+      
       // Verificação adicional da validade da data
       const dateObj = new Date(formattedDate);
       if (isNaN(dateObj.getTime())) {
@@ -132,11 +168,18 @@ class DateUtils {
   
   /**
    * Calcula a próxima ocorrência de um determinado dia da semana
-   * @param {Date} fromDate - Data de referência
-   * @param {number} dayOfWeek - Dia da semana (0 = domingo, 1 = segunda, ..., 6 = sábado)
-   * @returns {Date} - Data da próxima ocorrência do dia da semana
+   * @param fromDate - Data de referência
+   * @param dayOfWeek - Dia da semana (0 = domingo, 1 = segunda, ..., 6 = sábado)
+   * @returns Data da próxima ocorrência do dia da semana
    */
-  static getNextDayOfWeek(fromDate, dayOfWeek) {
+  static getNextDayOfWeek(fromDate: Date, dayOfWeek: number): Date {
+    // Validação com Zod
+    const dayValidation = DayOfWeekSchema.safeParse(dayOfWeek);
+    if (!dayValidation.success) {
+      logger.error(`Dia da semana inválido: ${dayOfWeek}`);
+      throw new Error(`Dia da semana inválido: ${dayOfWeek}`);
+    }
+    
     const date = new Date(fromDate);
     const currentDay = date.getDay();
     
@@ -156,10 +199,10 @@ class DateUtils {
   
   /**
    * Formata uma data para exibição ao usuário
-   * @param {string} isoDate - Data no formato YYYY-MM-DD
-   * @returns {string} - Data formatada como DD/MM/YYYY
+   * @param isoDate - Data no formato YYYY-MM-DD
+   * @returns Data formatada como DD/MM/YYYY
    */
-  static formatDateForDisplay(isoDate) {
+  static formatDateForDisplay(isoDate: string): string {
     if (!isoDate) return '';
     
     const [year, month, day] = isoDate.split('-');
@@ -168,12 +211,12 @@ class DateUtils {
   
   /**
    * Obtém o nome do dia da semana para uma data
-   * @param {string|Date} date - Data para obter o nome do dia
-   * @returns {string} - Nome do dia da semana em português
+   * @param date - Data para obter o nome do dia
+   * @returns Nome do dia da semana em português
    */
-  static getDayOfWeekName(date) {
+  static getDayOfWeekName(date: string | Date): string {
     // Se a data for uma string no formato YYYY-MM-DD
-    let dateObj;
+    let dateObj: Date;
     if (typeof date === 'string') {
       // Certifique-se de criar a data no fuso horário local
       const [year, month, day] = date.split('-').map(num => parseInt(num, 10));
@@ -202,17 +245,17 @@ class DateUtils {
   
   /**
    * Obtém a data de hoje no formato YYYY-MM-DD
-   * @returns {string} - Data de hoje
+   * @returns Data de hoje
    */
-  static getToday() {
+  static getToday(): string {
     return new Date().toISOString().split('T')[0];
   }
   
   /**
    * Obtém a data de amanhã no formato YYYY-MM-DD
-   * @returns {string} - Data de amanhã
+   * @returns Data de amanhã
    */
-  static getTomorrow() {
+  static getTomorrow(): string {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     return tomorrow.toISOString().split('T')[0];
@@ -220,15 +263,48 @@ class DateUtils {
   
   /**
    * Adiciona um número de dias a uma data
-   * @param {string|Date} date - Data base
-   * @param {number} days - Número de dias a adicionar
-   * @returns {string} - Nova data no formato YYYY-MM-DD
+   * @param date - Data base
+   * @param days - Número de dias a adicionar
+   * @returns Nova data no formato YYYY-MM-DD
    */
-  static addDays(date, days) {
+  static addDays(date: string | Date, days: number): string {
     const dateObj = typeof date === 'string' ? new Date(date) : new Date(date);
     dateObj.setDate(dateObj.getDate() + days);
     return dateObj.toISOString().split('T')[0];
   }
+
+  /**
+   * Formata uma data no formato YYYY-MM-DD
+   * @param date - Data a ser formatada
+   * @returns Data no formato YYYY-MM-DD
+   */
+  static formatDateToYYYYMMDD(date: Date | string): string {
+    if (typeof date === 'string') {
+      // Verifica se já está no formato YYYY-MM-DD
+      if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return date;
+      }
+      
+      // Tenta converter de DD/MM/YYYY para YYYY-MM-DD
+      const match = date.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (match) {
+        const [, day, month, year] = match;
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      }
+      
+      // Se não for nenhum dos formatos acima, tenta converter usando Date
+      const dateObj = new Date(date);
+      if (!isNaN(dateObj.getTime())) {
+        return dateObj.toISOString().split('T')[0];
+      }
+      
+      logger.error(`Formato de data não reconhecido: ${date}`);
+      throw new Error(`Formato de data não reconhecido: ${date}`);
+    }
+    
+    // Se for um objeto Date
+    return date.toISOString().split('T')[0];
+  }
 }
 
-module.exports = DateUtils;
+export default DateUtils;

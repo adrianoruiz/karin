@@ -1,6 +1,5 @@
-// Importa o logger
-const Logger = require('./logger');
-const DateUtils = require('./dateUtils');
+// Importa o logger e DateUtils do arquivo de barril
+const { Logger, DateUtils } = require('./index');
 const logger = new Logger(process.env.NODE_ENV !== 'production');
 
 // Função para formatar horários disponíveis em uma mensagem legível
