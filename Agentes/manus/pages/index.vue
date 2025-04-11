@@ -43,7 +43,7 @@
             <div class="flex items-center mb-4">
               <img src="/img/amanda-avatar.svg" alt="Amanda" class="w-12 h-12 rounded-full mr-4">
               <div>
-                <h2 class="text-xl font-bold">Sexta-feira</h2>
+                <h2 class="text-xl font-bold">Amanda</h2>
                 <p class="text-gray-600">Assistente Emocional</p>
               </div>
             </div>
