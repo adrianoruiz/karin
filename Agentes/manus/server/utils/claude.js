@@ -1,4 +1,4 @@
-import axios from 'axios';
+import Anthropic from "@anthropic-ai/sdk";
 
 export async function generateMessage(prompt) {
   try {
@@ -8,19 +8,18 @@ export async function generateMessage(prompt) {
       throw new Error('Chave API Claude não configurada');
     }
 
-    const response = await axios.post('https://api.anthropic.com/v1/messages', {
-      model: "claude-3-haiku-20240307",
-      max_tokens: 150,
+    const anthropic = new Anthropic({
+      apiKey: process.env.CLAUDE_API_KEY,
+    });
+
+    const response = await anthropic.messages.create({
+      model: "claude-3-5-haiku-20241022",
+      max_tokens: 1024,
+      temperature: 0.7,
       messages: [{ role: "user", content: prompt }]
-    }, {
-      headers: {
-        'x-api-key': process.env.CLAUDE_API_KEY,
-        'content-type': 'application/json',
-        'anthropic-version': '2023-06-01'
-      }
     });
     
-    return response.data.content[0].text;
+    return response.content[0].text;
   } catch (error) {
     console.error('Erro detalhado ao gerar mensagem com Claude:');
     if (error.response) {
@@ -35,9 +34,9 @@ export async function generateMessage(prompt) {
       // Algo aconteceu ao configurar a requisição
       console.error('Erro na configuração da requisição:', error.message);
     }
-    console.error('Configuração do Axios:', error.config);
+    console.error('Erro completo:', error);
     
-    // Retornar mensagem de erro em vez de usar fallback local
+    // Retornar mensagem de erro
     return "Não foi possível conectar à API do Claude. Por favor, verifique sua conexão e tente novamente.";
   }
 }
