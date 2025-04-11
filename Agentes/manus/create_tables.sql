@@ -47,4 +47,12 @@ CREATE TABLE preferences (
   interest_level INTEGER CHECK (interest_level BETWEEN 1 AND 5),
   notes TEXT,
   created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE analyses (
+  id SERIAL PRIMARY KEY,
+  agent TEXT NOT NULL, -- 'Oliver' ou 'Amanda'
+  type TEXT NOT NULL, -- 'weekly', 'daily', etc.
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
 ); 
