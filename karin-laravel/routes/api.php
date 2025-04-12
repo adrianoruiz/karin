@@ -9,6 +9,7 @@ use App\Http\Controllers\{
     Api\DoctorAvailabilityController,
     Api\PatientAppointmentController,
     Api\PlanController,
+    Api\UserController,
     Api\WhatsappController,
     ChatbotController,
     ChatbotCrudController
@@ -53,6 +54,14 @@ Route::group([
     Route::get('list-whats-users', [WhatsappController::class, 'listWhatsappUsers']);
 });
 
+// Rotas de usuários por função - protegidas por autenticação
+Route::group([
+    'prefix' => 'users',
+    'middleware' => 'auth:api'
+], function () {
+    Route::apiResource('/', UserController::class);
+    Route::get('/roles', [UserController::class, 'getAllRoles']);
+});
 
 // Rotas de agendamentos
 Route::apiResource('appointments', AppointmentController::class);
