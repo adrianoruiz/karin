@@ -38,6 +38,14 @@ const REGRAS_INTERACAO = {
         'o quanto antes', 'primeira vaga', 'urgente', 'logo'
     ],
     
+    // Regra 2.1: Solicitações de consulta (sempre oferece data mais próxima)
+    SOLICITACAO_CONSULTA: [
+        'quero uma consulta', 'quero marcar', 'quero agendar', 'desejo marcar', 
+        'desejo agendar', 'agendar consulta', 'marcar consulta', 'marcar um horário',
+        'agendar um horário', 'disponibilidade', 'horários disponíveis', 
+        'quando tem vaga', 'quero atendimento', 'preciso de uma consulta'
+    ],
+    
     // Regra 3: Solicitação para falar com a Dra. Karin
     FALAR_COM_DRA: [
         'preciso falar com a dra', 'quero falar com a dra', 'falar com a doutora',
@@ -85,6 +93,17 @@ function verificarRegrasEspeciais(mensagem) {
     if (urgenciaAgendamento) {
         return { 
             regra: 'AGENDAMENTO_URGENTE',
+            resposta: null // Não tem resposta padrão, usa função específica
+        };
+    }
+    
+    // Verificar Regra 2.1: Solicitação de consulta
+    const consulta = REGRAS_INTERACAO.SOLICITACAO_CONSULTA.some(termo => 
+        mensagemLowerCase.includes(termo));
+    
+    if (consulta) {
+        return { 
+            regra: 'SOLICITACAO_CONSULTA',
             resposta: null // Não tem resposta padrão, usa função específica
         };
     }
@@ -187,6 +206,17 @@ async function getChatGPTResponse(messages, nome) {
                 novasMensagens.push({
                     role: "system",
                     content: "O usuário deseja agendar na primeira data disponível. Por favor, use a função getAvailableAppointments para verificar o primeiro horário disponível e, em seguida, proceda com o agendamento desse horário. Confirme o agendamento e envie os dados para pagamento."
+                });
+                
+                return await enviarParaOpenAI(novasMensagens, nome, apiKey);
+            }
+            
+            // Se for uma solicitação de consulta, adiciona instrução para agendar data mais próxima
+            if (regra === 'SOLICITACAO_CONSULTA') {
+                const novasMensagens = [...messages];
+                novasMensagens.push({
+                    role: "system",
+                    content: "O usuário deseja agendar uma consulta. Por favor, use a função getAvailableAppointments para verificar a data mais próxima disponível e, em seguida, proceda com o agendamento dessa data. Confirme o agendamento e envie os dados para pagamento."
                 });
                 
                 return await enviarParaOpenAI(novasMensagens, nome, apiKey);
