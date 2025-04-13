@@ -79,11 +79,29 @@ function isMessageSentByBot(clinicaId, messageBody) {
 
 async function getMessageType(messageType, nome, avatar, phoneNumber, clinicaId) {
     try {
-        const nomeSemEmojis = nome.replace(/[\u{1F600}-\u{1F6FF}]/gu, ''); // Remove emojis
+        // Log da URL da imagem para depuração
+        if (avatar) {
+            console.log(`Profile Picture URL para ${nome}: ${avatar}`);
+        } else {
+            console.log(`Nenhuma imagem de perfil encontrada para ${nome}`);
+        }
+
+        // Remove emojis e prefixos comuns (P., C., etc.) antes de enviar para a API
+        let nomeLimpo = nome.replace(/[\u{1F600}-\u{1F6FF}]/gu, ''); // Remove emojis
+        nomeLimpo = nomeLimpo.replace(/^[A-Za-z]\.\s+/g, ''); // Remove prefixos como "P." ou "C."
+        nomeLimpo = nomeLimpo.trim(); // Remove espaços extras
+        
+        // Extrair apenas o primeiro nome, a menos que seja uma abreviação
+        if (nomeLimpo.includes(' ') && !nomeLimpo.match(/^[A-Za-z]\.$/)) {
+            nomeLimpo = nomeLimpo.split(' ')[0];
+        }
+        
+        console.log(`Nome original: "${nome}", Nome limpo enviado para API: "${nomeLimpo}"`);
+
         const response = await axios.post(`${config.apiUrl}chatbots/message-type`, {
             user_id: clinicaId,
             message_type: messageType,
-            name: nomeSemEmojis,
+            name: nomeLimpo,
             avatar: avatar,
             phone_number: phoneNumber
         });
