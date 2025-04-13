@@ -5,17 +5,18 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use App\Enum\ValidRoles;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
-use Illuminate\Database\Eloquent\Relations\{
-    HasOne,
-    MorphMany,
-    MorphOne,
-    HasMany,
-    BelongsToMany
+use Illuminate\Database\Eloquent\{
+    Factories\HasFactory,
+    Relations\BelongsToMany,
+    Relations\HasMany,
+    Relations\HasOne,
+    Relations\MorphMany,
+    Relations\MorphOne,
+    SoftDeletes
 };
 
 
@@ -23,7 +24,7 @@ use Illuminate\Database\Eloquent\Relations\{
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
