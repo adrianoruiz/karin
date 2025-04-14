@@ -32,6 +32,14 @@ const manualResponseCache = new NodeCache({ stdTTL: config.manualResponseTTL || 
 // Adicionar um cache para rastrear quais mensagens foram enviadas pelo GPT
 const botResponseCache = new NodeCache({ stdTTL: 300 }); // 5 minutos de TTL
 
+// Lista de palavras/prefixos indesejados no nome do paciente
+const UNWANTED_PATIENT_NAME_WORDS = [
+    'P.', 'C.', 'Cliente', 'Paciente', 'TDAH', 'Autista','Insonia','Anorexia','Bipolar',
+    'Epilepsia','Depressão','Drepresivo', 'TOC', 'Bulemia', 'Esquizofrenia', 'Tic', 'Tics','Viciado',
+    'Viciada', 'Piscopata', 'Contato'
+    // Adicione mais palavras conforme necessário
+];
+
 // Função para normalizar texto
 function normalizeText(text) {
     if (text == null) {
@@ -86,9 +94,15 @@ async function getMessageType(messageType, nome, avatar, phoneNumber, clinicaId)
             console.log(`Nenhuma imagem de perfil encontrada para ${nome}`);
         }
 
-        // Remove emojis e prefixos comuns (P., C., etc.) antes de enviar para a API
-        let nomeLimpo = nome.replace(/[\u{1F600}-\u{1F6FF}]/gu, ''); // Remove emojis
-        nomeLimpo = nomeLimpo.replace(/^[A-Za-z]\.\s+/g, ''); // Remove prefixos como "P." ou "C."
+        // Remove emojis do nome
+        let nomeLimpo = nome.replace(/[\u{1F600}-\u{1F6FF}]/gu, '');
+
+        // Remove prefixos e palavras indesejadas do início do nome
+        let regexUnwanted = new RegExp(`^(${UNWANTED_PATIENT_NAME_WORDS.join('|')})\\s+`, 'i');
+        while (regexUnwanted.test(nomeLimpo)) {
+            nomeLimpo = nomeLimpo.replace(regexUnwanted, '');
+        }
+
         nomeLimpo = nomeLimpo.trim(); // Remove espaços extras
         
         // Extrair apenas o primeiro nome, a menos que seja uma abreviação
@@ -513,13 +527,37 @@ async function processMessageWithGPT(message, nome, number, clinicaId) {
         // Se não houver chamada de função, usar a resposta direta
         const responseContent = gptResponse.content;
         
+        // Verificar se a resposta é um array (caso de regras combinadas)
+        if (Array.isArray(gptResponse)) {
+            logger.log('Detectada resposta múltipla (regras combinadas) - Regras especiais combinadas');
+            
+            // Adicionar cada resposta ao histórico
+            for (const response of gptResponse) {
+                conversation.push({
+                    role: "assistant",
+                    content: response.content
+                });
+            }
+            
+            // Limitar o histórico para as últimas 10 mensagens
+            if (conversation.length > 10) {
+                conversation = conversation.slice(conversation.length - 10);
+            }
+            
+            // Salvar conversa atualizada no cache
+            conversationCache.set(conversationKey, conversation);
+            
+            // Retornar as mensagens concatenadas com quebras de linha para envio
+            return gptResponse.map(response => response.content).join('\n\n');
+        }
+        
         // Adicionar resposta ao histórico
         conversation.push({
             role: "assistant",
             content: responseContent
         });
         
-        // Limitar o histórico para as últimas 10 mensagens (5 pares de conversa)
+        // Limitar o histórico para as últimas 10 mensagens
         if (conversation.length > 10) {
             conversation = conversation.slice(conversation.length - 10);
         }
@@ -880,6 +918,10 @@ async function setupWhatsAppListeners(client, clinicaId) {
                 logger.log('Erro ao processar mensagem enviada:', err);
             }
         }
+    });
+
+    client.on('message_revoke_everyone', async (message) => {
+        logger.log(`Mensagem revogada para clinica ${clinicaId}: ${message.body}`);
     });
 }
 

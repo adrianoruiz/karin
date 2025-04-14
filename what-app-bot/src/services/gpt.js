@@ -156,6 +156,40 @@ function verificarRegrasEspeciais(mensagem) {
     return { regra: null };
 }
 
+/**
+ * Verifica se a mensagem do usuário corresponde a alguma das regras especiais (combinadas ou não)
+ * @param {string} mensagem - Mensagem do usuário
+ * @returns {Object} - Regra identificada e resposta associada, se houver
+ */
+function verificarRegrasEspeciaisCombinadas(mensagem) {
+    if (!mensagem) return { regra: null };
+    const mensagemLowerCase = mensagem.toLowerCase().trim();
+    const pedidoFalarDra = REGRAS_INTERACAO.FALAR_COM_DRA.some(termo => mensagemLowerCase.includes(termo));
+    const urgenciaMedica = REGRAS_INTERACAO.URGENCIA_MEDICA.some(termo => mensagemLowerCase.includes(termo));
+    // Regra combinada: falar com a dra + urgência
+    if (pedidoFalarDra && urgenciaMedica) {
+        return {
+            regra: 'FALAR_COM_DRA_URGENTE',
+            resposta: REGRAS_INTERACAO.RESPOSTA_URGENCIA
+        };
+    }
+    // Demais regras (mantém o fluxo anterior)
+    if (urgenciaMedica) {
+        return {
+            regra: 'URGENCIA_MEDICA',
+            resposta: REGRAS_INTERACAO.RESPOSTA_URGENCIA
+        };
+    }
+    if (pedidoFalarDra) {
+        return {
+            regra: 'FALAR_COM_DRA',
+            resposta: REGRAS_INTERACAO.RESPOSTA_FALAR_COM_DRA
+        };
+    }
+    // Mantém as demais regras do verificarRegrasEspeciais original
+    return verificarRegrasEspeciais(mensagem);
+}
+
 async function getChatGPTResponse(messages, nome) {
     const apiKey = process.env.OPENAI_API_KEY;
     
@@ -165,11 +199,18 @@ async function getChatGPTResponse(messages, nome) {
         
         // Só aplica as regras para mensagens do usuário
         if (ultimaMensagemUsuario.role === 'user') {
-            const { regra, resposta } = verificarRegrasEspeciais(ultimaMensagemUsuario.content);
+            const { regra, resposta } = verificarRegrasEspeciaisCombinadas(ultimaMensagemUsuario.content);
             
             // Se for uma mensagem passiva de espera, não responde nada
             if (regra === 'MENSAGEM_ESPERA') {
                 return { content: '' }; // Retorna string vazia para não enviar resposta
+            }
+            
+            // Regra combinada: falar com a dra + urgência
+            if (regra === 'FALAR_COM_DRA_URGENTE') {
+                // Seguindo a regra 3 do systemMessage: "COMBINAÇÃO DE REGRAS - Se o paciente combinar 'preciso falar com a dra' E 'é urgente' na mesma mensagem, a regra de URGÊNCIA MÉDICA tem prioridade."
+                // Retornamos apenas a resposta de urgência
+                return { content: resposta };
             }
             
             // Se for um pedido para falar com a Dra ou urgência, usa resposta padrão
@@ -242,7 +283,7 @@ async function enviarParaOpenAI(messages, nome, apiKey) {
         const response = await axios.post(
             'https://api.openai.com/v1/chat/completions',
             {
-                model: "gpt-4o-mini", 
+                model: "gpt-4.1-mini", 
                 messages: messagesWithSystem,
                 functions: [availabilityFunction, plansFunction, paymentMethodsFunction, bookingFunction, updateBookingFunction, finishAppointmentFunction],
                 function_call: "auto",
@@ -278,5 +319,6 @@ module.exports = {
     updateAppointment,
     finishAppointment,
     // Exportando para testes e uso em outros módulos
-    verificarRegrasEspeciais
+    verificarRegrasEspeciais,
+    verificarRegrasEspeciaisCombinadas
 };
