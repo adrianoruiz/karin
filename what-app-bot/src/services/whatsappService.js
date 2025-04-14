@@ -145,6 +145,36 @@ async function processMessageWithGPT(message, nome, number, clinicaId) {
         const conversationKey = createConversationKey(clinicaId, number);
         let conversation = conversationCache.get(conversationKey) || [];
         
+        // Verificação direta para casos de urgência
+        const mensagemLowerCase = message.toLowerCase().trim();
+        if (mensagemLowerCase === 'preciso de ajuda urgente' || 
+            mensagemLowerCase.includes('é urgente') || 
+            mensagemLowerCase.includes('emergência') ||
+            mensagemLowerCase.includes('urgente')) {
+            
+            console.log('URGÊNCIA detectada diretamente no WhatsappService:', mensagemLowerCase);
+            
+            // Resposta de urgência diretamente do REGRAS_INTERACAO
+            const { RESPOSTA_URGENCIA } = require('./gpt').REGRAS_INTERACAO;
+            
+            // Adicionar mensagem do usuário ao histórico
+            conversation.push({
+                role: "user",
+                content: message
+            });
+            
+            // Adicionar resposta ao histórico
+            conversation.push({
+                role: "assistant",
+                content: RESPOSTA_URGENCIA
+            });
+            
+            // Salvar conversa atualizada no cache
+            conversationCache.set(conversationKey, conversation);
+            
+            return RESPOSTA_URGENCIA;
+        }
+        
         // Verificar se a mensagem está no formato de lista de dados
         const processedMessage = processListFormat(message);
         if (processedMessage !== message) {

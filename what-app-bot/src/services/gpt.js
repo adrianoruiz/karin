@@ -86,6 +86,30 @@ function verificarRegrasEspeciais(mensagem) {
     
     const mensagemLowerCase = mensagem.toLowerCase().trim();
     
+    // Verificação direta para casos específicos de urgência
+    if (mensagemLowerCase === 'preciso de ajuda urgente' || 
+        mensagemLowerCase.includes('é urgente') || 
+        mensagemLowerCase.includes('emergência') ||
+        mensagemLowerCase.includes('urgente')) {
+        console.log('Caso de URGÊNCIA detectado diretamente:', mensagemLowerCase);
+        return { 
+            regra: 'URGENCIA_MEDICA',
+            resposta: REGRAS_INTERACAO.RESPOSTA_URGENCIA
+        };
+    }
+    
+    // Verificar Regra 3: Solicitação para falar com a Dra
+    const pedidoFalarDra = REGRAS_INTERACAO.FALAR_COM_DRA.some(termo => 
+        mensagemLowerCase.includes(termo));
+    
+    if (pedidoFalarDra) {
+        console.log('Caso de FALAR_COM_DRA detectado:', mensagemLowerCase);
+        return { 
+            regra: 'FALAR_COM_DRA',
+            resposta: REGRAS_INTERACAO.RESPOSTA_FALAR_COM_DRA
+        };
+    }
+    
     // Verificar Regra 2: Solicitação urgente para agendamento
     const urgenciaAgendamento = REGRAS_INTERACAO.SOLICITACAO_URGENTE.some(termo => 
         mensagemLowerCase.includes(termo));
@@ -105,28 +129,6 @@ function verificarRegrasEspeciais(mensagem) {
         return { 
             regra: 'SOLICITACAO_CONSULTA',
             resposta: null // Não tem resposta padrão, usa função específica
-        };
-    }
-    
-    // Verificar Regra 3: Solicitação para falar com a Dra
-    const pedidoFalarDra = REGRAS_INTERACAO.FALAR_COM_DRA.some(termo => 
-        mensagemLowerCase.includes(termo));
-    
-    if (pedidoFalarDra) {
-        return { 
-            regra: 'FALAR_COM_DRA',
-            resposta: REGRAS_INTERACAO.RESPOSTA_FALAR_COM_DRA
-        };
-    }
-    
-    // Verificar Regra 4: Urgência médica
-    const urgenciaMedica = REGRAS_INTERACAO.URGENCIA_MEDICA.some(termo => 
-        mensagemLowerCase.includes(termo));
-    
-    if (urgenciaMedica) {
-        return { 
-            regra: 'URGENCIA_MEDICA',
-            resposta: REGRAS_INTERACAO.RESPOSTA_URGENCIA
         };
     }
     
@@ -164,29 +166,46 @@ function verificarRegrasEspeciais(mensagem) {
 function verificarRegrasEspeciaisCombinadas(mensagem) {
     if (!mensagem) return { regra: null };
     const mensagemLowerCase = mensagem.toLowerCase().trim();
+    
+    // Verificação direta para casos específicos de urgência
+    const urgenciaDireta = mensagemLowerCase === 'preciso de ajuda urgente' || 
+                           mensagemLowerCase.includes('é urgente') || 
+                           mensagemLowerCase.includes('emergência') ||
+                           mensagemLowerCase.includes('urgente');
+    
+    // Verificação para falar com a dra
     const pedidoFalarDra = REGRAS_INTERACAO.FALAR_COM_DRA.some(termo => mensagemLowerCase.includes(termo));
-    const urgenciaMedica = REGRAS_INTERACAO.URGENCIA_MEDICA.some(termo => mensagemLowerCase.includes(termo));
+    
+    console.log('Verificação de regras:', { urgenciaDireta, pedidoFalarDra, mensagem: mensagemLowerCase });
+    
     // Regra combinada: falar com a dra + urgência
-    if (pedidoFalarDra && urgenciaMedica) {
+    if (pedidoFalarDra && urgenciaDireta) {
+        console.log('Regra combinada detectada: FALAR_COM_DRA_URGENTE');
         return {
             regra: 'FALAR_COM_DRA_URGENTE',
             resposta: REGRAS_INTERACAO.RESPOSTA_URGENCIA
         };
     }
-    // Demais regras (mantém o fluxo anterior)
-    if (urgenciaMedica) {
+    
+    // Urgência tem prioridade
+    if (urgenciaDireta) {
+        console.log('Regra de urgência detectada diretamente');
         return {
             regra: 'URGENCIA_MEDICA',
             resposta: REGRAS_INTERACAO.RESPOSTA_URGENCIA
         };
     }
+    
+    // Falar com a dra
     if (pedidoFalarDra) {
+        console.log('Regra de falar com a dra detectada');
         return {
             regra: 'FALAR_COM_DRA',
             resposta: REGRAS_INTERACAO.RESPOSTA_FALAR_COM_DRA
         };
     }
-    // Mantém as demais regras do verificarRegrasEspeciais original
+    
+    // Demais regras
     return verificarRegrasEspeciais(mensagem);
 }
 
@@ -199,23 +218,31 @@ async function getChatGPTResponse(messages, nome) {
         
         // Só aplica as regras para mensagens do usuário
         if (ultimaMensagemUsuario.role === 'user') {
+            console.log('Analisando mensagem do usuário:', ultimaMensagemUsuario.content);
+            
             const { regra, resposta } = verificarRegrasEspeciaisCombinadas(ultimaMensagemUsuario.content);
+            console.log('Regra detectada:', regra, 'Resposta:', resposta ? resposta.substring(0, 50) + '...' : 'sem resposta padrão');
             
             // Se for uma mensagem passiva de espera, não responde nada
             if (regra === 'MENSAGEM_ESPERA') {
+                console.log('Mensagem de espera detectada, não responde nada');
                 return { content: '' }; // Retorna string vazia para não enviar resposta
             }
             
             // Regra combinada: falar com a dra + urgência
             if (regra === 'FALAR_COM_DRA_URGENTE') {
+                console.log('Aplicando regra combinada FALAR_COM_DRA_URGENTE');
                 // Seguindo a regra 3 do systemMessage: "COMBINAÇÃO DE REGRAS - Se o paciente combinar 'preciso falar com a dra' E 'é urgente' na mesma mensagem, a regra de URGÊNCIA MÉDICA tem prioridade."
                 // Retornamos apenas a resposta de urgência
                 return { content: resposta };
             }
             
-            // Se for um pedido para falar com a Dra ou urgência, usa resposta padrão
-            if ((regra === 'FALAR_COM_DRA' || regra === 'URGENCIA_MEDICA') && resposta) {
-                return { content: resposta };
+            // Fluxo padrão das regras já existentes
+            if (regra === 'FALAR_COM_DRA' || regra === 'URGENCIA_MEDICA') {
+                console.log('Aplicando regra padrão:', regra);
+                if (resposta) {
+                    return { content: resposta };
+                }
             }
             
             // Se for uma mensagem de confusão, precisa do contexto da conversa
@@ -320,5 +347,6 @@ module.exports = {
     finishAppointment,
     // Exportando para testes e uso em outros módulos
     verificarRegrasEspeciais,
-    verificarRegrasEspeciaisCombinadas
+    verificarRegrasEspeciaisCombinadas,
+    REGRAS_INTERACAO
 };
