@@ -9,6 +9,6 @@
 </template>
 
 <script setup>
-import AmandaLayout from '~/components/amanda/AmandaLayout.vue';
+import AmandaLayout from "~/components/amanda/AmandaLayout.vue";
 // Lógica futura aqui
 </script>
