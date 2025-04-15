@@ -1,108 +1,86 @@
 <template>
-  <div class="min-h-screen bg-gray-100">
-    <header class="bg-white shadow p-4">
-      <div class="flex items-center">
-        <NuxtLink to="/" class="mr-4">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
-        </NuxtLink>
+  <AmandaLayout>
+    <!-- Resumo -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div class="bg-white rounded-lg shadow p-4">
+        <h3 class="font-bold text-lg mb-2">Mensagens Hoje</h3>
+        <p class="text-3xl font-bold text-pink-500">{{ stats.messagesCount }}</p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-4">
+        <h3 class="font-bold text-lg mb-2">Próxima Data Especial</h3>
+        <p class="text-lg font-bold text-purple-500">{{ nextSpecialDate.name || "Nenhuma" }}</p>
+        <p class="text-sm text-gray-600">{{ nextSpecialDate.date ? formatDate(nextSpecialDate.date) : "" }}</p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-4">
+        <h3 class="font-bold text-lg mb-2">Eficácia</h3>
+        <p class="text-3xl font-bold text-green-500">{{ stats.avgEffectiveness }}/5</p>
+      </div>
+    </div>
+
+    <!-- Enviar mensagem -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-bold mb-4">Enviar Mensagem</h2>
+
+      <div class="space-y-4">
         <div>
-          <h1 class="text-2xl font-bold">Amanda</h1>
-          <p class="text-gray-600">Assistente Emocional e Motivacional</p>
-        </div>
-      </div>
-    </header>
-
-    <div class="container mx-auto py-6 px-4">
-      <!-- Menu de navegação -->
-      <div class="mb-6 flex space-x-2">
-        <NuxtLink to="/amanda" class="px-4 py-2 bg-pink-500 text-white rounded">Dashboard</NuxtLink>
-        <NuxtLink to="/amanda/messages" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded">Mensagens</NuxtLink>
-        <NuxtLink to="/amanda/dates" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded">Datas Especiais</NuxtLink>
-      </div>
-
-      <!-- Resumo -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div class="bg-white rounded-lg shadow p-4">
-          <h3 class="font-bold text-lg mb-2">Mensagens Hoje</h3>
-          <p class="text-3xl font-bold text-pink-500">{{ stats.messagesCount }}</p>
+          <label class="block text-sm font-medium mb-1">Categoria</label>
+          <select v-model="newMessage.category" class="w-full border rounded py-2 px-3">
+            <option value="carinhosa">Carinhosa</option>
+            <option value="motivacional">Motivacional</option>
+            <option value="pnl">PNL</option>
+            <option value="intima">Íntima</option>
+          </select>
         </div>
 
-        <div class="bg-white rounded-lg shadow p-4">
-          <h3 class="font-bold text-lg mb-2">Próxima Data Especial</h3>
-          <p class="text-lg font-bold text-purple-500">{{ nextSpecialDate.name || "Nenhuma" }}</p>
-          <p class="text-sm text-gray-600">{{ nextSpecialDate.date ? formatDate(nextSpecialDate.date) : "" }}</p>
-        </div>
-
-        <div class="bg-white rounded-lg shadow p-4">
-          <h3 class="font-bold text-lg mb-2">Eficácia</h3>
-          <p class="text-3xl font-bold text-green-500">{{ stats.avgEffectiveness }}/5</p>
+        <div>
+          <label class="block text-sm font-medium mb-1">Subcategoria</label>
+          <select v-model="newMessage.sub_category" class="w-full border rounded py-2 px-3">
+            <option value="manha">Manhã</option>
+            <option value="tarde">Tarde</option>
+            <option value="noite">Noite</option>
+            <option value="geral">Geral</option>
+          </select>
         </div>
       </div>
 
-      <!-- Enviar mensagem -->
-      <div class="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 class="text-xl font-bold mb-4">Enviar Mensagem</h2>
+      <button :disabled="sendingMessage" class="mt-4 bg-pink-500 text-white py-2 px-4 rounded" @click="sendMessage">
+        {{ sendingMessage ? 'Enviando...' : 'Gerar e Enviar' }}
+      </button>
+    </div>
 
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium mb-1">Categoria</label>
-            <select v-model="newMessage.category" class="w-full border rounded py-2 px-3">
-              <option value="carinhosa">Carinhosa</option>
-              <option value="motivacional">Motivacional</option>
-              <option value="pnl">PNL</option>
-              <option value="intima">Íntima</option>
-            </select>
-          </div>
+    <!-- Mensagens recentes -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-bold mb-4">Mensagens Recentes</h2>
 
-          <div>
-            <label class="block text-sm font-medium mb-1">Subcategoria</label>
-            <select v-model="newMessage.sub_category" class="w-full border rounded py-2 px-3">
-              <option value="manha">Manhã</option>
-              <option value="tarde">Tarde</option>
-              <option value="noite">Noite</option>
-              <option value="geral">Geral</option>
-            </select>
-          </div>
-        </div>
-
-        <button :disabled="sendingMessage" class="mt-4 bg-pink-500 text-white py-2 px-4 rounded" @click="sendMessage">
-          {{ sendingMessage ? 'Enviando...' : 'Gerar e Enviar' }}
-        </button>
+      <div v-if="recentMessages.length === 0" class="text-gray-500 text-center py-4">
+        Nenhuma mensagem enviada recentemente
       </div>
 
-      <!-- Mensagens recentes -->
-      <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-xl font-bold mb-4">Mensagens Recentes</h2>
-
-        <div v-if="recentMessages.length === 0" class="text-gray-500 text-center py-4">
-          Nenhuma mensagem enviada recentemente
-        </div>
-
-        <div v-else class="space-y-4">
-          <div v-for="message in recentMessages" :key="message.id" class="p-4 rounded-lg"
-            :class="getMessageBackground(message.category)">
-            <p class="font-medium">"{{ message.content }}"</p>
-            <div class="flex justify-between mt-2 text-sm">
-              <div>
-                <span class="bg-pink-200 text-pink-800 px-2 py-1 rounded">{{ message.category }}</span>
-                <span class="text-gray-600 ml-2">{{ formatDate(message.sent_at || message.created_at) }}</span>
-              </div>
-              <div class="flex space-x-1">
-                <button v-for="n in 5" :key="n"
-                  :class="(message.effectiveness || 0) >= n ? 'text-yellow-500' : 'text-gray-300'"
-                  @click="rateMessage(message.id, n)">★</button>
-              </div>
+      <div v-else class="space-y-4">
+        <div v-for="message in recentMessages" :key="message.id" class="p-4 rounded-lg"
+          :class="getMessageBackground(message.category)">
+          <p class="font-medium">"{{ message.content }}"</p>
+          <div class="flex justify-between mt-2 text-sm">
+            <div>
+              <span class="bg-pink-200 text-pink-800 px-2 py-1 rounded">{{ message.category }}</span>
+              <span class="text-gray-600 ml-2">{{ formatDate(message.sent_at || message.created_at) }}</span>
+            </div>
+            <div class="flex space-x-1">
+              <button v-for="n in 5" :key="n"
+                :class="(message.effectiveness || 0) >= n ? 'text-yellow-500' : 'text-gray-300'"
+                @click="rateMessage(message.id, n)">★</button>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </AmandaLayout>
 </template>
 
 <script setup>
+import AmandaLayout from '~/components/amanda/AmandaLayout.vue';
 import { onMounted, ref } from 'vue'
 
 const stats = ref({
