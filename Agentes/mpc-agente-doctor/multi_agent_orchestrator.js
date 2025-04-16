@@ -1,12 +1,12 @@
 // multi_agent_orchestrator.js
 // Sistema multiagente avançado usando LangChain para orquestração inteligente
 import { ChatOpenAI } from "@langchain/openai";
-import { loadState, saveState } from "./db.js";
-import { handleChatTodayAppointments } from "./agents/appointment_agent.js";
+import dotenv from 'dotenv';
 import { handleCancel } from "./agents/cancel_agent.js";
 import { handleReschedule } from "./agents/reschedule_agent.js";
 import { consultarValorConsulta } from "./agents/value_agent.js";
-import dotenv from 'dotenv';
+import { handleAppointmentsWithLLM } from "./appointments_llm_agent.js";
+import { loadState, saveState } from "./db.js";
 
 // Carrega variáveis de ambiente
 dotenv.config();
@@ -104,7 +104,7 @@ export async function multiAgentOrchestrator(sessionId, mensagem) {
         break;
           
       case 'appointments':
-        resposta = await handleChatTodayAppointments(sessionId, mensagem);
+        resposta = await handleAppointmentsWithLLM(sessionId, mensagem);
         historicoAtualizado.lastAgent = 'appointments';
         break;
         

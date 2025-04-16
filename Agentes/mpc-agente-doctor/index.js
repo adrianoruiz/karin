@@ -1,7 +1,8 @@
-const OpenAI = require("openai");
-const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
-const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio.js");
-require("dotenv").config();
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import dotenv from "dotenv";
+import OpenAI from "openai";
+dotenv.config();
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -179,3 +180,6 @@ async function displayAssistantResponse(threadId) {
 }
 
 main();
+
+// Exporte as funções para uso externo
+export { connectMCPClient, processUserRequest };
