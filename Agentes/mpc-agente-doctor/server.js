@@ -28,6 +28,16 @@ server.tool(
   }
 );
 
+// Nova ferramenta: informar valor da consulta
+server.tool(
+  "consultarValorConsulta",
+  async () => {
+    return {
+      content: [{ type: "text", text: "O valor da consulta é R$ 300." }]
+    };
+  }
+);
+
 // Conectar o servidor via stdio
 const transport = new StdioServerTransport();
 server.connect(transport).then(() => console.log("Servidor MCP rodando!"));

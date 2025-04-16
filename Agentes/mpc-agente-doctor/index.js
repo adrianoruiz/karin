@@ -9,7 +9,7 @@ const openai = new OpenAI({
 });
 
 // Assistant configuration
-const ASSISTANT_ID = "asst_yaiOoAWzskadn9xRSo8WgRym";
+const ASSISTANT_ID = "asst_C5Ig3nnUUCmHQ1SmE6objvyI";
 
 async function main() {
   try {
@@ -20,8 +20,15 @@ async function main() {
     // Example usage
     await processUserRequest(
       client, 
+      "Quero saber o valor da consulta"
+    );
+    
+    await processUserRequest(
+      client, 
       "Agende uma consulta para amanhã às 14h para o paciente João Silva"
     );
+
+   
   } catch (error) {
     console.error("Error:", error);
   }
@@ -35,7 +42,14 @@ async function connectMCPClient() {
 
   const client = new Client(
     { name: "Cliente OpenAI", version: "1.0.0" },
-    { capabilities: { tools: {} } }
+    { 
+      capabilities: { 
+        tools: { 
+          agendarConsulta: {}, 
+          consultarValorConsulta: {} 
+        } 
+      } 
+    }
   );
 
   await client.connect(transport);
@@ -102,6 +116,28 @@ async function handleToolActions(threadId, runId, runStatus, mcpClient) {
         
         const result = await mcpClient.callTool({
           name: "agendarConsulta",
+          arguments: args
+        });
+        
+        console.log(`Tool result: ${JSON.stringify(result)}`);
+        toolOutputs.push({
+          tool_call_id: toolCall.id,
+          output: JSON.stringify(result)
+        });
+      } catch (error) {
+        console.error(`Error processing tool call ${toolCall.id}:`, error);
+        toolOutputs.push({
+          tool_call_id: toolCall.id,
+          output: JSON.stringify({ error: `Tool processing error: ${error.message}` })
+        });
+      }
+    } else if (toolCall.function.name === "consultarValorConsulta") {
+      try {
+        const args = JSON.parse(toolCall.function.arguments);
+        console.log(`Calling tool consultarValorConsulta with args: ${JSON.stringify(args)}`);
+        
+        const result = await mcpClient.callTool({
+          name: "consultarValorConsulta",
           arguments: args
         });
         
