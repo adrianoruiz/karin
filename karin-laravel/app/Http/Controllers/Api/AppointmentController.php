@@ -24,8 +24,18 @@ class AppointmentController extends Controller
      */
     public function index()
     {
-        $appointments = Appointment::with(['user', 'doctor'])->paginate(20);
-        
+        $query = Appointment::with(['user', 'doctor', 'plan', 'paymentMethod']);
+
+        if (request()->has('doctor_id')) {
+            $query->where('doctor_id', request('doctor_id'));
+        }
+
+        if (request()->has('appointment_date')) {
+            $query->whereDate('appointment_datetime', request('appointment_date'));
+        }
+
+        $appointments = $query->paginate(20);
+
         return response()->json([
             'appointments' => $appointments
         ]);
