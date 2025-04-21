@@ -30,7 +30,36 @@ class Appointment extends Model
         'observations',
         'is_online'
     ];
-    
+   
+    // Status possíveis para o agendamento
+    public const STATUS_SCHEDULED    = 'agendada';
+    public const STATUS_CONFIRMED    = 'confirmada';
+    public const STATUS_CHECKIN      = 'aguardando';
+    public const STATUS_IN_PROGRESS  = 'em_atendimento';
+    public const STATUS_COMPLETED    = 'concluida';
+    public const STATUS_CANCELLED    = 'cancelada';
+    public const STATUS_NO_SHOW      = 'nao_compareceu';
+
+    public static array $validStatuses = [
+        self::STATUS_SCHEDULED,
+        self::STATUS_CONFIRMED,
+        self::STATUS_CHECKIN,
+        self::STATUS_IN_PROGRESS,
+        self::STATUS_COMPLETED,
+        self::STATUS_CANCELLED,
+        self::STATUS_NO_SHOW,
+    ];
+
+    public static array $statusLabels = [
+        self::STATUS_SCHEDULED    => 'Agendada',
+        self::STATUS_CONFIRMED    => 'Confirmada',
+        self::STATUS_CHECKIN      => 'Aguardando',
+        self::STATUS_IN_PROGRESS  => 'Em Atendimento',
+        self::STATUS_COMPLETED    => 'Concluída',
+        self::STATUS_CANCELLED    => 'Cancelada',
+        self::STATUS_NO_SHOW      => 'Faltou',
+    ];
+
     /**
      * Relacionamento com usuário (paciente)
      */

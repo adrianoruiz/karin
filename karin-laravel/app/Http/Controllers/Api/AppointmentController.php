@@ -30,8 +30,21 @@ class AppointmentController extends Controller
             $query->where('doctor_id', request('doctor_id'));
         }
 
+        if (request()->has('status')) {
+            $statuses = request('status');
+            if (is_string($statuses)) {
+                $statuses = explode(',', $statuses);
+            }
+            $query->whereIn('status', $statuses);
+        }
+
         if (request()->has('appointment_date')) {
-            $query->whereDate('appointment_datetime', request('appointment_date'));
+            $operator = request('appointment_date_operator', '=');
+            $allowedOperators = ['=', '>', '<', '>=', '<='];
+            if (!in_array($operator, $allowedOperators)) {
+                $operator = '=';
+            }
+            $query->whereDate('appointment_datetime', $operator, request('appointment_date'));
         }
 
         $appointments = $query->paginate(20);
