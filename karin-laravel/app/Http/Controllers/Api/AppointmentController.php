@@ -25,9 +25,12 @@ class AppointmentController extends Controller
     public function index()
     {
         $query = Appointment::with(['user', 'doctor', 'plan', 'paymentMethod']);
+        $indicatorsQuery = clone $query;
 
+        // Aplicar filtros à consulta principal e à consulta de indicadores
         if (request()->has('doctor_id')) {
             $query->where('doctor_id', request('doctor_id'));
+            $indicatorsQuery->where('doctor_id', request('doctor_id'));
         }
 
         if (request()->has('status')) {
@@ -36,21 +39,93 @@ class AppointmentController extends Controller
                 $statuses = explode(',', $statuses);
             }
             $query->whereIn('status', $statuses);
+            $indicatorsQuery->whereIn('status', $statuses);
         }
 
-        if (request()->has('appointment_date')) {
+        $today = now()->startOfDay();
+        $defaultEnd = $today->copy()->addDays(3)->endOfDay();
+
+        // Filtro por período (data inicial e final)
+        if (request()->has('start_date') && request()->has('end_date')) {
+            $query->whereDate('appointment_datetime', '>=', request('start_date'))
+                  ->whereDate('appointment_datetime', '<=', request('end_date'));
+            $indicatorsQuery->whereDate('appointment_datetime', '>=', request('start_date'))
+                           ->whereDate('appointment_datetime', '<=', request('end_date'));
+        } else if (request()->has('appointment_date')) {
             $operator = request('appointment_date_operator', '=');
             $allowedOperators = ['=', '>', '<', '>=', '<='];
             if (!in_array($operator, $allowedOperators)) {
                 $operator = '=';
             }
-            $query->whereDate('appointment_datetime', $operator, request('appointment_date'));
+            $date = request('appointment_date');
+            $query->whereDate('appointment_datetime', $operator, $date);
+            $indicatorsQuery->whereDate('appointment_datetime', $operator, $date);
+
+            // Limitar range se operador for > ou >= e não houver appointment_date_end
+            if (in_array($operator, ['>', '>='])) {
+                $endDate = request('appointment_date_end', null);
+                if (!$endDate) {
+                    $endDate = \Carbon\Carbon::parse($date)->addDays(3)->endOfDay()->toDateString();
+                }
+                $query->whereDate('appointment_datetime', '<=', $endDate);
+                $indicatorsQuery->whereDate('appointment_datetime', '<=', $endDate);
+            }
+        } else {
+            // Nenhum filtro de data: padrão = próximos 3 dias
+            $query->whereDate('appointment_datetime', '>=', $today->toDateString())
+                  ->whereDate('appointment_datetime', '<=', $defaultEnd->toDateString());
+            $indicatorsQuery->whereDate('appointment_datetime', '>=', $today->toDateString())
+                           ->whereDate('appointment_datetime', '<=', $defaultEnd->toDateString());
         }
 
-        $appointments = $query->paginate(20);
+        // Filtro por nome do paciente
+        if (request()->has('patient')) {
+            $patientSearch = request('patient');
+            $query->whereHas('user', function($q) use ($patientSearch) {
+                $q->where('name', 'like', "%{$patientSearch}%");
+            });
+            $indicatorsQuery->whereHas('user', function($q) use ($patientSearch) {
+                $q->where('name', 'like', "%{$patientSearch}%");
+            });
+        }
+
+        // Calcular indicadores
+        $totalAppointments = $indicatorsQuery->count();
+        $totalRevenue = $indicatorsQuery->join('plans', 'appointments.plan_id', '=', 'plans.id')
+                                        ->sum('plans.price');
+        $averageTicket = $totalAppointments > 0 ? $totalRevenue / $totalAppointments : 0;
+        $canceledAppointments = (clone $indicatorsQuery)->where('status', Appointment::STATUS_CANCELLED)->count();
+
+        // Consultas Pendentes: agendada + confirmada
+        $pendingAppointments = (clone $indicatorsQuery)
+            ->whereIn('status', [
+                Appointment::STATUS_SCHEDULED,
+                Appointment::STATUS_CONFIRMED
+            ])->count();
+
+        // Consultas em Andamento: aguardando + em_atendimento
+        $inProgressAppointments = (clone $indicatorsQuery)
+            ->whereIn('status', [
+                Appointment::STATUS_CHECKIN,
+                Appointment::STATUS_IN_PROGRESS
+            ])->count();
+
+        // Obter agendamentos paginados
+        $appointments = $query->orderBy('appointment_datetime', 'desc')->paginate(20);
 
         return response()->json([
-            'appointments' => $appointments
+            'success' => true,
+            'data' => [
+                'indicators' => [
+                    'total_appointments' => $totalAppointments,
+                    'total_revenue' => number_format($totalRevenue, 2, '.', ''),
+                    'average_ticket' => number_format($averageTicket, 2, '.', ''),
+                    'canceled_appointments' => $canceledAppointments,
+                    'pending_appointments' => $pendingAppointments,
+                    'in_progress_appointments' => $inProgressAppointments
+                ],
+                'appointments' => $appointments
+            ]
         ]);
     }
     
