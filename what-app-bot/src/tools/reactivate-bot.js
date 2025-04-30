@@ -10,6 +10,8 @@
 
 const caches = require('../cache/cacheFactory');
 const { manual: manualResponseCache } = caches;
+const { Logger } = require('../utils/index');
+const logger = new Logger(true);
 
 function createKey(clinicaId, phoneNumber) {
     return `manual:${clinicaId}:${phoneNumber}`;

@@ -177,6 +177,17 @@ async function processAudioMessage(message, nome, phoneNumber, clinicaId, rawCli
         
         // Enviar resposta ao usuário usando o waClientWrapper
         if (waClientWrapper && typeof waClientWrapper.sendMessage === 'function') {
+            // Marcar explicitamente mensagem como enviada pelo bot ANTES de enviá-la
+            if (typeof waClientWrapper.markMessageAsSentByBot === 'function') {
+                waClientWrapper.markMessageAsSentByBot(clinicaId, gptResponse);
+                console.log('Resposta de áudio marcada como enviada pelo bot');
+            } else {
+                // Import e uso direto da função se não disponível no wrapper
+                const { markMessageAsSentByBot } = require('../../clients/waClient');
+                markMessageAsSentByBot(clinicaId, gptResponse);
+                console.log('Resposta de áudio marcada como enviada pelo bot (via import direto)');
+            }
+            
             // Passando true como último parâmetro para indicar que é uma resposta a uma mensagem de áudio
             await waClientWrapper.sendMessage(phoneNumber, gptResponse, clinicaId, true);
             console.log('Resposta do GPT enviada via waClientWrapper');
@@ -203,6 +214,17 @@ async function processAudioMessage(message, nome, phoneNumber, clinicaId, rawCli
                  if (fallbackResponse) {
                      // Enviar resposta de fallback usando waClientWrapper
                      if (waClientWrapper && typeof waClientWrapper.sendMessage === 'function') {
+                         // Marcar explicitamente mensagem de fallback como enviada pelo bot
+                         if (typeof waClientWrapper.markMessageAsSentByBot === 'function') {
+                             waClientWrapper.markMessageAsSentByBot(clinicaId, fallbackResponse);
+                             console.log('Resposta de fallback marcada como enviada pelo bot');
+                         } else {
+                             // Import e uso direto da função se não disponível no wrapper
+                             const { markMessageAsSentByBot } = require('../../clients/waClient');
+                             markMessageAsSentByBot(clinicaId, fallbackResponse);
+                             console.log('Resposta de fallback marcada como enviada pelo bot (via import direto)');
+                         }
+                         
                          await waClientWrapper.sendMessage(phoneNumber, fallbackResponse, clinicaId, true);
                          console.log('Resposta de fallback enviada via waClientWrapper');
                      } else {

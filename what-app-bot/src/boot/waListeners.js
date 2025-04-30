@@ -116,12 +116,22 @@ async function bootstrapListeners(client, clinicaId) {
             try {
                 const gptResponse = await gptRouter.processMessage(messageBody, nome, number, clinicaId); 
                 logger.log(`Response from GPT Router: "${gptResponse}"`);
+                
+                // Marcar explicitamente mensagem como enviada pelo bot ANTES de enviá-la
+                if (gptResponse) {
+                    markMessageAsSentByBot(clinicaId, gptResponse);
+                    logger.log(`Message pre-marked as bot message before sending`);
+                }
+                
                 await waClient.sendMessage(number, gptResponse, clinicaId, false); 
                 logger.log(`Response sent to ${number}`);
             } catch (error) {
                  logger.error('Error processing message with gptRouter:', error);
                  try {
-                    await waClient.sendMessage(number, "Desculpe, ocorreu um erro ao processar sua solicitação. Tente novamente.", clinicaId);
+                    // Marcar a mensagem de erro como enviada pelo bot também
+                    const errorMsg = "Desculpe, ocorreu um erro ao processar sua solicitação. Tente novamente.";
+                    markMessageAsSentByBot(clinicaId, errorMsg);
+                    await waClient.sendMessage(number, errorMsg, clinicaId);
                  } catch (sendError) {
                      logger.error('Failed to send error message to user:', sendError);
                  }
