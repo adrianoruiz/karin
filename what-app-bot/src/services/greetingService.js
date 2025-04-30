@@ -90,15 +90,20 @@ function createGreetingService({ logger, getMessageType, waClient, createCacheKe
             if (greetingMessage) {
                 // Send greeting message
                 if (waClient) {
+                    // Fazer o log antes de enviar para ficar mais visível
+                    markGreetingAsSent(clinicaId, number);
+                    logger.log(`Greeting marked as sent for ${number} (${clinicaId})`);
+                    
                     await waClient.sendMessage(number, greetingMessage, clinicaId);
+                    logger.log(`Greeting sent to ${number}`);
                 } else {
                     // Fallback for when waClient not provided
                     await message.reply(greetingMessage);
+                    
+                    // Mark as sent
+                    markGreetingAsSent(clinicaId, number);
+                    logger.log(`Greeting sent to ${number} (via message.reply)`);
                 }
-                
-                // Mark as sent
-                markGreetingAsSent(clinicaId, number);
-                logger.log(`Greeting sent to ${number}`);
                 return 'SENT';
             } else {
                 logger.log('No greeting message returned from API');

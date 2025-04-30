@@ -32,12 +32,10 @@ router.post('/send-message', async (req, res) => {
         // Isso garante que a mensagem já estará no cache quando o evento message_create for acionado
         const { markMessageAsSentByBot } = require('../src/services/whatsappService');
         markMessageAsSentByBot(clinicaId, message);
-        console.log(`Mensagem pré-marcada como enviada pelo bot antes do envio: ${message.substring(0, 30)}...`);
+        console.log(`Mensagem marcada como enviada pelo bot antes do envio: ${message.substring(0, 30)}...`);
         
+        // O sendWhatsAppMessage já marca a mensagem internamente
         const result = await sendWhatsAppMessage(client, number, message, clinicaId);
-        
-        // Marcar novamente, apenas para garantir 
-        markMessageAsSentByBot(clinicaId, message);
         
         res.status(200).send(result);
     } catch (err) {

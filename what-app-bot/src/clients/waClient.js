@@ -23,8 +23,12 @@ function markMessageAsSentByBot(clinicaId, messageBody) {
     
     // Create a key using the first 50 chars of the message
     const messageKey = `bot_msg:${clinicaId}:${messageText.substring(0, 50)}`;
-    botResponseCache.set(messageKey, true);
-    logger.log(`Message marked as sent by bot: ${messageKey}`);
+    
+    // Verificar se a mensagem já está marcada para evitar logs duplicados
+    if (!botResponseCache.get(messageKey)) {
+        botResponseCache.set(messageKey, true);
+        logger.log(`Message marked as sent by bot: ${messageKey}`);
+    }
     return messageKey;
 }
 
@@ -42,6 +46,8 @@ function isMessageSentByBot(clinicaId, messageBody) {
     
     const messageKey = `bot_msg:${clinicaId}:${messageText.substring(0, 50)}`;
     const result = botResponseCache.get(messageKey);
+    
+    // Apenas log quando encontrar a mensagem
     if (result) {
         logger.log(`Message recognized as sent by bot: ${messageKey}`);
     }
@@ -116,8 +122,8 @@ function createWaClient(client) {
                 response = await client.sendMessage(formattedNumber, messageToSend);
             }
 
-            // Mark this message as sent by the bot
-            markMessageAsSentByBot(clinicaId, messageToSend);
+            // A mensagem já deve ter sido marcada ANTES de chamar essa função
+            // Não precisamos marcar novamente para evitar logs duplicados
 
             logger.log('Message sent successfully:', response.id ? response.id._serialized : response); // Log serialized ID if available
             return { status: 'success', message: 'Message sent', response };
@@ -130,7 +136,8 @@ function createWaClient(client) {
     // Expose public methods
     return {
         sendMessage,
-        // Add other client interactions here later (e.g., onMessage, getStatus)
+        markMessageAsSentByBot,
+        isMessageSentByBot
     };
 }
 

@@ -8,10 +8,29 @@ const DEFAULT_MANUAL_TTL = 86400; // 24 hours
  * Creates a service to manage the manual response mode (disabling the chatbot).
  * @param {object} dependencies - Dependencies.
  * @param {object} dependencies.logger - Logger instance.
- * @param {object} dependencies.waClient - WhatsApp client wrapper (needs isMessageSentByBot, markMessageAsSentByBot).
+ * @param {object} dependencies.waClient - WhatsApp client wrapper.
+ * @param {function} [dependencies.markMessageAsSentByBot] - Função para marcar mensagem como enviada pelo bot.
+ * @param {function} [dependencies.isMessageSentByBot] - Função para verificar se mensagem foi enviada pelo bot.
  * @returns {object} Manual mode service instance.
  */
-function createManualModeService({ logger, waClient }) {
+function createManualModeService({ logger, waClient, markMessageAsSentByBot, isMessageSentByBot }) {
+
+    // Fallbacks caso as funções não sejam fornecidas
+    const _markMessageAsSentByBot = markMessageAsSentByBot || 
+        (waClient && waClient.markMessageAsSentByBot ? 
+            (clinicaId, message) => waClient.markMessageAsSentByBot(clinicaId, message) :
+            (clinicaId, message) => {
+                logger.warn(`markMessageAsSentByBot não disponível, mensagem não será marcada: ${message.substring(0, 30)}...`);
+                return null;
+            });
+            
+    const _isMessageSentByBot = isMessageSentByBot || 
+        (waClient && waClient.isMessageSentByBot ? 
+            (clinicaId, message) => waClient.isMessageSentByBot(clinicaId, message) :
+            (clinicaId, message) => {
+                logger.warn(`isMessageSentByBot não disponível, assumindo que mensagem não foi enviada pelo bot: ${message.substring(0, 30)}...`);
+                return false;
+            });
 
     /**
      * Creates a unique cache key for manual mode status.
@@ -82,7 +101,7 @@ function createManualModeService({ logger, waClient }) {
             return;
         }
 
-        const isBotMessage = waClient.isMessageSentByBot(clinicaId, messageBody);
+        const isBotMessage = _isMessageSentByBot(clinicaId, messageBody);
         
         // Define patterns for known automatic messages
         const lowerBody = messageBody.toLowerCase();
@@ -101,7 +120,7 @@ function createManualModeService({ logger, waClient }) {
         
         if (isLikelyAutomatic) {
             // If it looks automatic, ensure it's marked in the bot cache 
-            waClient.markMessageAsSentByBot(clinicaId, messageBody);
+            _markMessageAsSentByBot(clinicaId, messageBody);
             logger.log(`Outgoing message identified as automatic/bot, chatbot remains active for ${number}`);
         } else {
             // If it wasn't identified as automatic by heuristics AND not found in bot cache,

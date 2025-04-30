@@ -77,6 +77,15 @@ function createMessageTypeService({ logger, waClient }) {
                     logger.log(`Converted API response to string: ${responseText.substring(0, 50)}...`);
                 }
                 
+                // Filtrar mensagens de teste/debug que não devem ser enviadas ao usuário
+                if (responseText === 'Mensagem personalizada obtida com sucesso' || 
+                    (responseText.includes('obtida com sucesso') && !responseText.includes('Olá') && !responseText.includes('ajudar')) ||
+                    responseText.includes('teste debug') ||
+                    responseText.startsWith('DEBUG:')) {
+                    logger.log('Mensagem de teste/debug detectada e será substituída pela padrão');
+                    responseText = `Olá ${nomeLimpo}! Como posso ajudar você hoje?`;
+                }
+                
                 if (responseText && waClient) {
                      try {
                          waClient.markMessageAsSentByBot(clinicaId, responseText);

@@ -1,7 +1,7 @@
 const { Logger } = require('../utils/index'); // Adjust path
 const { normalizeText } = require('../utils/text'); // Adjust path
 const { createCacheKey } = require('../utils/cacheKeys'); // Import from new location
-const { createWaClient } = require('../clients/waClient');
+const { createWaClient, markMessageAsSentByBot, isMessageSentByBot } = require('../clients/waClient');
 const { createConversationStore } = require('../services/conversationStore');
 const { createDedupeService } = require('../services/dedupeService');
 const { createGreetingService } = require('../services/greetingService');
@@ -28,7 +28,12 @@ async function bootstrapListeners(client, clinicaId) {
     const waClient = createWaClient(client);
     const conversationStore = createConversationStore({ logger });
     const dedupeService = createDedupeService({ logger }); 
-    const manualModeService = createManualModeService({ logger, waClient }); 
+    const manualModeService = createManualModeService({ 
+        logger, 
+        waClient,
+        markMessageAsSentByBot: (clinicaId, message) => markMessageAsSentByBot(clinicaId, message),
+        isMessageSentByBot: (clinicaId, message) => isMessageSentByBot(clinicaId, message)
+    }); 
     // Pass createCacheKey from its new location
     const greetingService = createGreetingService({ 
         logger, 
@@ -163,6 +168,30 @@ async function bootstrapListeners(client, clinicaId) {
     client.on('disconnected', (reason) => {
         logger.warn(`Client disconnected for clinica ${clinicaId}: ${reason}`);
         // TODO: Implement reconnection logic or notification
+    });
+    
+    // Adicionar listeners para eventos de reset
+    client.on(`manual_reset:${clinicaId}:all`, () => {
+        logger.log(`Recebido evento de reset manual para todos os usuários da clínica ${clinicaId}`);
+        if (manualModeService && typeof manualModeService.resetState === 'function') {
+            manualModeService.resetState(clinicaId);
+        }
+    });
+    
+    client.on(`manual_reset:${clinicaId}:*`, (number) => {
+        logger.log(`Recebido evento de reset manual para número ${number} da clínica ${clinicaId}`);
+        if (manualModeService && typeof manualModeService.resetState === 'function') {
+            manualModeService.resetState(clinicaId, number);
+        }
+    });
+    
+    client.on('greeting_reset', (resetClinicaId) => {
+        if (resetClinicaId === clinicaId) {
+            logger.log(`Recebido evento de reset de saudação para clínica ${clinicaId}`);
+            if (greetingService && typeof greetingService.resetAllGreetings === 'function') {
+                greetingService.resetAllGreetings();
+            }
+        }
     });
 }
 
