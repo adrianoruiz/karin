@@ -28,42 +28,336 @@ function createGptRouter({ logger, conversationStore, waClient }) {
     function processListFormat(message) {
         const listPattern = /^(name|cpf|phone|birthdate|pagamento):\s*(.*?)$/im;
         
-        if (listPattern.test(message)) {
-            const lines = message.split('\n');
-            const data = {};
-            
-            lines.forEach(line => {
-                if (line.toLowerCase().includes('pagamento') || line.toLowerCase().includes('cartao') || line.toLowerCase().includes('cartão')) {
-                    const paymentLine = line.toLowerCase();
-                    if (paymentLine.includes('pix')) {
-                        data['payment_method'] = 'pix';
-                    } else if (paymentLine.includes('credito') || paymentLine.includes('crédito')) {
-                        data['payment_method'] = 'cartão de crédito';
-                    } else if (paymentLine.includes('debito') || paymentLine.includes('débito')) {
-                        data['payment_method'] = 'cartão de débito';
-                    } else {
-                        const paymentMatch = line.match(/:\s*(.*?)$/);
-                        if (paymentMatch) data['payment_method'] = paymentMatch[1].trim();
-                    }
-                } else {
-                    const match = line.match(/^(name|cpf|phone|birthdate):\s*(.*?)$/i);
-                    if (match) data[match[1].toLowerCase()] = match[2].trim();
+        if (!listPattern.test(message)) {
+            return message;
+        }
+        
+        const lines = message.split('\n');
+        const data = {};
+        
+        lines.forEach(line => {
+            if (line.toLowerCase().includes('pagamento') || line.toLowerCase().includes('cartao') || line.toLowerCase().includes('cartão')) {
+                const paymentLine = line.toLowerCase();
+                if (paymentLine.includes('pix')) {
+                    data['payment_method'] = 'pix';
+                    return;
                 }
-            });
+                
+                if (paymentLine.includes('credito') || paymentLine.includes('crédito')) {
+                    data['payment_method'] = 'cartão de crédito';
+                    return;
+                }
+                
+                if (paymentLine.includes('debito') || paymentLine.includes('débito')) {
+                    data['payment_method'] = 'cartão de débito';
+                    return;
+                }
+                
+                const paymentMatch = line.match(/:\s*(.*?)$/);
+                if (paymentMatch) {
+                    data['payment_method'] = paymentMatch[1].trim();
+                }
+                return;
+            }
             
-            if (Object.keys(data).length > 0) {
-                let formattedMessage = "Quero agendar uma consulta com os seguintes dados:\n";
-                if (data.name) formattedMessage += `Nome: ${data.name}\n`;
-                if (data.cpf) formattedMessage += `CPF: ${data.cpf}\n`;
-                if (data.phone) formattedMessage += `Telefone: ${data.phone}\n`;
-                if (data.birthdate) formattedMessage += `Data de nascimento: ${data.birthdate}\n`;
-                if (data.payment_method) formattedMessage += `Método de pagamento: ${data.payment_method}\n`;
-                formattedMessage += "\nPor favor, agende esta consulta usando a função bookAppointment.";
-                logger.log(`Formatted message for booking: ${formattedMessage}`);
-                return formattedMessage;
+            const match = line.match(/^(name|cpf|phone|birthdate):\s*(.*?)$/i);
+            if (match) {
+                data[match[1].toLowerCase()] = match[2].trim();
+            }
+        });
+        
+        if (Object.keys(data).length === 0) {
+            return message;
+        }
+        
+        let formattedMessage = "Quero agendar uma consulta com os seguintes dados:\n";
+        if (data.name) formattedMessage += `Nome: ${data.name}\n`;
+        if (data.cpf) formattedMessage += `CPF: ${data.cpf}\n`;
+        if (data.phone) formattedMessage += `Telefone: ${data.phone}\n`;
+        if (data.birthdate) formattedMessage += `Data de nascimento: ${data.birthdate}\n`;
+        if (data.payment_method) formattedMessage += `Método de pagamento: ${data.payment_method}\n`;
+        formattedMessage += "\nPor favor, agende esta consulta usando a função bookAppointment.";
+        
+        logger.log(`Formatted message for booking: ${formattedMessage}`);
+        return formattedMessage;
+    }
+
+    /**
+     * Process function call and return the final response
+     * @param {string} name - Function name
+     * @param {object} parsedArgs - Function arguments
+     * @param {string} nome - User name
+     * @param {string} number - User phone number
+     * @param {string} clinicaId - Clinic ID
+     * @returns {Promise<string>} The final response to send to the user
+     */
+    async function processFunctionCall(name, parsedArgs, nome, number, clinicaId) {
+        let functionResultContent = null;
+        let finalContent = "Desculpe, não consegui processar sua solicitação de função."; // Default error
+        let currentConversation;
+
+        try {
+            currentConversation = conversationStore.getConversation(clinicaId, number);
+
+            switch (name) {
+                case 'getAvailableAppointments': {
+                    const originalMessage = currentConversation[currentConversation.length - 1].content.toLowerCase();
+                    let dateParam = parsedArgs.date;
+                    
+                    if ((originalMessage.includes("amanha") || originalMessage.includes("amanhã")) && 
+                        (!dateParam || dateParam === "hoje" || dateParam === "hj")) {
+                        logger.log("Overriding date to 'amanhã' based on original message.");
+                        dateParam = "amanhã";
+                    }
+                    
+                    const availableTimes = await getAvailableAppointments(dateParam);
+                    functionResultContent = JSON.stringify(availableTimes);
+                    break;
+                }
+                
+                case 'getAvailablePlans': {
+                    const availablePlans = await getPlans();
+                    functionResultContent = JSON.stringify(availablePlans);
+                    break;
+                }
+                
+                case 'bookAppointment': {
+                    // Always use WhatsApp number as phone
+                    parsedArgs.phone = number || parsedArgs.phone;
+                    logger.log(`Incluindo número do WhatsApp como telefone: ${number}`);
+                    
+                    // Check and correct date format
+                    const originalDate = parsedArgs.date;
+                    const dateNeedsCorrection = originalDate && (
+                        originalDate.startsWith('2024-') || // Wrong year
+                        (originalDate.includes('-') && parseInt(originalDate.split('-')[1]) > 12) || // Invalid month
+                        (originalDate.includes('/')) || // Wrong format
+                        (originalDate.length !== 10) // Incorrect length
+                    );
+                    
+                    // Always verify to ensure correctness
+                    if (dateNeedsCorrection || true) {
+                        logger.log(`Verificando data do agendamento: ${originalDate}`);
+                        
+                        // Find most recent available appointments in conversation
+                        const availableAppointments = currentConversation.filter(
+                            msg => msg.role === 'function' && 
+                                  msg.name === 'getAvailableAppointments' &&
+                                  msg.content
+                        );
+                        
+                        if (availableAppointments.length > 0) {
+                            try {
+                                // Get most recent result
+                                const lastAppointmentResult = JSON.parse(
+                                    availableAppointments[availableAppointments.length - 1].content
+                                );
+                                
+                                // Check if we have available times
+                                if (lastAppointmentResult.appointments && 
+                                    lastAppointmentResult.appointments.length > 0) {
+                                    
+                                    // Find correct time matching requested time
+                                    const requestedTime = parsedArgs.time.replace('h', ':00');
+                                    const matchingAppointment = lastAppointmentResult.appointments.find(
+                                        appt => appt.time === requestedTime || 
+                                               appt.time === parsedArgs.time
+                                    );
+                                    
+                                    if (matchingAppointment && matchingAppointment.date !== originalDate) {
+                                        logger.log(`Corrigindo data: ${originalDate} -> ${matchingAppointment.date} (encontrado horário correspondente)`);
+                                        parsedArgs.date = matchingAppointment.date;
+                                    } else if (!matchingAppointment && lastAppointmentResult.appointments[0].date !== originalDate) {
+                                        // Use first available time as fallback
+                                        logger.log(`Corrigindo data: ${originalDate} -> ${lastAppointmentResult.appointments[0].date} (usando primeiro horário disponível)`);
+                                        parsedArgs.date = lastAppointmentResult.appointments[0].date;
+                                    }
+                                }
+                            } catch (error) {
+                                logger.error('Erro ao tentar corrigir data do agendamento:', error);
+                            }
+                        }
+                    }
+                    
+                    // Ensure correct time format (16h -> 16:00)
+                    if (parsedArgs.time && parsedArgs.time.includes('h')) {
+                        parsedArgs.time = parsedArgs.time.replace('h', ':00');
+                        logger.log(`Corrigindo formato da hora: ${parsedArgs.time}`);
+                    }
+                    
+                    const bookingResult = await bookAppointment(parsedArgs);
+                    logger.log('Booking result:', bookingResult);
+                    functionResultContent = JSON.stringify(bookingResult);
+                    
+                    if (bookingResult.success) {
+                        await handleSuccessfulBooking(parsedArgs, bookingResult, clinicaId, number);
+                    }
+                    break;
+                }
+                
+                case 'finishAppointment': {
+                    logger.log('Processing finish appointment... Args:', parsedArgs);
+                    const requiredFields = ["patient_name", "appointment_date", "appointment_time", "is_online"];
+                    const missingFields = requiredFields.filter(field => !parsedArgs[field]);
+                    
+                    if (missingFields.length > 0) {
+                        finalContent = `Preciso de informações adicionais para finalizar: ${missingFields.join(', ')}.`;
+                        functionResultContent = JSON.stringify({ success: false, missing: missingFields });
+                        break;
+                    }
+                    
+                    const finishResult = await finishAppointment(parsedArgs);
+                    functionResultContent = JSON.stringify(finishResult);
+                    logger.log('Finish result:', finishResult);
+                    break;
+                }
+                
+                case 'updateAppointment': {
+                    logger.log('Processing update appointment... Args:', parsedArgs);
+                    const updateResult = await updateAppointment(parsedArgs);
+                    functionResultContent = JSON.stringify(updateResult);
+                    logger.log('Update result:', updateResult);
+                    break;
+                }
+                
+                default: {
+                    logger.warn(`Unknown function call received: ${name}`);
+                    functionResultContent = JSON.stringify({ error: `Função desconhecida: ${name}` });
+                }
+            }
+            
+            // Add function result to conversation
+            conversationStore.addMessage(clinicaId, number, 'function', functionResultContent, name);
+            currentConversation = conversationStore.getConversation(clinicaId, number);
+            
+            // Get final GPT response
+            const finalResponse = await getChatGPTResponse(currentConversation, nome);
+            finalContent = finalResponse.content;
+            
+            // Add payment info if needed
+            if ((name === 'bookAppointment' || name === 'finishAppointment') && functionResultContent) {
+                const result = JSON.parse(functionResultContent);
+                finalContent = addPaymentInfoToResponse(finalContent, result);
+            } else if (name === 'updateAppointment' && functionResultContent) {
+                const updateResult = JSON.parse(functionResultContent);
+                if (updateResult.success && updateResult.payment_link) {
+                    finalContent += `\n\nAqui está o link para pagamento: ${updateResult.payment_link}\n\nNo link de pagamento você pode escolher se quer pagar no cartão de crédito/débito ou PIX.`;
+                }
+            }
+            
+        } catch (funcError) {
+            logger.error(`Error executing function call ${name}:`, funcError);
+            functionResultContent = JSON.stringify({ error: `Erro ao executar ${name}: ${funcError.message}` });
+            conversationStore.addMessage(clinicaId, number, 'function', functionResultContent, name);
+            
+            try {
+                currentConversation = conversationStore.getConversation(clinicaId, number);
+                const finalResponse = await getChatGPTResponse(currentConversation, nome);
+                finalContent = finalResponse.content || "Desculpe, ocorreu um erro ao processar sua solicitação.";
+            } catch (gptError) {
+                logger.error('Error calling GPT after function error:', gptError);
+                finalContent = "Desculpe, ocorreu um erro interno. Tente novamente mais tarde.";
             }
         }
-        return message;
+        
+        return finalContent;
+    }
+    
+    /**
+     * Handle a successful booking by calling finishAppointment and sending payment links
+     * @param {object} parsedArgs - Booking arguments
+     * @param {object} bookingResult - Result of booking operation
+     * @param {string} clinicaId - Clinic ID
+     * @param {string} number - User phone number
+     */
+    async function handleSuccessfulBooking(parsedArgs, bookingResult, clinicaId, number) {
+        try {
+            logger.log('Booking successful, calling finishAppointment automatically...');
+            const finishData = { 
+                patient_name: parsedArgs.name,
+                patient_phone: parsedArgs.phone,
+                appointment_date: parsedArgs.date,
+                appointment_time: parsedArgs.time,
+                is_online: bookingResult.is_online ?? (parsedArgs.modality && parsedArgs.modality.toLowerCase().includes('online')), 
+                payment_method: parsedArgs.payment_method || 'Não informado',
+                observations: parsedArgs.observations || 'Primeira consulta'
+            };
+            
+            const finishResult = await finishAppointment(finishData);
+            logger.log('Finish result:', finishResult);
+            
+            // Add finish result to conversation
+            conversationStore.addMessage(clinicaId, number, 'function', JSON.stringify(finishResult), 'finishAppointment');
+            
+            if (!finishResult.success) {
+                logger.error(`Failed to finish appointment: ${finishResult.message || 'Unknown error'}`);
+                return;
+            }
+            
+            bookingResult.payment_link = finishResult.payment_link;
+            bookingResult.payment_message = finishResult.payment_message;
+            
+            // Fallback logic for payment link
+            if (!bookingResult.payment_link) {
+                const isOnline = finishData.is_online;
+                logger.log(`Payment link fallback needed. Modality: ${isOnline ? 'online' : 'presencial'}`);
+                const paymentLink = isOnline ? 'https://mpago.li/2cc49wX' : 'https://mpago.li/2Nz1i2h';
+                bookingResult.payment_link = paymentLink;
+                bookingResult.payment_message = `Aqui está o link para pagamento: ${paymentLink}\n\nNo link de pagamento você pode escolher se quer pagar no cartão de crédito/débito ou PIX.`;
+            }
+            
+            // Send payment link via WhatsApp
+            if (bookingResult.payment_message && waClient) {
+                logger.log(`Sending payment link directly to ${number}: ${bookingResult.payment_link}`);
+                await waClient.sendMessage(number, bookingResult.payment_message, clinicaId);
+            } else {
+                logger.warn('waClient not available or no payment message to send directly.');
+            }
+        } catch (finishError) {
+            logger.error('Error calling finishAppointment automatically:', finishError);
+        }
+    }
+    
+    /**
+     * Add payment information to response if not already included
+     * @param {string} finalContent - Current response content
+     * @param {object} result - Result object with payment information
+     * @returns {string} Updated response content
+     */
+    function addPaymentInfoToResponse(finalContent, result) {
+        if (!result.success || !result.payment_message) {
+            return finalContent;
+        }
+        
+        // If response doesn't already include payment link or mention
+        if (!finalContent.includes('link de pagamento') && 
+            !finalContent.includes('link para pagamento') && 
+            !finalContent.includes(result.payment_link)) {
+            
+            // Add payment message based on context
+            if (finalContent.includes('agendada') || 
+                finalContent.includes('marcada') || 
+                finalContent.includes('sucesso')) {
+                
+                finalContent += /[.!?]$/.test(finalContent) ? 
+                    ` ${result.payment_message}` : 
+                    `. ${result.payment_message}`;
+            } else {
+                finalContent += `\n\nSua consulta foi agendada com sucesso! ${result.payment_message}`;
+            }
+        }
+        
+        // Clean up redundant auto-send messages if link is present
+        if (finalContent.includes(result.payment_link)) {
+            finalContent = finalContent.replace('O link de pagamento será enviado automaticamente.', '').trim();
+        } else if (finalContent.includes('será enviado automaticamente')) {
+            finalContent = finalContent.replace(
+                'O link de pagamento será enviado automaticamente.', 
+                result.payment_message
+            );
+        }
+        
+        return finalContent;
     }
 
     /**
@@ -79,6 +373,7 @@ function createGptRouter({ logger, conversationStore, waClient }) {
             // Get conversation history from the store
             let conversation = conversationStore.getConversation(clinicaId, number); 
             
+            // Check for urgency keywords
             const mensagemLowerCase = message.toLowerCase().trim();
             if (mensagemLowerCase === 'preciso de ajuda urgente' || 
                 mensagemLowerCase.includes('é urgente') || 
@@ -87,306 +382,83 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                 
                 logger.warn('URGENCY detected by gptRouter:', mensagemLowerCase); 
                 const { RESPOSTA_URGENCIA } = REGRAS_INTERACAO; // Get from imported rules
+                
                 // Add messages to store
                 conversationStore.addMessage(clinicaId, number, 'user', message);
                 conversationStore.addMessage(clinicaId, number, 'assistant', RESPOSTA_URGENCIA);
+                
                 return RESPOSTA_URGENCIA;
             }
             
+            // Process list format message if applicable
             const processedListMessage = processListFormat(message);
             if (processedListMessage !== message) {
                 logger.log('Message processed from list format:', processedListMessage);
                 message = processedListMessage;
             }
             
+            // Check for sensitive topics
             const sensitiveResponse = detectSensitiveTopics(message);
             if (sensitiveResponse) {
-                 logger.warn('SENSITIVE TOPIC detected by gptRouter:', message.substring(0, 50));
+                logger.warn('SENSITIVE TOPIC detected by gptRouter:', message.substring(0, 50));
+                
                 // Add messages to store
                 conversationStore.addMessage(clinicaId, number, 'user', message);
                 conversationStore.addMessage(clinicaId, number, 'assistant', sensitiveResponse);
+                
                 return sensitiveResponse;
             }
             
             // Add user message before calling GPT
             conversationStore.addMessage(clinicaId, number, 'user', message);
+            
             // Get potentially updated conversation for GPT call
             conversation = conversationStore.getConversation(clinicaId, number); 
             
             const gptResponse = await getChatGPTResponse(conversation, nome);
             
+            // Handle function call
             if (gptResponse.function_call) {
                 logger.log('Function call detected:', gptResponse.function_call.name);
                 const { name, arguments: args } = gptResponse.function_call;
-                let functionResultContent = null;
-                let finalContent = "Desculpe, não consegui processar sua solicitação de função."; // Default error
-
-                try {
-                    const parsedArgs = JSON.parse(args);
-                    let currentConversation = conversationStore.getConversation(clinicaId, number);
-
-                    if (name === 'getAvailableAppointments') {
-                        const originalMessage = conversation[conversation.length - 1].content.toLowerCase();
-                        let dateParam = parsedArgs.date;
-                        if ((originalMessage.includes("amanha") || originalMessage.includes("amanhã")) && 
-                            (!dateParam || dateParam === "hoje" || dateParam === "hj")) {
-                            logger.log("Overriding date to 'amanhã' based on original message.");
-                            dateParam = "amanhã";
-                        }
-                        const availableTimes = await getAvailableAppointments(dateParam);
-                        functionResultContent = JSON.stringify(availableTimes);
-                        conversationStore.addMessage(clinicaId, number, 'function', functionResultContent, 'getAvailableAppointments'); 
-                        currentConversation = conversationStore.getConversation(clinicaId, number);
-                        const finalResponse = await getChatGPTResponse(currentConversation, nome);
-                        finalContent = finalResponse.content;
-                        // Optionally, format directly if GPT struggles
-                        // finalContent = await formatAvailableAppointments(availableTimes);
-
-                    } else if (name === 'getAvailablePlans') {
-                        const availablePlans = await getPlans();
-                        functionResultContent = JSON.stringify(availablePlans);
-                        conversationStore.addMessage(clinicaId, number, 'function', functionResultContent, 'getAvailablePlans');
-                        currentConversation = conversationStore.getConversation(clinicaId, number);
-                        const finalResponse = await getChatGPTResponse(currentConversation, nome);
-                        finalContent = finalResponse.content;
-
-                    } else if (name === 'bookAppointment') {
-                        // Garantir que o telefone seja sempre enviado usando o número do WhatsApp
-                        // Ao invés de verificar se está vazio, sempre inclua o número do WhatsApp
-                        parsedArgs.phone = number || parsedArgs.phone;
-                        logger.log(`Incluindo número do WhatsApp como telefone: ${number}`);
-                        
-                        // Verificar e corrigir formato da data para evitar inversão de data/mês ou data incorreta
-                        const originalDate = parsedArgs.date;
-                        
-                        // Verificar problemas óbvios com a data
-                        let dateNeedsCorrection = originalDate && (
-                            originalDate.startsWith('2024-') || // Ano errado
-                            (originalDate.includes('-') && parseInt(originalDate.split('-')[1]) > 12) || // Mês inválido
-                            (originalDate.includes('/')) || // Formato errado
-                            (originalDate.length !== 10) // Tamanho incorreto
-                        );
-                        
-                        // Se precisar de correção ou como verificação de segurança
-                        if (dateNeedsCorrection || true) { // Sempre verifica para garantir
-                            // Procurar data correta no histórico da conversa
-                            logger.log(`Verificando data do agendamento: ${originalDate}`);
-                            
-                            // Buscar os horários disponíveis mais recentes na conversa
-                            const availableAppointments = currentConversation.filter(
-                                msg => msg.role === 'function' && 
-                                      msg.name === 'getAvailableAppointments' &&
-                                      msg.content
-                            );
-                            
-                            if (availableAppointments.length > 0) {
-                                try {
-                                    // Pegar o resultado mais recente
-                                    const lastAppointmentResult = JSON.parse(
-                                        availableAppointments[availableAppointments.length - 1].content
-                                    );
-                                    
-                                    // Verificar se temos horários disponíveis
-                                    if (lastAppointmentResult.appointments && 
-                                        lastAppointmentResult.appointments.length > 0) {
-                                        
-                                        // Encontrar o horário correto que corresponda à hora solicitada
-                                        const requestedTime = parsedArgs.time.replace('h', ':00');
-                                        const matchingAppointment = lastAppointmentResult.appointments.find(
-                                            appt => appt.time === requestedTime || 
-                                                   appt.time === parsedArgs.time
-                                        );
-                                        
-                                        if (matchingAppointment) {
-                                            // Usar a data correta correspondente à hora escolhida
-                                            if (matchingAppointment.date !== originalDate) {
-                                                logger.log(`Corrigindo data: ${originalDate} -> ${matchingAppointment.date} (encontrado horário correspondente)`);
-                                                parsedArgs.date = matchingAppointment.date;
-                                            }
-                                        } else if (lastAppointmentResult.appointments[0].date !== originalDate) {
-                                            // Usar o primeiro horário disponível como fallback
-                                            logger.log(`Corrigindo data: ${originalDate} -> ${lastAppointmentResult.appointments[0].date} (usando primeiro horário disponível)`);
-                                            parsedArgs.date = lastAppointmentResult.appointments[0].date;
-                                        }
-                                    }
-                                } catch (error) {
-                                    logger.error('Erro ao tentar corrigir data do agendamento:', error);
-                                }
-                            }
-                        }
-                        
-                        // Garantir formato correto da hora (16h -> 16:00)
-                        if (parsedArgs.time && parsedArgs.time.includes('h')) {
-                            parsedArgs.time = parsedArgs.time.replace('h', ':00');
-                            logger.log(`Corrigindo formato da hora: ${parsedArgs.time}`);
-                        }
-                        
-                        const bookingResult = await bookAppointment(parsedArgs);
-                        logger.log('Booking result:', bookingResult);
-                        conversationStore.addMessage(clinicaId, number, 'function', JSON.stringify(bookingResult), 'bookAppointment');
-                        currentConversation = conversationStore.getConversation(clinicaId, number);
-
-                        if (bookingResult.success) {
-                            try {
-                                logger.log('Booking successful, calling finishAppointment automatically...');
-                                const finishData = { /* ... prepare data ... */ 
-                                     patient_name: parsedArgs.name,
-                                     patient_phone: parsedArgs.phone,
-                                     appointment_date: parsedArgs.date,
-                                     appointment_time: parsedArgs.time,
-                                     is_online: bookingResult.is_online ?? (parsedArgs.modality && parsedArgs.modality.toLowerCase().includes('online')), 
-                                     payment_method: parsedArgs.payment_method || 'Não informado',
-                                     observations: parsedArgs.observations || 'Primeira consulta'
-                                };
-                                const finishResult = await finishAppointment(finishData);
-                                logger.log('Finish result:', finishResult);
-                                // Add finish result
-                                conversationStore.addMessage(clinicaId, number, 'function', JSON.stringify(finishResult), 'finishAppointment');
-                                currentConversation = conversationStore.getConversation(clinicaId, number);
-                                
-                                if (finishResult.success) {
-                                    bookingResult.payment_link = finishResult.payment_link;
-                                    bookingResult.payment_message = finishResult.payment_message;
-                                    let paymentLink = finishResult.payment_link;
-                                    if (!paymentLink) { // Fallback logic
-                                        const isOnline = finishData.is_online;
-                                        logger.log(`Payment link fallback needed. Modality: ${isOnline ? 'online' : 'presencial'}`);
-                                        paymentLink = isOnline ? 'https://mpago.li/2cc49wX' : 'https://mpago.li/2Nz1i2h';
-                                        bookingResult.payment_link = paymentLink;
-                                        bookingResult.payment_message = `Aqui está o link para pagamento: ${paymentLink}\n\nNo link de pagamento você pode escolher se quer pagar no cartão de crédito/débito ou PIX.`;
-                                    }
-                                    // Send payment link immediately via waClient
-                                    if (bookingResult.payment_message && waClient) {
-                                        logger.log(`Sending payment link directly to ${number}: ${paymentLink}`);
-                                        await waClient.sendMessage(number, bookingResult.payment_message, clinicaId);
-                                    } else {
-                                         logger.warn('waClient not available or no payment message to send directly.');
-                                    }
-                                } else {
-                                     logger.error(`Failed to finish appointment: ${finishResult.message || 'Unknown error'}`);
-                                }
-                            } catch (finishError) {
-                                logger.error('Error calling finishAppointment automatically:', finishError);
-                            }
-                        } // end if isBookingSuccessful
-
-                        // Get final GPT response using potentially updated conversation
-                        const finalResponse = await getChatGPTResponse(currentConversation, nome);
-                        finalContent = finalResponse.content;
-                        
-                        // Append payment message to GPT response if successful and not already included
-                        if (bookingResult.success && bookingResult.payment_message) {
-                            if (!finalContent.includes('link de pagamento') && !finalContent.includes('link para pagamento') && !finalContent.includes(bookingResult.payment_link)) {
-                                 if (finalContent.includes('agendada') || finalContent.includes('marcada') || finalContent.includes('sucesso')) {
-                                     finalContent += /[.!?]$/.test(finalContent) ? ` ${bookingResult.payment_message}` : `. ${bookingResult.payment_message}`;
-                                 } else {
-                                     finalContent += `\n\nSua consulta foi agendada com sucesso! ${bookingResult.payment_message}`;
-                                 }
-                             } 
-                             // Clean up redundant auto-send messages if link is present
-                             if (finalContent.includes(bookingResult.payment_link)) {
-                                  finalContent = finalContent.replace('O link de pagamento será enviado automaticamente.', '').trim();
-                             } else if (finalContent.includes('será enviado automaticamente')) {
-                                 finalContent = finalContent.replace('O link de pagamento será enviado automaticamente.', bookingResult.payment_message);
-                             }
-                        }
-                    } else if (name === 'finishAppointment') { // Explicit finish call
-                        logger.log('Processing finish appointment... Args:', parsedArgs);
-                         const requiredFields = ["patient_name", "appointment_date", "appointment_time", "is_online"];
-                         const missingFields = requiredFields.filter(field => !parsedArgs[field]);
-                         if (missingFields.length > 0) {
-                             finalContent = `Preciso de informações adicionais para finalizar: ${missingFields.join(', ')}.`;
-                             functionResultContent = JSON.stringify({ success: false, missing: missingFields });
-                             conversationStore.addMessage(clinicaId, number, 'function', functionResultContent, 'finishAppointment');
-                         } else {
-                            const finishResult = await finishAppointment(parsedArgs);
-                            functionResultContent = JSON.stringify(finishResult);
-                            logger.log('Finish result:', finishResult);
-                            conversationStore.addMessage(clinicaId, number, 'function', functionResultContent, 'finishAppointment');
-                            currentConversation = conversationStore.getConversation(clinicaId, number);
-                            const finalResponse = await getChatGPTResponse(currentConversation, nome);
-                            finalContent = finalResponse.content;
-
-                            if (finishResult.success && finishResult.payment_message) {
-                                 if (!finalContent.includes('link de pagamento') && !finalContent.includes('link para pagamento')) {
-                                     if (finalContent.includes('agendada') || finalContent.includes('marcada') || finalContent.includes('sucesso')) {
-                                         finalContent += /[.!?]$/.test(finalContent) ? ` ${finishResult.payment_message}` : `. ${finishResult.payment_message}`;
-                                     } else {
-                                         finalContent += `\n\nA consulta foi agendada com sucesso! ${finishResult.payment_message}`;
-                                     }
-                                 }
-                            }
-                        }
-                    } else if (name === 'updateAppointment') {
-                        logger.log('Processing update appointment... Args:', parsedArgs);
-                        const updateResult = await updateAppointment(parsedArgs);
-                        functionResultContent = JSON.stringify(updateResult);
-                        logger.log('Update result:', updateResult);
-                        conversationStore.addMessage(clinicaId, number, 'function', functionResultContent, 'updateAppointment');
-                        currentConversation = conversationStore.getConversation(clinicaId, number);
-                        const finalResponse = await getChatGPTResponse(currentConversation, nome);
-                        finalContent = finalResponse.content;
-                        if (updateResult.success && updateResult.payment_link) {
-                             finalContent += `\n\nAqui está o link para pagamento: ${updateResult.payment_link}\n\nNo link de pagamento você pode escolher se quer pagar no cartão de crédito/débito ou PIX.`;
-                        }
-                    } else {
-                        logger.warn(`Unknown function call received: ${name}`);
-                        functionResultContent = JSON.stringify({ error: `Função desconhecida: ${name}` });
-                        conversationStore.addMessage(clinicaId, number, 'function', functionResultContent, name);
-                        currentConversation = conversationStore.getConversation(clinicaId, number);
-                        const finalResponse = await getChatGPTResponse(currentConversation, nome);
-                        finalContent = finalResponse.content; 
-                    }
-
-                } catch (funcError) {
-                    logger.error(`Error executing function call ${name}:`, funcError);
-                    functionResultContent = JSON.stringify({ error: `Erro ao executar ${name}: ${funcError.message}` });
-                    conversationStore.addMessage(clinicaId, number, 'function', functionResultContent, name); 
-                    currentConversation = conversationStore.getConversation(clinicaId, number);
-                    // Try to get a response even after function error
-                    try {
-                        const finalResponse = await getChatGPTResponse(currentConversation, nome);
-                        finalContent = finalResponse.content || "Desculpe, ocorreu um erro ao processar sua solicitação.";
-                    } catch (gptError) {
-                        logger.error('Error calling GPT after function error:', gptError);
-                        finalContent = "Desculpe, ocorreu um erro interno. Tente novamente mais tarde.";
-                    }
-                }
+                const parsedArgs = JSON.parse(args);
+                
+                const finalContent = await processFunctionCall(name, parsedArgs, nome, number, clinicaId);
                 
                 // Add final assistant response to store
                 conversationStore.addMessage(clinicaId, number, 'assistant', finalContent); 
                 return finalContent;
-
-            } else {
-                // Handle regular GPT response (no function call)
-                // Check if gptResponse ITSELF is an array (original logic)
-                if (Array.isArray(gptResponse)) {
-                    logger.log('Handling multi-part GPT response (combined rules)');
-                    const messagesToAdd = [];
-                    let combinedResponse = '';
-                    // Iterate through each response part
-                    for (const responsePart of gptResponse) {
-                        const partContent = responsePart.content || '';
-                        if (partContent) {
-                            messagesToAdd.push({ role: "assistant", content: partContent }); 
-                            combinedResponse += (combinedResponse ? '\n\n' : '') + partContent;
-                        }
-                    }
-                    // Add all messages at once
-                    conversationStore.addMessages(clinicaId, number, messagesToAdd); 
-                    return combinedResponse; // Return combined content for sending
-                } else {
-                    // Handle single regular response
-                    const responseContent = gptResponse.content; 
-                    if (responseContent) {
-                         conversationStore.addMessage(clinicaId, number, 'assistant', responseContent);
-                         return responseContent;
-                    } else {
-                        logger.error('GPT response received without content and not an array/function call.', gptResponse);
-                        return "Desculpe, não consegui gerar uma resposta válida."; // Fallback for empty content
+            }
+            
+            // Handle multi-part GPT response (array response)
+            if (Array.isArray(gptResponse)) {
+                logger.log('Handling multi-part GPT response (combined rules)');
+                const messagesToAdd = [];
+                let combinedResponse = '';
+                
+                // Iterate through each response part
+                for (const responsePart of gptResponse) {
+                    const partContent = responsePart.content || '';
+                    if (partContent) {
+                        messagesToAdd.push({ role: "assistant", content: partContent }); 
+                        combinedResponse += (combinedResponse ? '\n\n' : '') + partContent;
                     }
                 }
+                
+                // Add all messages at once
+                conversationStore.addMessages(clinicaId, number, messagesToAdd); 
+                return combinedResponse;
             }
+            
+            // Handle regular GPT response
+            const responseContent = gptResponse.content; 
+            if (!responseContent) {
+                logger.error('GPT response received without content and not an array/function call.', gptResponse);
+                return "Desculpe, não consegui gerar uma resposta válida.";
+            }
+            
+            conversationStore.addMessage(clinicaId, number, 'assistant', responseContent);
+            return responseContent;
 
         } catch (error) {
             logger.error('Error processing message with GPT:', error);
@@ -399,4 +471,4 @@ function createGptRouter({ logger, conversationStore, waClient }) {
     };
 }
 
-module.exports = { createGptRouter }; 
+module.exports = { createGptRouter };
