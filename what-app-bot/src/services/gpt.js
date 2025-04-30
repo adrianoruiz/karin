@@ -300,17 +300,25 @@ async function getChatGPTResponse(messages, nome) {
  * Função auxiliar para enviar requisição para a OpenAI
  */
 async function enviarParaOpenAI(messages, nome, apiKey) {
-    // Obtém o system message a partir do arquivo separado
     const systemMessage = getSystemMessage(nome);
     
-    // Adiciona o system message no início do array de mensagens
-    const messagesWithSystem = [systemMessage, ...messages];
+    // Mapear as mensagens, garantindo que o content da função seja sempre string
+    const messagesWithSystem = [systemMessage, ...messages].map(msg => {
+        if (msg.role === 'function') {
+            // Garantir que o content seja uma string. Se já for, ótimo. Se não, stringify.
+            return {
+                ...msg,
+                content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content)
+            };
+        }
+        return msg;
+    });
 
     try {
         const response = await axios.post(
             'https://api.openai.com/v1/chat/completions',
             {
-                model: "gpt-4.1-mini", 
+                model: "gpt-4.1-mini", // Modelo atualizado
                 messages: messagesWithSystem,
                 functions: [availabilityFunction, plansFunction, paymentMethodsFunction, bookingFunction, updateBookingFunction, finishAppointmentFunction],
                 function_call: "auto",
@@ -325,10 +333,28 @@ async function enviarParaOpenAI(messages, nome, apiKey) {
             }
         );
 
+        // Verificar se a resposta contém um erro da API, mesmo com status 200
+        if (response.data.error) {
+            console.error('Erro retornado pela API OpenAI:', response.data.error);
+            throw new Error(response.data.error.message || 'Erro desconhecido da API OpenAI');
+        }
+
+        // Tratar a resposta normalmente (pode ser mensagem simples ou chamada de função)
         return response.data.choices[0].message;
     } catch (error) {
-        console.error('Erro ao obter resposta do ChatGPT:', error);
-        return { content: "Desculpe, não entendi sua resposta, você poderia tentar me explicar melhor? Sou uma assistente virtual, por isso, fale frases inteiras e sem abreviações para que eu entenda." };
+        // Log detalhado do erro Axios
+        if (error.response) {
+            // O servidor respondeu com um status fora do range 2xx
+            console.error(`Erro ${error.response.status} da API OpenAI:`, error.response.data);
+            // Tentar extrair uma mensagem de erro mais específica
+            const errorMessage = error.response.data?.error?.message || error.response.statusText || 'Erro desconhecido na API';
+            return { content: `Desculpe, ocorreu um erro ao processar sua solicitação (${errorMessage}). Por favor, tente novamente.` };
+        } else if (error.request) {
+        } else {
+            // Algo aconteceu ao configurar a requisição que acionou um erro
+            console.error('Erro ao configurar requisição para OpenAI:', error.message);
+            return { content: "Desculpe, ocorreu um erro interno ao processar sua solicitação." };
+        }
     }
 }
 

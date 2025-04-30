@@ -135,7 +135,7 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                         }
                         const availableTimes = await getAvailableAppointments(dateParam);
                         functionResultContent = JSON.stringify(availableTimes);
-                        conversationStore.addMessage(clinicaId, number, 'function', functionResultContent); 
+                        conversationStore.addMessage(clinicaId, number, 'function', functionResultContent, 'getAvailableAppointments'); 
                         currentConversation = conversationStore.getConversation(clinicaId, number);
                         const finalResponse = await getChatGPTResponse(currentConversation, nome);
                         finalContent = finalResponse.content;
@@ -145,7 +145,7 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                     } else if (name === 'getAvailablePlans') {
                         const availablePlans = await getPlans();
                         functionResultContent = JSON.stringify(availablePlans);
-                        conversationStore.addMessage(clinicaId, number, 'function', functionResultContent);
+                        conversationStore.addMessage(clinicaId, number, 'function', functionResultContent, 'getAvailablePlans');
                         currentConversation = conversationStore.getConversation(clinicaId, number);
                         const finalResponse = await getChatGPTResponse(currentConversation, nome);
                         finalContent = finalResponse.content;
@@ -158,13 +158,13 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                             finalContent = `Preciso de algumas informações adicionais para agendar sua consulta: ${missingFields.join(', ')}. Poderia me informar?`;
                             functionResultContent = JSON.stringify({ success: false, missing: missingFields });
                             // Add only the error result to history before returning
-                            conversationStore.addMessage(clinicaId, number, 'function', functionResultContent); 
+                            conversationStore.addMessage(clinicaId, number, 'function', functionResultContent, 'bookAppointment'); 
                         } else {
                             const bookingResult = await bookAppointment(parsedArgs);
                             functionResultContent = JSON.stringify(bookingResult);
                             logger.log('Booking result:', bookingResult);
                             // Add booking result first
-                            conversationStore.addMessage(clinicaId, number, 'function', functionResultContent);
+                            conversationStore.addMessage(clinicaId, number, 'function', functionResultContent, 'bookAppointment');
                             currentConversation = conversationStore.getConversation(clinicaId, number);
 
                             const isBookingSuccessful = bookingResult.success || 
@@ -185,7 +185,7 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                                     const finishResult = await finishAppointment(finishData);
                                     logger.log('Finish result:', finishResult);
                                     // Add finish result
-                                    conversationStore.addMessage(clinicaId, number, 'function', JSON.stringify(finishResult));
+                                    conversationStore.addMessage(clinicaId, number, 'function', JSON.stringify(finishResult), 'finishAppointment');
                                     currentConversation = conversationStore.getConversation(clinicaId, number);
                                     
                                     if (finishResult.success) {
@@ -242,12 +242,12 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                          if (missingFields.length > 0) {
                              finalContent = `Preciso de informações adicionais para finalizar: ${missingFields.join(', ')}.`;
                              functionResultContent = JSON.stringify({ success: false, missing: missingFields });
-                             conversationStore.addMessage(clinicaId, number, 'function', functionResultContent);
+                             conversationStore.addMessage(clinicaId, number, 'function', functionResultContent, 'finishAppointment');
                          } else {
                             const finishResult = await finishAppointment(parsedArgs);
                             functionResultContent = JSON.stringify(finishResult);
                             logger.log('Finish result:', finishResult);
-                            conversationStore.addMessage(clinicaId, number, 'function', functionResultContent);
+                            conversationStore.addMessage(clinicaId, number, 'function', functionResultContent, 'finishAppointment');
                             currentConversation = conversationStore.getConversation(clinicaId, number);
                             const finalResponse = await getChatGPTResponse(currentConversation, nome);
                             finalContent = finalResponse.content;
@@ -267,7 +267,7 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                         const updateResult = await updateAppointment(parsedArgs);
                         functionResultContent = JSON.stringify(updateResult);
                         logger.log('Update result:', updateResult);
-                        conversationStore.addMessage(clinicaId, number, 'function', functionResultContent);
+                        conversationStore.addMessage(clinicaId, number, 'function', functionResultContent, 'updateAppointment');
                         currentConversation = conversationStore.getConversation(clinicaId, number);
                         const finalResponse = await getChatGPTResponse(currentConversation, nome);
                         finalContent = finalResponse.content;
@@ -277,7 +277,7 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                     } else {
                         logger.warn(`Unknown function call received: ${name}`);
                         functionResultContent = JSON.stringify({ error: `Função desconhecida: ${name}` });
-                        conversationStore.addMessage(clinicaId, number, 'function', functionResultContent);
+                        conversationStore.addMessage(clinicaId, number, 'function', functionResultContent, name);
                         currentConversation = conversationStore.getConversation(clinicaId, number);
                         const finalResponse = await getChatGPTResponse(currentConversation, nome);
                         finalContent = finalResponse.content; 
@@ -286,7 +286,7 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                 } catch (funcError) {
                     logger.error(`Error executing function call ${name}:`, funcError);
                     functionResultContent = JSON.stringify({ error: `Erro ao executar ${name}: ${funcError.message}` });
-                    conversationStore.addMessage(clinicaId, number, 'function', functionResultContent); 
+                    conversationStore.addMessage(clinicaId, number, 'function', functionResultContent, name); 
                     currentConversation = conversationStore.getConversation(clinicaId, number);
                     // Try to get a response even after function error
                     try {

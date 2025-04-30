@@ -41,12 +41,21 @@ function createConversationStore({ logger }) {
      * @param {string} phoneNumber - User phone number.
      * @param {string} role - The role of the message sender ('user' or 'assistant' or 'function').
      * @param {string} content - The message content.
+     * @param {string} [name] - The function name (required when role is 'function').
      */
-    function addMessage(clinicaId, phoneNumber, role, content) {
+    function addMessage(clinicaId, phoneNumber, role, content, name) {
         const key = createKey(clinicaId, phoneNumber);
         let history = conversationCache.get(key) || [];
         
-        history.push({ role, content });
+        if (role === 'function') {
+            if (!name) {
+                logger.error('Function message requires name parameter');
+                return; // Don't add message without name
+            }
+            history.push({ role, content, name });
+        } else {
+            history.push({ role, content });
+        }
         
         // Trim history if it exceeds max length
         if (history.length > MAX_HISTORY_LENGTH) {
@@ -57,11 +66,11 @@ function createConversationStore({ logger }) {
         // logger.debug(`Added ${role} message to ${key}. New length: ${history.length}`);
     }
     
-     /**
+    /**
      * Adds multiple messages (like an array response from GPT) to the history.
      * @param {string} clinicaId - Clinic ID.
      * @param {string} phoneNumber - User phone number.
-     * @param {Array<object>} messages - Array of message objects ({role, content}).
+     * @param {Array<object>} messages - Array of message objects ({role, content, name?}).
      */
     function addMessages(clinicaId, phoneNumber, messages) {
         if (!Array.isArray(messages)) {
@@ -71,7 +80,16 @@ function createConversationStore({ logger }) {
         const key = createKey(clinicaId, phoneNumber);
         let history = conversationCache.get(key) || [];
         
-        history = history.concat(messages);
+        // Verificar cada mensagem antes de adicionar
+        const validMessages = messages.filter(msg => {
+            if (msg.role === 'function' && !msg.name) {
+                logger.error('Function message without name parameter skipped');
+                return false;
+            }
+            return true;
+        });
+        
+        history = history.concat(validMessages);
         
         // Trim history
         if (history.length > MAX_HISTORY_LENGTH) {
@@ -79,7 +97,7 @@ function createConversationStore({ logger }) {
         }
         
         conversationCache.set(key, history);
-        // logger.debug(`Added ${messages.length} messages to ${key}. New length: ${history.length}`);
+        // logger.debug(`Added ${validMessages.length} messages to ${key}. New length: ${history.length}`);
     }
 
     return {
