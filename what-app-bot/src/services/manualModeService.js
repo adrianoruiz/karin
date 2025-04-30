@@ -114,7 +114,13 @@ function createManualModeService({ logger, waClient, markMessageAsSentByBot, isM
             lowerBody.includes('confirmo sua consulta') ||
             lowerBody.includes('horários disponíveis') ||
             lowerBody.includes('link para pagamento') ||
-            lowerBody.includes('temos os seguintes horários');
+            lowerBody.includes('temos os seguintes horários') ||
+            lowerBody.includes('prefere a consulta online ou presencial') ||
+            lowerBody.includes('você prefere') ||
+            lowerBody.includes('ótima escolha') ||
+            lowerBody.includes('qual horário você prefere') ||
+            lowerBody.includes('presencial ou online') ||
+            lowerBody.includes('online ou presencial');
             
         const isLikelyAutomatic = isAutoMessage || isBotMessage;
         
@@ -126,6 +132,127 @@ function createManualModeService({ logger, waClient, markMessageAsSentByBot, isM
             // If it wasn't identified as automatic by heuristics AND not found in bot cache,
             // assume it's a manual human response.
             logger.log(`Outgoing message appears manual, disabling chatbot for ${number}`);
+            disableChatbot(clinicaId, number);
+        }
+    }
+
+    /**
+     * Processes an outgoing message (fromMe) to determine if it was manually sent
+     * by a human agent, and disables the chatbot for that user if so.
+     * It also marks known automatic messages to prevent them from triggering manual mode.
+     * 
+     * NOVA ABORDAGEM: Agora assume que todas as mensagens são do bot, a menos que
+     * tenha claros sinais de intervenção humana.
+     * 
+     * @param {object} message - The outgoing WhatsApp message object.
+     * @param {string} clinicaId - Clinic ID.
+     * @param {string} number - The recipient's phone number.
+     */
+    function processOutgoingMessage(message, clinicaId, number) {
+        // Verificar se message e message.body existem e são do tipo esperado
+        if (!message) {
+            logger.error('processOutgoingMessage: message is null or undefined');
+            return;
+        }
+        
+        // Extrair o texto da mensagem de forma segura
+        let messageBody = '';
+        if (typeof message.body === 'string') {
+            messageBody = message.body;
+        } else if (message.body && typeof message.body.toString === 'function') {
+            messageBody = message.body.toString();
+        } else {
+            // Se não conseguirmos extrair o texto, registramos e retornamos
+            logger.error(`Cannot process message body, unexpected type: ${typeof message.body}`);
+            return;
+        }
+        
+        // Ignore if it's the greeting reset confirmation message
+        if (messageBody.includes('Seu estado de saudação foi resetado')) {
+            return;
+        }
+
+        const isBotMessage = _isMessageSentByBot(clinicaId, messageBody);
+        const lowerBody = messageBody.toLowerCase();
+        
+        // Padrões que identificam claramente intervenção humana
+        const isLikelyManual = 
+            // Saudações personalizadas com nome específico do atendente
+            (lowerBody.includes('aqui é') && (lowerBody.includes('atendendo') || lowerBody.includes('falando'))) ||
+            // Respostas específicas sobre procedimentos internos
+            lowerBody.includes('vou verificar internamente') ||
+            lowerBody.includes('estou checando no sistema') || 
+            lowerBody.includes('acabei de verificar') ||
+            // Termos administrativos específicos
+            lowerBody.includes('transferindo para') ||
+            lowerBody.includes('estou encaminhando') ||
+            // Mensagens de atendimento de problemas
+            lowerBody.includes('posso entender melhor o problema') ||
+            // Expressões coloquiais
+            lowerBody.includes('um minutinho') ||
+            // Identificação pessoal
+            lowerBody.includes('sou a secretária');
+        
+        // Padrões de mensagens automáticas do bot (muito mais abrangente)
+        const isAutoMessage = 
+            // Saudações e introduções genéricas
+            lowerBody.includes('olá') || 
+            lowerBody.includes('ola ') ||
+            lowerBody.includes('bom ver você') || 
+            lowerBody.includes('como posso ajudar') ||
+            lowerBody.includes('posso te ajudar') ||
+            lowerBody.includes('em que posso ajudar') ||
+            // Fluxo de agendamento
+            lowerBody.includes('horários disponíveis') ||
+            lowerBody.includes('temos os seguintes horários') ||
+            lowerBody.includes('preferência de horário') ||
+            lowerBody.includes('vou verificar os horários') ||
+            lowerBody.includes('dia que você prefere') ||
+            lowerBody.includes('abrir agenda') ||
+            lowerBody.includes('primeira data') ||
+            lowerBody.includes('próxima data') ||
+            // Tipos de consulta
+            lowerBody.includes('prefere a consulta online') ||
+            lowerBody.includes('prefere consulta online') ||
+            lowerBody.includes('você prefere') ||
+            lowerBody.includes('prefere online') ||
+            lowerBody.includes('prefere presencial') ||
+            lowerBody.includes('ótima escolha') ||
+            lowerBody.includes('qual horário você prefere') ||
+            lowerBody.includes('presencial ou online') ||
+            lowerBody.includes('online ou presencial') ||
+            lowerBody.includes('perfeito') ||
+            // Solicitação de dados e pagamento
+            lowerBody.includes('informe seu nome') ||
+            lowerBody.includes('me informe seu') ||
+            lowerBody.includes('por favor, me informe') ||
+            lowerBody.includes('informar seus dados') ||
+            lowerBody.includes('data de nascimento') ||
+            lowerBody.includes('cpf') ||
+            lowerBody.includes('telefone') ||
+            lowerBody.includes('forma de pagamento') ||
+            lowerBody.includes('método de pagamento') ||
+            lowerBody.includes('link para pagamento') ||
+            lowerBody.includes('link de pagamento') ||
+            lowerBody.includes('pode pagar') ||
+            lowerBody.includes('efetuar o pagamento') ||
+            // Confirmações
+            lowerBody.includes('obrigada pelos seus dados') || 
+            lowerBody.includes('confirmo sua consulta') ||
+            lowerBody.includes('consulta marcada') ||
+            lowerBody.includes('consulta agendada') ||
+            lowerBody.includes('confirmando');
+        
+        // INVERTENDO A LÓGICA: assume automática a menos que seja claramente manual
+        const isLikelyAutomatic = isAutoMessage || isBotMessage || !isLikelyManual;
+        
+        if (isLikelyAutomatic) {
+            // Se parece automática, mantém o bot ativo
+            _markMessageAsSentByBot(clinicaId, messageBody);
+            logger.log(`Outgoing message identified as automatic/bot, chatbot remains active for ${number}`);
+        } else {
+            // Apenas se for claramente uma intervenção humana, desativa o chatbot
+            logger.log(`Outgoing message clearly manual, disabling chatbot for ${number}`);
             disableChatbot(clinicaId, number);
         }
     }
