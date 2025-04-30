@@ -7,7 +7,7 @@ const {
     finishAppointment 
 } = require('../services/tools'); // Adjust path
 const { detectSensitiveTopics } = require('../utils/detectSensitiveTopics'); // Adjust path
-const { formatAvailableAppointments } = require('../utils/formatAvailableAppointments'); // Adjust path
+const { LIST_ITEM_REGEX, PAYMENT_FIELD_REGEX, PAYMENT_VALUE_REGEX, FIELD_VALUE_REGEX } = require('../utils/regex'); // Import regex constants
 
 /**
  * Creates a GPT Router instance to handle message processing and function calls.
@@ -26,9 +26,8 @@ function createGptRouter({ logger, conversationStore, waClient }) {
      * @returns {string} Processed message or original message if not in list format.
      */
     function processListFormat(message) {
-        const listPattern = /^(name|cpf|phone|birthdate|pagamento):\s*(.*?)$/im;
-        
-        if (!listPattern.test(message)) {
+        // Substituindo regex inline por LIST_ITEM_REGEX importado
+        if (!LIST_ITEM_REGEX.test(message)) {
             return message;
         }
         
@@ -36,8 +35,8 @@ function createGptRouter({ logger, conversationStore, waClient }) {
         const data = {};
         
         lines.forEach(line => {
-            if (line.toLowerCase().includes('pagamento') || line.toLowerCase().includes('cartao') || line.toLowerCase().includes('cartão')) {
-                const paymentLine = line.toLowerCase();
+            if (PAYMENT_FIELD_REGEX.test(line)) {
+                const paymentLine = line;
                 if (paymentLine.includes('pix')) {
                     data['payment_method'] = 'pix';
                     return;
@@ -53,14 +52,14 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                     return;
                 }
                 
-                const paymentMatch = line.match(/:\s*(.*?)$/);
+                const paymentMatch = PAYMENT_VALUE_REGEX.exec(line);
                 if (paymentMatch) {
                     data['payment_method'] = paymentMatch[1].trim();
                 }
                 return;
             }
             
-            const match = line.match(/^(name|cpf|phone|birthdate):\s*(.*?)$/i);
+            const match = FIELD_VALUE_REGEX.exec(line);
             if (match) {
                 data[match[1].toLowerCase()] = match[2].trim();
             }
@@ -128,15 +127,22 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                     
                     // Check and correct date format
                     const originalDate = parsedArgs.date;
+                    // Converter data de DD/MM/YYYY para ISO (YYYY-MM-DD)
+                    if (/^\d{2}\/\d{2}\/\d{4}$/.test(originalDate)) {
+                        const [day, month, year] = originalDate.split('/');
+                        parsedArgs.date = `${year}-${month}-${day}`;
+                        logger.log(`Convertendo data de ${originalDate} para ISO: ${parsedArgs.date}`);
+                    }
+                    
                     const dateNeedsCorrection = originalDate && (
-                        originalDate.startsWith('2024-') || // Wrong year
+                        originalDate.startsWith('2025-') || // Wrong year
                         (originalDate.includes('-') && parseInt(originalDate.split('-')[1]) > 12) || // Invalid month
                         (originalDate.includes('/')) || // Wrong format
                         (originalDate.length !== 10) // Incorrect length
                     );
                     
                     // Always verify to ensure correctness
-                    if (dateNeedsCorrection || true) {
+                    if (dateNeedsCorrection) {
                         logger.log(`Verificando data do agendamento: ${originalDate}`);
                         
                         // Find most recent available appointments in conversation
