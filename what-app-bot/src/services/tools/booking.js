@@ -232,6 +232,54 @@ async function bookAppointment(appointmentData) {
             };
         }
         
+        // Validar e corrigir formato da data de agendamento
+        let appointmentDate = appointmentData.date;
+        
+        // Verificar se a data está no formato correto (YYYY-MM-DD)
+        const dateFormatRegex = /^(\d{4})-(\d{1,2})-(\d{1,2})$/;
+        const dateMatch = appointmentDate.match(dateFormatRegex);
+        
+        if (dateMatch) {
+            const year = parseInt(dateMatch[1]);
+            const month = parseInt(dateMatch[2]);
+            const day = parseInt(dateMatch[3]);
+            
+            // Verificar se o ano, mês e dia são válidos
+            if (year < 2023 || month < 1 || month > 12 || day < 1 || day > 31) {
+                console.log(`[DEBUG] Data de agendamento inválida: ${appointmentDate}`);
+                console.log(`[DEBUG] Tentando interpretar como DD-MM-YYYY ou MM-DD-YYYY`);
+                
+                // Tentar interpretar como MM-DD-YYYY ou DD-MM-YYYY
+                if (month <= 12 && day <= 31) {
+                    // Verificar qual interpretação faz mais sentido
+                    if (day > 12) {
+                        // Se o dia for maior que 12, só pode ser DD-MM-YYYY
+                        appointmentDate = `${year}-${day.toString().padStart(2, '0')}-${month.toString().padStart(2, '0')}`;
+                        console.log(`[DEBUG] Interpretado como DD-MM-YYYY: ${appointmentDate}`);
+                    } else {
+                        // Se tanto mês quanto dia forem <= 12, assume formato padrão
+                        appointmentDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+                        console.log(`[DEBUG] Mantendo formato original: ${appointmentDate}`);
+                    }
+                }
+            }
+        } else {
+            // Se não estiver no formato YYYY-MM-DD, tentar converter
+            console.log(`[DEBUG] Data não está no formato YYYY-MM-DD: ${appointmentDate}`);
+            const parts = appointmentDate.split(/[\/.-]/);
+            
+            if (parts.length === 3) {
+                if (parts[0].length === 4) {
+                    // Formato YYYY/MM/DD
+                    appointmentDate = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+                } else {
+                    // Formato DD/MM/YYYY ou MM/DD/YYYY
+                    appointmentDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                }
+                console.log(`[DEBUG] Data convertida para: ${appointmentDate}`);
+            }
+        }
+        
         // Converter a data de nascimento do formato brasileiro para o formato americano
         const formattedBirthdate = convertDateFormat(appointmentData.birthdate);
         
@@ -248,14 +296,42 @@ async function bookAppointment(appointmentData) {
         // Determinar o ID do método de pagamento
         const paymentMethodId = await determinePaymentMethodId(paymentMethod);
         
+        // Validar dados do telefone
+        let phoneNumber = appointmentData.phone;
+        
+        // Se o telefone estiver vazio ou for inválido, tentar extrair do número do WhatsApp
+        if (!phoneNumber || phoneNumber.trim() === '') {
+            // Tentar obter o número do WhatsApp da sessão (assumindo que pode estar disponível em um contexto mais amplo)
+            console.log(`[DEBUG] Telefone não fornecido ou inválido, tentando usar número do WhatsApp`);
+            
+            // Usar o número do próprio paciente como fallback (já deve ter sido preenchido pelo gptRouter)
+            phoneNumber = appointmentData.phone;
+        }
+        
+        // Remover formatação do telefone
+        phoneNumber = phoneNumber.replace(/\D/g, '');
+        
+        // Garantir que tenha o formato correto (só números)
+        if (!/^\d+$/.test(phoneNumber)) {
+            console.log(`[DEBUG] Telefone inválido após processamento: ${phoneNumber}`);
+            
+            return {
+                success: false,
+                message: "Telefone inválido",
+                errors: {
+                    phone: ["O telefone fornecido não é válido"]
+                }
+            };
+        }
+        
         // Preparar os dados para a API
         const apiData = {
             name: appointmentData.name,
             cpf: appointmentData.cpf.replace(/\D/g, ''), // Remove caracteres não numéricos
-            phone: appointmentData.phone.replace(/\D/g, ''), // Remove caracteres não numéricos
+            phone: phoneNumber,
             birthday: formattedBirthdate, // Data de nascimento convertida
             doctor_id: 2, // ID fixo da Dra. Karin
-            appointment_datetime: `${appointmentData.date} ${appointmentData.time}:00`, // Combina data e hora
+            appointment_datetime: `${appointmentDate} ${appointmentData.time}:00`, // Combina data e hora
             status: "agendada",
             observations: appointmentData.observations || 'Primeira consulta.',
             is_online: isOnline,
@@ -264,6 +340,8 @@ async function bookAppointment(appointmentData) {
         };
         
         console.log(`[DEBUG] Dados formatados para API:`, JSON.stringify(apiData, null, 2));
+        console.log(`[DEBUG] Data original: ${appointmentData.date}, Data processada: ${appointmentDate}, Hora: ${appointmentData.time}`);
+        console.log(`[DEBUG] Data+hora combinada: ${apiData.appointment_datetime}`);
         
         // Parâmetros da requisição
         const params = {
@@ -324,7 +402,7 @@ async function bookAppointment(appointmentData) {
                 const whatsappClient = require('../../whatsapp/client').getClient();
                 
                 // Formatar a data e hora para exibição
-                const appointmentDate = new Date(appointmentData.date);
+                const appointmentDate = new Date(appointmentDate);
                 const formattedDate = appointmentDate.toLocaleDateString('pt-BR');
                 const dayOfWeek = new Intl.DateTimeFormat('pt-BR', { weekday: 'long' }).format(appointmentDate);
                 const capitalizedDayOfWeek = dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1);

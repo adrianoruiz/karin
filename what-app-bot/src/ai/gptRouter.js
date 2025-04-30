@@ -151,89 +151,144 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                         finalContent = finalResponse.content;
 
                     } else if (name === 'bookAppointment') {
-                        logger.log('Processing booking... Args:', parsedArgs);
-                        const requiredFields = ["name", "cpf", "phone", "birthdate", "date", "time"];
-                        const missingFields = requiredFields.filter(field => !parsedArgs[field]);
-                        if (missingFields.length > 0) {
-                            finalContent = `Preciso de algumas informações adicionais para agendar sua consulta: ${missingFields.join(', ')}. Poderia me informar?`;
-                            functionResultContent = JSON.stringify({ success: false, missing: missingFields });
-                            // Add only the error result to history before returning
-                            conversationStore.addMessage(clinicaId, number, 'function', functionResultContent, 'bookAppointment'); 
-                        } else {
-                            const bookingResult = await bookAppointment(parsedArgs);
-                            functionResultContent = JSON.stringify(bookingResult);
-                            logger.log('Booking result:', bookingResult);
-                            // Add booking result first
-                            conversationStore.addMessage(clinicaId, number, 'function', functionResultContent, 'bookAppointment');
-                            currentConversation = conversationStore.getConversation(clinicaId, number);
-
-                            const isBookingSuccessful = bookingResult.success || 
-                                (bookingResult.message && bookingResult.message.toLowerCase().includes('sucesso'));
-
-                            if (isBookingSuccessful) {
-                                try {
-                                    logger.log('Booking successful, calling finishAppointment automatically...');
-                                    const finishData = { /* ... prepare data ... */ 
-                                         patient_name: parsedArgs.name,
-                                         patient_phone: parsedArgs.phone,
-                                         appointment_date: parsedArgs.date,
-                                         appointment_time: parsedArgs.time,
-                                         is_online: bookingResult.is_online ?? (parsedArgs.modality && parsedArgs.modality.toLowerCase().includes('online')), 
-                                         payment_method: parsedArgs.payment_method || 'Não informado',
-                                         observations: parsedArgs.observations || 'Primeira consulta'
-                                    };
-                                    const finishResult = await finishAppointment(finishData);
-                                    logger.log('Finish result:', finishResult);
-                                    // Add finish result
-                                    conversationStore.addMessage(clinicaId, number, 'function', JSON.stringify(finishResult), 'finishAppointment');
-                                    currentConversation = conversationStore.getConversation(clinicaId, number);
-                                    
-                                    if (finishResult.success) {
-                                        bookingResult.payment_link = finishResult.payment_link;
-                                        bookingResult.payment_message = finishResult.payment_message;
-                                        let paymentLink = finishResult.payment_link;
-                                        if (!paymentLink) { // Fallback logic
-                                            const isOnline = finishData.is_online;
-                                            logger.log(`Payment link fallback needed. Modality: ${isOnline ? 'online' : 'presencial'}`);
-                                            paymentLink = isOnline ? 'https://mpago.li/2cc49wX' : 'https://mpago.li/2Nz1i2h';
-                                            bookingResult.payment_link = paymentLink;
-                                            bookingResult.payment_message = `Aqui está o link para pagamento: ${paymentLink}\n\nNo link de pagamento você pode escolher se quer pagar no cartão de crédito/débito ou PIX.`;
-                                        }
-                                        // Send payment link immediately via waClient
-                                        if (bookingResult.payment_message && waClient) {
-                                            logger.log(`Sending payment link directly to ${number}: ${paymentLink}`);
-                                            await waClient.sendMessage(number, bookingResult.payment_message, clinicaId);
-                                        } else {
-                                             logger.warn('waClient not available or no payment message to send directly.');
-                                        }
-                                    } else {
-                                         logger.error(`Failed to finish appointment: ${finishResult.message || 'Unknown error'}`);
-                                    }
-                                } catch (finishError) {
-                                    logger.error('Error calling finishAppointment automatically:', finishError);
-                                }
-                            } // end if isBookingSuccessful
-
-                            // Get final GPT response using potentially updated conversation
-                            const finalResponse = await getChatGPTResponse(currentConversation, nome);
-                            finalContent = finalResponse.content;
+                        // Garantir que o telefone seja sempre enviado usando o número do WhatsApp
+                        // Ao invés de verificar se está vazio, sempre inclua o número do WhatsApp
+                        parsedArgs.phone = number || parsedArgs.phone;
+                        logger.log(`Incluindo número do WhatsApp como telefone: ${number}`);
+                        
+                        // Verificar e corrigir formato da data para evitar inversão de data/mês ou data incorreta
+                        const originalDate = parsedArgs.date;
+                        
+                        // Verificar problemas óbvios com a data
+                        let dateNeedsCorrection = originalDate && (
+                            originalDate.startsWith('2024-') || // Ano errado
+                            (originalDate.includes('-') && parseInt(originalDate.split('-')[1]) > 12) || // Mês inválido
+                            (originalDate.includes('/')) || // Formato errado
+                            (originalDate.length !== 10) // Tamanho incorreto
+                        );
+                        
+                        // Se precisar de correção ou como verificação de segurança
+                        if (dateNeedsCorrection || true) { // Sempre verifica para garantir
+                            // Procurar data correta no histórico da conversa
+                            logger.log(`Verificando data do agendamento: ${originalDate}`);
                             
-                            // Append payment message to GPT response if successful and not already included
-                            if (isBookingSuccessful && bookingResult.payment_message) {
-                                if (!finalContent.includes('link de pagamento') && !finalContent.includes('link para pagamento') && !finalContent.includes(bookingResult.payment_link)) {
-                                     if (finalContent.includes('agendada') || finalContent.includes('marcada') || finalContent.includes('sucesso')) {
-                                         finalContent += /[.!?]$/.test(finalContent) ? ` ${bookingResult.payment_message}` : `. ${bookingResult.payment_message}`;
-                                     } else {
-                                         finalContent += `\n\nSua consulta foi agendada com sucesso! ${bookingResult.payment_message}`;
-                                     }
-                                 } 
-                                 // Clean up redundant auto-send messages if link is present
-                                 if (finalContent.includes(bookingResult.payment_link)) {
-                                      finalContent = finalContent.replace('O link de pagamento será enviado automaticamente.', '').trim();
-                                 } else if (finalContent.includes('será enviado automaticamente')) {
-                                     finalContent = finalContent.replace('O link de pagamento será enviado automaticamente.', bookingResult.payment_message);
-                                 }
+                            // Buscar os horários disponíveis mais recentes na conversa
+                            const availableAppointments = currentConversation.filter(
+                                msg => msg.role === 'function' && 
+                                      msg.name === 'getAvailableAppointments' &&
+                                      msg.content
+                            );
+                            
+                            if (availableAppointments.length > 0) {
+                                try {
+                                    // Pegar o resultado mais recente
+                                    const lastAppointmentResult = JSON.parse(
+                                        availableAppointments[availableAppointments.length - 1].content
+                                    );
+                                    
+                                    // Verificar se temos horários disponíveis
+                                    if (lastAppointmentResult.appointments && 
+                                        lastAppointmentResult.appointments.length > 0) {
+                                        
+                                        // Encontrar o horário correto que corresponda à hora solicitada
+                                        const requestedTime = parsedArgs.time.replace('h', ':00');
+                                        const matchingAppointment = lastAppointmentResult.appointments.find(
+                                            appt => appt.time === requestedTime || 
+                                                   appt.time === parsedArgs.time
+                                        );
+                                        
+                                        if (matchingAppointment) {
+                                            // Usar a data correta correspondente à hora escolhida
+                                            if (matchingAppointment.date !== originalDate) {
+                                                logger.log(`Corrigindo data: ${originalDate} -> ${matchingAppointment.date} (encontrado horário correspondente)`);
+                                                parsedArgs.date = matchingAppointment.date;
+                                            }
+                                        } else if (lastAppointmentResult.appointments[0].date !== originalDate) {
+                                            // Usar o primeiro horário disponível como fallback
+                                            logger.log(`Corrigindo data: ${originalDate} -> ${lastAppointmentResult.appointments[0].date} (usando primeiro horário disponível)`);
+                                            parsedArgs.date = lastAppointmentResult.appointments[0].date;
+                                        }
+                                    }
+                                } catch (error) {
+                                    logger.error('Erro ao tentar corrigir data do agendamento:', error);
+                                }
                             }
+                        }
+                        
+                        // Garantir formato correto da hora (16h -> 16:00)
+                        if (parsedArgs.time && parsedArgs.time.includes('h')) {
+                            parsedArgs.time = parsedArgs.time.replace('h', ':00');
+                            logger.log(`Corrigindo formato da hora: ${parsedArgs.time}`);
+                        }
+                        
+                        const bookingResult = await bookAppointment(parsedArgs);
+                        logger.log('Booking result:', bookingResult);
+                        conversationStore.addMessage(clinicaId, number, 'function', JSON.stringify(bookingResult), 'bookAppointment');
+                        currentConversation = conversationStore.getConversation(clinicaId, number);
+
+                        if (bookingResult.success) {
+                            try {
+                                logger.log('Booking successful, calling finishAppointment automatically...');
+                                const finishData = { /* ... prepare data ... */ 
+                                     patient_name: parsedArgs.name,
+                                     patient_phone: parsedArgs.phone,
+                                     appointment_date: parsedArgs.date,
+                                     appointment_time: parsedArgs.time,
+                                     is_online: bookingResult.is_online ?? (parsedArgs.modality && parsedArgs.modality.toLowerCase().includes('online')), 
+                                     payment_method: parsedArgs.payment_method || 'Não informado',
+                                     observations: parsedArgs.observations || 'Primeira consulta'
+                                };
+                                const finishResult = await finishAppointment(finishData);
+                                logger.log('Finish result:', finishResult);
+                                // Add finish result
+                                conversationStore.addMessage(clinicaId, number, 'function', JSON.stringify(finishResult), 'finishAppointment');
+                                currentConversation = conversationStore.getConversation(clinicaId, number);
+                                
+                                if (finishResult.success) {
+                                    bookingResult.payment_link = finishResult.payment_link;
+                                    bookingResult.payment_message = finishResult.payment_message;
+                                    let paymentLink = finishResult.payment_link;
+                                    if (!paymentLink) { // Fallback logic
+                                        const isOnline = finishData.is_online;
+                                        logger.log(`Payment link fallback needed. Modality: ${isOnline ? 'online' : 'presencial'}`);
+                                        paymentLink = isOnline ? 'https://mpago.li/2cc49wX' : 'https://mpago.li/2Nz1i2h';
+                                        bookingResult.payment_link = paymentLink;
+                                        bookingResult.payment_message = `Aqui está o link para pagamento: ${paymentLink}\n\nNo link de pagamento você pode escolher se quer pagar no cartão de crédito/débito ou PIX.`;
+                                    }
+                                    // Send payment link immediately via waClient
+                                    if (bookingResult.payment_message && waClient) {
+                                        logger.log(`Sending payment link directly to ${number}: ${paymentLink}`);
+                                        await waClient.sendMessage(number, bookingResult.payment_message, clinicaId);
+                                    } else {
+                                         logger.warn('waClient not available or no payment message to send directly.');
+                                    }
+                                } else {
+                                     logger.error(`Failed to finish appointment: ${finishResult.message || 'Unknown error'}`);
+                                }
+                            } catch (finishError) {
+                                logger.error('Error calling finishAppointment automatically:', finishError);
+                            }
+                        } // end if isBookingSuccessful
+
+                        // Get final GPT response using potentially updated conversation
+                        const finalResponse = await getChatGPTResponse(currentConversation, nome);
+                        finalContent = finalResponse.content;
+                        
+                        // Append payment message to GPT response if successful and not already included
+                        if (bookingResult.success && bookingResult.payment_message) {
+                            if (!finalContent.includes('link de pagamento') && !finalContent.includes('link para pagamento') && !finalContent.includes(bookingResult.payment_link)) {
+                                 if (finalContent.includes('agendada') || finalContent.includes('marcada') || finalContent.includes('sucesso')) {
+                                     finalContent += /[.!?]$/.test(finalContent) ? ` ${bookingResult.payment_message}` : `. ${bookingResult.payment_message}`;
+                                 } else {
+                                     finalContent += `\n\nSua consulta foi agendada com sucesso! ${bookingResult.payment_message}`;
+                                 }
+                             } 
+                             // Clean up redundant auto-send messages if link is present
+                             if (finalContent.includes(bookingResult.payment_link)) {
+                                  finalContent = finalContent.replace('O link de pagamento será enviado automaticamente.', '').trim();
+                             } else if (finalContent.includes('será enviado automaticamente')) {
+                                 finalContent = finalContent.replace('O link de pagamento será enviado automaticamente.', bookingResult.payment_message);
+                             }
                         }
                     } else if (name === 'finishAppointment') { // Explicit finish call
                         logger.log('Processing finish appointment... Args:', parsedArgs);
