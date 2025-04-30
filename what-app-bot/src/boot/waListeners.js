@@ -88,12 +88,16 @@ async function bootstrapListeners(client, clinicaId) {
             if (manualModeService.isChatbotDisabled(clinicaId, number)) return; 
 
             // 2. Greeting Reset Command Check
-            const resetHandled = await greetingService.handleResetCommand(messageBodyNormalized, number, clinicaId);
-            if (resetHandled) return;
+            // const resetHandled = await greetingService.handleResetCommand(messageBodyNormalized, number, clinicaId);
+            // if (resetHandled) return;
 
-            // 3. Greeting Check/Send
-            const greetingStatus = await greetingService.checkAndSendGreetingIfNeeded(message, contact, chat, clinicaId);
-            if (greetingStatus === 'SENT' || greetingStatus === 'FAILED') return;
+            // // 3. Greeting Check/Send
+            // const greetingStatus = await greetingService.checkAndSendGreetingIfNeeded(message, contact, chat, clinicaId);
+            // if (greetingStatus === 'SENT' || greetingStatus === 'FAILED' || greetingStatus === 'ALREADY_SENT') {
+            //     // Já enviamos a saudação ou ela já tinha sido enviada, não precisamos processar mais nada
+            //     logger.log(`Greeting handled with status ${greetingStatus}, stopping pipeline for this message`);
+            //     return;
+            // }
 
             // 4. Duplicate Check (Skip for audio)
             if (message.type !== 'ptt' && message.type !== 'audio') {

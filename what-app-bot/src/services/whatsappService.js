@@ -54,6 +54,22 @@ async function sendWhatsAppMessage(client, number, message, clinicaId) {
         // Marcar mensagem como enviada pelo bot ANTES de enviar para evitar duplicação
         markMessageAsSentByBot(clinicaId, messageText);
         
+        // Se a mensagem for uma saudação, marcar no cache de saudações também
+        if (messageText.toLowerCase().includes('olá') || 
+            messageText.toLowerCase().includes('ola') || 
+            messageText.toLowerCase().includes('bom ver você')) {
+            try {
+                // Use greetingCache diretamente
+                const caches = require('../cache/cacheFactory');
+                const { greeting: greetingCache } = caches;
+                const key = `${clinicaId}:${number}`;
+                greetingCache.set(key, true);
+                logger.log(`API greeting marked as sent for ${number} (${clinicaId})`);
+            } catch (cacheError) {
+                logger.error('Error marking greeting as sent:', cacheError);
+            }
+        }
+        
         const response = await client.sendMessage(formattedNumber, messageText);
         
         // Não marcamos novamente aqui, já foi marcado acima

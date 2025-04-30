@@ -65,10 +65,10 @@ async function retryWithExponentialBackoff(operation, retries = 3, delay = 1000)
  * Transcreve um arquivo de áudio usando a API de áudio da OpenAI
  * @param {string} audioPath - Caminho para o arquivo de áudio
  * @param {string} [prompt] - Prompt opcional para melhorar a transcrição
- * @param {string} [model="gpt-4o-transcribe"] - Modelo a ser usado
+ * @param {string} [model="whisper-1"] - Modelo a ser usado (whisper-1 é geralmente recomendado)
  * @returns {Promise<string>} - Texto transcrito do áudio
  */
-async function transcribeAudio(audioPath, prompt = '', model = 'gpt-4o-transcribe') {
+async function transcribeAudio(audioPath, prompt = '', model = 'whisper-1') { // Default to whisper-1
     const apiKey = process.env.OPENAI_API_KEY;
     
     if (!apiKey) {
@@ -153,17 +153,17 @@ function getBasicFallbackResponse(text) {
  * @param {string} nome - Nome do usuário
  * @param {string} phoneNumber - Número de telefone do usuário
  * @param {number} clinicaId - ID do clinica
- * @param {object} client - Cliente do WhatsApp
+ * @param {object} rawClient - Cliente RAW do WhatsApp (para download, fallback)
  * @param {function} processMessageWithGPT - Função para processar mensagem com GPT
- * @param {function} sendWhatsAppMessage - Função para enviar mensagem do WhatsApp
+ * @param {object} waClientWrapper - Wrapper do cliente com método sendMessage.
  * @returns {Promise<void>}
  */
-async function processAudioMessage(message, nome, phoneNumber, clinicaId, client, processMessageWithGPT, sendWhatsAppMessage) {
+async function processAudioMessage(message, nome, phoneNumber, clinicaId, rawClient, processMessageWithGPT, waClientWrapper) {
     let audioPath = null;
     
     try {
         // Baixar o arquivo de áudio
-        audioPath = await downloadAudio(message);
+        audioPath = await downloadAudio(message); 
         
         // Prompt para melhorar a transcrição
         const prompt = "Esta é uma conversa em português com a secretária virtual da Dra. Karin Boldarini, psiquiatra.";
@@ -175,13 +175,17 @@ async function processAudioMessage(message, nome, phoneNumber, clinicaId, client
         // Processar o texto transcrito com o ChatGPT
         const gptResponse = await processMessageWithGPT(transcription, nome, phoneNumber, clinicaId);
         
-        // Enviar resposta ao usuário usando o serviço de WhatsApp que suporta voz
-        if (sendWhatsAppMessage) {
+        // Enviar resposta ao usuário usando o waClientWrapper
+        if (waClientWrapper && typeof waClientWrapper.sendMessage === 'function') {
             // Passando true como último parâmetro para indicar que é uma resposta a uma mensagem de áudio
-            await sendWhatsAppMessage(client, phoneNumber, gptResponse, clinicaId, true);
+            await waClientWrapper.sendMessage(phoneNumber, gptResponse, clinicaId, true);
+            console.log('Resposta do GPT enviada via waClientWrapper');
         } else {
-            // Fallback para o método antigo se sendWhatsAppMessage não for fornecido
-            await client.sendMessage(message.from, gptResponse);
+            // Fallback ou log de erro se o wrapper não for válido
+            console.error('waClientWrapper inválido ou sem método sendMessage fornecido para processAudioMessage');
+            // Fallback para o método antigo usando o cliente raw (menos ideal)
+            await rawClient.sendMessage(message.from, gptResponse); 
+            console.log('Resposta do GPT enviada via rawClient (fallback)');
         }
         
         return gptResponse;
@@ -190,50 +194,50 @@ async function processAudioMessage(message, nome, phoneNumber, clinicaId, client
         
         let errorMessage = "Desculpe, não consegui processar seu áudio. Poderia enviar sua mensagem em texto?";
         
-        // Se temos a transcrição mas falhou no processamento com GPT, tentamos um fallback
+        // Tenta obter uma resposta de fallback baseada na transcrição, se disponível
         if (audioPath) {
-            try {
-                const fallbackTranscription = await transcribeAudio(audioPath, '', 'whisper-1');
-                const fallbackResponse = getBasicFallbackResponse(fallbackTranscription);
-                
-                if (fallbackResponse) {
-                    // Enviar resposta de fallback
-                    if (sendWhatsAppMessage) {
-                        // Passando true como último parâmetro para indicar que é uma resposta a uma mensagem de áudio
-                        await sendWhatsAppMessage(client, phoneNumber, fallbackResponse, clinicaId, true);
-                    } else {
-                        // Fallback para o método antigo
-                        await client.sendMessage(message.from, fallbackResponse);
-                    }
-                    return fallbackResponse;
-                }
-            } catch (fallbackError) {
-                console.error('Erro ao tentar fallback:', fallbackError);
-            }
+             try {
+                 const fallbackTranscription = await transcribeAudio(audioPath, '', 'whisper-1');
+                 const fallbackResponse = getBasicFallbackResponse(fallbackTranscription);
+                 
+                 if (fallbackResponse) {
+                     // Enviar resposta de fallback usando waClientWrapper
+                     if (waClientWrapper && typeof waClientWrapper.sendMessage === 'function') {
+                         await waClientWrapper.sendMessage(phoneNumber, fallbackResponse, clinicaId, true);
+                         console.log('Resposta de fallback enviada via waClientWrapper');
+                     } else {
+                         await rawClient.sendMessage(message.from, fallbackResponse);
+                         console.log('Resposta de fallback enviada via rawClient (fallback)');
+                     }
+                     return fallbackResponse; // Retorna para indicar que um fallback foi enviado
+                 }
+             } catch (fallbackError) {
+                 console.error('Erro ao tentar fallback:', fallbackError);
+             }
+         }
+        
+        // Se nenhum fallback foi enviado, envia a mensagem de erro padrão
+        if (waClientWrapper && typeof waClientWrapper.sendMessage === 'function') {
+            await waClientWrapper.sendMessage(phoneNumber, errorMessage, clinicaId, true);
+            console.log('Mensagem de erro de áudio enviada via waClientWrapper');
+        } else if (rawClient) {
+             await rawClient.sendMessage(message.from, errorMessage);
+             console.log('Mensagem de erro de áudio enviada via rawClient (fallback)');
+        } else {
+             console.error('Nenhum cliente válido para enviar mensagem de erro de áudio');
         }
         
-        if (client) {
-            // Enviar mensagem de erro
-            if (sendWhatsAppMessage) {
-                // Passando true como último parâmetro para indicar que é uma resposta a uma mensagem de áudio
-                await sendWhatsAppMessage(client, phoneNumber, errorMessage, clinicaId, true);
-            } else {
-                // Fallback para o método antigo
-                await client.sendMessage(message.from, errorMessage);
-            }
-        }
-        
-        throw error;
+        throw error; // Re-lança o erro após tratar
     } finally {
         // Limpar o arquivo de áudio após o processamento
-        if (audioPath && fs.existsSync(audioPath)) {
-            try {
-                fs.unlinkSync(audioPath);
-                console.log(`Arquivo de áudio removido: ${audioPath}`);
-            } catch (unlinkError) {
-                console.error('Erro ao remover arquivo de áudio:', unlinkError);
-            }
-        }
+         if (audioPath && fs.existsSync(audioPath)) {
+             try {
+                 fs.unlinkSync(audioPath);
+                 console.log(`Arquivo de áudio removido: ${audioPath}`);
+             } catch (unlinkError) {
+                 console.error('Erro ao remover arquivo de áudio:', unlinkError);
+             }
+         }
     }
 }
 

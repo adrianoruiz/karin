@@ -87,13 +87,14 @@ function createGreetingService({ logger, getMessageType, waClient, createCacheKe
                 return 'FAILED';
             }
             
-            if (greetingMessage) {
+            if (greetingMessage && greetingMessage !== 'Mensagem personalizada obtida com sucesso') {
                 // Send greeting message
                 if (waClient) {
-                    // Fazer o log antes de enviar para ficar mais visível
+                    // Marcar como enviado ANTES para evitar mensagens duplicadas
                     markGreetingAsSent(clinicaId, number);
                     logger.log(`Greeting marked as sent for ${number} (${clinicaId})`);
                     
+                    // Enviar mensagem única
                     await waClient.sendMessage(number, greetingMessage, clinicaId);
                     logger.log(`Greeting sent to ${number}`);
                 } else {
