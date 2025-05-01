@@ -76,7 +76,7 @@ function convertDateFormat(date) {
         if (parts[0].length === 4) {
             return date;
         }
-        // Caso contrário, converte do formato brasileiro para o americano
+        // Converte do formato brasileiro para o americano
         return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
     }
     
@@ -188,10 +188,14 @@ async function determinePaymentMethodId(paymentMethod = null) {
         if (normalizedPayment.includes('pix')) {
             console.log(`[DEBUG] Método de pagamento contém 'pix', usando ID 3`);
             return 3;
-        } else if (normalizedPayment.includes('cred') || normalizedPayment.includes('créd')) {
+        }
+        
+        if (normalizedPayment.includes('cred') || normalizedPayment.includes('créd')) {
             console.log(`[DEBUG] Método de pagamento contém referência a crédito, usando ID 1`);
             return 1;
-        } else if (normalizedPayment.includes('deb') || normalizedPayment.includes('déb')) {
+        }
+        
+        if (normalizedPayment.includes('deb') || normalizedPayment.includes('déb')) {
             console.log(`[DEBUG] Método de pagamento contém referência a débito, usando ID 2`);
             return 2;
         }
@@ -232,54 +236,29 @@ async function bookAppointment(appointmentData) {
             };
         }
         
-        // Validar e corrigir formato da data de agendamento
-        let appointmentDate = appointmentData.date;
+        // Formatando data e hora para o formato esperado pela API
+        const originalDate = appointmentData.date;
+        const originalTime = appointmentData.time;
         
-        // Verificar se a data está no formato correto (YYYY-MM-DD)
-        const dateFormatRegex = /^(\d{4})-(\d{1,2})-(\d{1,2})$/;
-        const dateMatch = appointmentDate.match(dateFormatRegex);
-        
-        if (dateMatch) {
-            const year = parseInt(dateMatch[1]);
-            const month = parseInt(dateMatch[2]);
-            const day = parseInt(dateMatch[3]);
-            
-            // Verificar se o ano, mês e dia são válidos
-            if (year < 2023 || month < 1 || month > 12 || day < 1 || day > 31) {
-                console.log(`[DEBUG] Data de agendamento inválida: ${appointmentDate}`);
-                console.log(`[DEBUG] Tentando interpretar como DD-MM-YYYY ou MM-DD-YYYY`);
-                
-                // Tentar interpretar como MM-DD-YYYY ou DD-MM-YYYY
-                if (month <= 12 && day <= 31) {
-                    // Verificar qual interpretação faz mais sentido
-                    if (day > 12) {
-                        // Se o dia for maior que 12, só pode ser DD-MM-YYYY
-                        appointmentDate = `${year}-${day.toString().padStart(2, '0')}-${month.toString().padStart(2, '0')}`;
-                        console.log(`[DEBUG] Interpretado como DD-MM-YYYY: ${appointmentDate}`);
-                    } else {
-                        // Se tanto mês quanto dia forem <= 12, assume formato padrão
-                        appointmentDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-                        console.log(`[DEBUG] Mantendo formato original: ${appointmentDate}`);
-                    }
-                }
-            }
-        } else {
-            // Se não estiver no formato YYYY-MM-DD, tentar converter
-            console.log(`[DEBUG] Data não está no formato YYYY-MM-DD: ${appointmentDate}`);
-            const parts = appointmentDate.split(/[\/.-]/);
-            
-            if (parts.length === 3) {
-                if (parts[0].length === 4) {
-                    // Formato YYYY/MM/DD
-                    appointmentDate = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
-                } else {
-                    // Formato DD/MM/YYYY ou MM/DD/YYYY
-                    appointmentDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-                }
-                console.log(`[DEBUG] Data convertida para: ${appointmentDate}`);
-            }
+        // Garantir que a data está no formato YYYY-MM-DD
+        let appointmentDate = originalDate;
+        if (originalDate.includes('/')) {
+            const [day, month, year] = originalDate.split('/');
+            appointmentDate = `${year}-${month}-${day}`;
         }
         
+        // Garantir que o horário está no formato HH:MM:SS
+        let appointmentTime = originalTime;
+        if (appointmentTime.includes('h')) {
+            appointmentTime = appointmentTime.replace('h', ':00');
+        } else if (!appointmentTime.includes(':')) {
+            appointmentTime = `${appointmentTime}:00`;
+        }
+        
+        console.log(`[DEBUG] Data original: ${originalDate}, Data processada: ${appointmentDate}, Hora: ${appointmentTime}`);
+        const appointmentDateTime = `${appointmentDate} ${appointmentTime}`;
+        console.log(`[DEBUG] Data+hora combinada: ${appointmentDateTime}`);
+
         // Converter a data de nascimento do formato brasileiro para o formato americano
         const formattedBirthdate = convertDateFormat(appointmentData.birthdate);
         
@@ -299,13 +278,15 @@ async function bookAppointment(appointmentData) {
         // Validar dados do telefone
         let phoneNumber = appointmentData.phone;
         
-        // Se o telefone estiver vazio ou for inválido, tentar extrair do número do WhatsApp
+        // Garantir que temos um número de telefone válido
         if (!phoneNumber || phoneNumber.trim() === '') {
-            // Tentar obter o número do WhatsApp da sessão (assumindo que pode estar disponível em um contexto mais amplo)
-            console.log(`[DEBUG] Telefone não fornecido ou inválido, tentando usar número do WhatsApp`);
-            
-            // Usar o número do próprio paciente como fallback (já deve ter sido preenchido pelo gptRouter)
-            phoneNumber = appointmentData.phone;
+            return {
+                success: false,
+                message: "Telefone não fornecido",
+                errors: {
+                    phone: ["É necessário fornecer um telefone válido"]
+                }
+            };
         }
         
         // Remover formatação do telefone
@@ -331,7 +312,7 @@ async function bookAppointment(appointmentData) {
             phone: phoneNumber,
             birthday: formattedBirthdate, // Data de nascimento convertida
             doctor_id: 2, // ID fixo da Dra. Karin
-            appointment_datetime: `${appointmentDate} ${appointmentData.time}:00`, // Combina data e hora
+            appointment_datetime: appointmentDateTime, // Combina data e hora
             status: "agendada",
             observations: appointmentData.observations || 'Primeira consulta.',
             is_online: isOnline,
@@ -340,8 +321,6 @@ async function bookAppointment(appointmentData) {
         };
         
         console.log(`[DEBUG] Dados formatados para API:`, JSON.stringify(apiData, null, 2));
-        console.log(`[DEBUG] Data original: ${appointmentData.date}, Data processada: ${appointmentDate}, Hora: ${appointmentData.time}`);
-        console.log(`[DEBUG] Data+hora combinada: ${apiData.appointment_datetime}`);
         
         // Parâmetros da requisição
         const params = {
@@ -359,7 +338,7 @@ async function bookAppointment(appointmentData) {
         const response = await axios.post(apiUrl, apiData, { params });
         
         // Verificar a resposta da API
-        console.log(`[DEBUG] Erro ao agendar consulta:`, response.data);
+        console.log(`[DEBUG] Resposta da API:`, response.data);
         
         // Se a mensagem contém "sucesso", considera como sucesso mesmo se o status não for 200
         if (response.data && response.data.message && response.data.message.toLowerCase().includes('sucesso')) {
@@ -373,76 +352,7 @@ async function bookAppointment(appointmentData) {
         }
         
         // Verificar se o agendamento foi bem-sucedido
-        if (response.data.success) {
-            console.log(`[DEBUG] Agendamento realizado com sucesso:`, JSON.stringify(response.data, null, 2));
-            
-            // Obter informações do plano para retornar o link de pagamento
-            let paymentLink = null;
-            let planName = null;
-            try {
-                const { getPlans } = require('./plans');
-                const plans = await getPlans();
-                const selectedPlan = plans.find(plan => plan.id === planId);
-                if (selectedPlan) {
-                    if (selectedPlan.link) {
-                        paymentLink = selectedPlan.link;
-                    }
-                    planName = selectedPlan.name;
-                }
-            } catch (error) {
-                console.error(`[ERROR] Erro ao obter link de pagamento:`, error);
-            }
-            
-            // Enviar mensagem para a Dra. Karin
-            try {
-                // Importar o serviço de WhatsApp
-                const { sendWhatsAppMessage } = require('../whatsappService');
-                
-                // Obter o cliente WhatsApp
-                const whatsappClient = require('../../whatsapp/client').getClient();
-                
-                // Formatar a data e hora para exibição
-                const appointmentDate = new Date(appointmentDate);
-                const formattedDate = appointmentDate.toLocaleDateString('pt-BR');
-                const dayOfWeek = new Intl.DateTimeFormat('pt-BR', { weekday: 'long' }).format(appointmentDate);
-                const capitalizedDayOfWeek = dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1);
-                
-                // Determinar o tipo de consulta e link correto
-                const consultationType = isOnline ? "online" : "presencial";
-                const consultationLink = isOnline ? "https://mpago.li/2cc49wX" : "https://mpago.li/2Nz1i2h";
-                
-                // Criar a mensagem para a Dra. Karin
-                const doctorMessage = `Nova consulta agendada! ✅\n\n` +
-                    `📋 *Detalhes da consulta*:\n` +
-                    `👤 Paciente: ${appointmentData.name}\n` +
-                    `📱 Telefone: ${appointmentData.phone}\n` +
-                    `📅 Data: ${formattedDate} (${capitalizedDayOfWeek})\n` +
-                    `⏰ Horário: ${appointmentData.time}\n` +
-                    `🏥 Modalidade: ${consultationType}\n` +
-                    `💰 Método de pagamento: ${paymentMethod}\n` +
-                    `💳 Link de pagamento: ${consultationLink}\n\n` +
-                    `✏️ Observações: ${appointmentData.observations || 'Primeira consulta.'}`;
-                
-                // Enviar a mensagem para a Dra. Karin
-                if (whatsappClient) {
-                    await sendWhatsAppMessage(whatsappClient, "554796947825", doctorMessage, 2);
-                    console.log(`[DEBUG] Mensagem de confirmação enviada para a Dra. Karin`);
-                } else {
-                    console.error(`[ERROR] Cliente WhatsApp não disponível para enviar mensagem para a Dra. Karin`);
-                }
-            } catch (error) {
-                console.error(`[ERROR] Erro ao enviar mensagem para a Dra. Karin:`, error);
-            }
-            
-            return {
-                success: true,
-                message: "Consulta agendada com sucesso!",
-                appointment: response.data.appointment,
-                payment_link: paymentLink,
-                payment_method_id: paymentMethodId,
-                is_online: isOnline
-            };
-        } else {
+        if (!response.data.success) {
             console.log(`[DEBUG] Erro ao agendar consulta:`, JSON.stringify(response.data, null, 2));
             return {
                 success: false,
@@ -450,6 +360,83 @@ async function bookAppointment(appointmentData) {
                 errors: response.data.errors || {}
             };
         }
+        
+        console.log(`[DEBUG] Agendamento realizado com sucesso:`, JSON.stringify(response.data, null, 2));
+        
+        // Obter informações do plano para retornar o link de pagamento
+        let paymentLink = null;
+        let planName = null;
+        try {
+            const { getPlans } = require('./plans');
+            const plans = await getPlans();
+            const selectedPlan = plans.find(plan => plan.id === planId);
+            if (selectedPlan) {
+                if (selectedPlan.link) {
+                    paymentLink = selectedPlan.link;
+                }
+                planName = selectedPlan.name;
+            }
+        } catch (error) {
+            console.error(`[ERROR] Erro ao buscar informações do plano:`, error);
+        }
+
+        // Montar mensagem de pagamento
+        let payment_message = '';
+        if (paymentLink) {
+            payment_message = `Para confirmar sua consulta, por favor realize o pagamento através deste link: ${paymentLink}`;
+        }
+
+        // Enviar mensagem para a Dra. Karin
+        try {
+            // Importar o serviço de WhatsApp
+            const { sendWhatsAppMessage } = require('../whatsappService');
+            
+            // Obter o cliente WhatsApp
+            const whatsappClient = require('../../whatsapp/client').getClient();
+            
+            // Formatar a data e hora para exibição
+            const appointmentDateObj = new Date(appointmentDate);
+            const formattedDate = appointmentDateObj.toLocaleDateString('pt-BR');
+            const dayOfWeek = new Intl.DateTimeFormat('pt-BR', { weekday: 'long' }).format(appointmentDateObj);
+            const capitalizedDayOfWeek = dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1);
+            
+            // Determinar o tipo de consulta e link correto
+            const consultationType = isOnline ? "online" : "presencial";
+            const consultationLink = isOnline ? "https://mpago.li/2cc49wX" : "https://mpago.li/2Nz1i2h";
+            
+            // Criar a mensagem para a Dra. Karin
+            const doctorMessage = `Nova consulta agendada! ✅\n\n` +
+                `📋 *Detalhes da consulta*:\n` +
+                `👤 Paciente: ${appointmentData.name}\n` +
+                `📱 Telefone: ${appointmentData.phone}\n` +
+                `📅 Data: ${formattedDate} (${capitalizedDayOfWeek})\n` +
+                `⏰ Horário: ${appointmentTime}\n` +
+                `🏥 Modalidade: ${consultationType}\n` +
+                `💰 Método de pagamento: ${paymentMethod}\n` +
+                `💳 Link de pagamento: ${consultationLink}\n\n` +
+                `✏️ Observações: ${appointmentData.observations || 'Primeira consulta.'}`;
+            
+            // Enviar a mensagem para a Dra. Karin
+            if (whatsappClient) {
+                await sendWhatsAppMessage(whatsappClient, "554796947825", doctorMessage, 2);
+                console.log(`[DEBUG] Mensagem de confirmação enviada para a Dra. Karin`);
+            } else {
+                console.error(`[ERROR] Cliente WhatsApp não disponível para enviar mensagem para a Dra. Karin`);
+            }
+        } catch (error) {
+            console.error(`[ERROR] Erro ao enviar mensagem para a Dra. Karin:`, error);
+        }
+        
+        // Retornar resultado do agendamento
+        return {
+            success: true,
+            message: response.data.message || "Consulta agendada com sucesso!",
+            appointment: response.data.appointment,
+            is_online: isOnline,
+            payment_link: paymentLink,
+            payment_message: payment_message,
+            errors: {}
+        };
     } catch (error) {
         console.error(`[ERROR] Erro ao agendar consulta:`, error);
         

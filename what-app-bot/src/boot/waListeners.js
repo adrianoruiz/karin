@@ -114,7 +114,20 @@ async function bootstrapListeners(client, clinicaId) {
             // 6. Regular Text Message Processing
             logger.log(`Processing text message for ${number}`);
             try {
-                const gptResponse = await gptRouter.processMessage(messageBody, nome, number, clinicaId); 
+                // Criar contexto da mensagem
+                const messageContext = {
+                    from: message.from,
+                    type: message.type,
+                    timestamp: message.timestamp
+                };
+                
+                const gptResponse = await gptRouter.processMessage(
+                    messageBody,
+                    nome,
+                    number,
+                    clinicaId,
+                    messageContext
+                );
                 logger.log(`Response from GPT Router: "${gptResponse}"`);
                 
                 // Marcar explicitamente mensagem como enviada pelo bot ANTES de enviá-la

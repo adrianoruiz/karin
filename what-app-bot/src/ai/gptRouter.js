@@ -90,7 +90,7 @@ function createGptRouter({ logger, conversationStore, waClient }) {
      * @param {string} clinicaId - Clinic ID
      * @returns {Promise<string>} The final response to send to the user
      */
-    async function processFunctionCall(name, parsedArgs, nome, number, clinicaId) {
+    async function processFunctionCall(name, parsedArgs, nome, number, clinicaId, context) {
         let functionResultContent = null;
         let finalContent = "Desculpe, não consegui processar sua solicitação de função."; // Default error
         let currentConversation;
@@ -121,67 +121,33 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                 }
                 
                 case 'bookAppointment': {
-                    // Always use WhatsApp number as phone
-                    parsedArgs.phone = number || parsedArgs.phone;
-                    logger.log(`Incluindo número do WhatsApp como telefone: ${number}`);
-                    
-                    // Check and correct date format
-                    const originalDate = parsedArgs.date;
-                    // Converter data de DD/MM/YYYY para ISO (YYYY-MM-DD)
-                    if (/^\d{2}\/\d{2}\/\d{4}$/.test(originalDate)) {
-                        const [day, month, year] = originalDate.split('/');
-                        parsedArgs.date = `${year}-${month}-${day}`;
-                        logger.log(`Convertendo data de ${originalDate} para ISO: ${parsedArgs.date}`);
+                    // Incluir número do WhatsApp como telefone se disponível no contexto
+                    if (context && context.from) {
+                        const number = context.from.split('@')[0];
+                        parsedArgs.phone = number || parsedArgs.phone;
+                        logger.log(`Incluindo número do WhatsApp como telefone: ${number}`);
                     }
                     
-                    const dateNeedsCorrection = originalDate && (
-                        originalDate.startsWith('2025-') || // Wrong year
-                        (originalDate.includes('-') && parseInt(originalDate.split('-')[1]) > 12) || // Invalid month
-                        (originalDate.includes('/')) || // Wrong format
-                        (originalDate.length !== 10) // Incorrect length
+                    // Recuperar horários disponíveis recentes da conversa para obter a data correta
+                    const availableAppointments = currentConversation.filter(
+                        msg => msg.role === 'function' && msg.name === 'getAvailableAppointments' && msg.content
                     );
                     
-                    // Always verify to ensure correctness
-                    if (dateNeedsCorrection) {
-                        logger.log(`Verificando data do agendamento: ${originalDate}`);
-                        
-                        // Find most recent available appointments in conversation
-                        const availableAppointments = currentConversation.filter(
-                            msg => msg.role === 'function' && 
-                                  msg.name === 'getAvailableAppointments' &&
-                                  msg.content
-                        );
-                        
-                        if (availableAppointments.length > 0) {
-                            try {
-                                // Get most recent result
-                                const lastAppointmentResult = JSON.parse(
-                                    availableAppointments[availableAppointments.length - 1].content
-                                );
-                                
-                                // Check if we have available times
-                                if (lastAppointmentResult.appointments && 
-                                    lastAppointmentResult.appointments.length > 0) {
-                                    
-                                    // Find correct time matching requested time
-                                    const requestedTime = parsedArgs.time.replace('h', ':00');
-                                    const matchingAppointment = lastAppointmentResult.appointments.find(
-                                        appt => appt.time === requestedTime || 
-                                               appt.time === parsedArgs.time
-                                    );
-                                    
-                                    if (matchingAppointment && matchingAppointment.date !== originalDate) {
-                                        logger.log(`Corrigindo data: ${originalDate} -> ${matchingAppointment.date} (encontrado horário correspondente)`);
-                                        parsedArgs.date = matchingAppointment.date;
-                                    } else if (!matchingAppointment && lastAppointmentResult.appointments[0].date !== originalDate) {
-                                        // Use first available time as fallback
-                                        logger.log(`Corrigindo data: ${originalDate} -> ${lastAppointmentResult.appointments[0].date} (usando primeiro horário disponível)`);
-                                        parsedArgs.date = lastAppointmentResult.appointments[0].date;
-                                    }
+                    // Se temos horários disponíveis, usar a data correta
+                    if (availableAppointments.length > 0) {
+                        try {
+                            const last = JSON.parse(availableAppointments[availableAppointments.length - 1].content);
+                            if (last.appointments && last.appointments.length > 0) {
+                                const reqTime = parsedArgs.time.replace('h', ':00');
+                                const match = last.appointments.find(a => a.time === reqTime || a.time === parsedArgs.time);
+                                if (match) {
+                                    logger.log(`Data original: ${parsedArgs.date}, Data do horário escolhido: ${match.date}`);
+                                    parsedArgs.date = match.date;
+                                    logger.log(`Usando data do horário disponível: ${parsedArgs.date}`);
                                 }
-                            } catch (error) {
-                                logger.error('Erro ao tentar corrigir data do agendamento:', error);
                             }
+                        } catch (err) {
+                            logger.error('Erro ao recuperar data do horário escolhido:', err);
                         }
                     }
                     
@@ -191,6 +157,15 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                         logger.log(`Corrigindo formato da hora: ${parsedArgs.time}`);
                     }
                     
+                    // Validar se temos data e hora válidos antes de prosseguir
+                    if (!parsedArgs.date || !parsedArgs.time) {
+                        logger.error('Data ou hora não definidos:', { date: parsedArgs.date, time: parsedArgs.time });
+                        return {
+                            success: false,
+                            message: "Data e hora são obrigatórias para o agendamento"
+                        };
+                    }
+                    
                     const bookingResult = await bookAppointment(parsedArgs);
                     logger.log('Booking result:', bookingResult);
                     functionResultContent = JSON.stringify(bookingResult);
@@ -198,6 +173,16 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                     if (bookingResult.success) {
                         await handleSuccessfulBooking(parsedArgs, bookingResult, clinicaId, number);
                     }
+                    
+                    // Se o agendamento foi bem sucedido, adicionar informações de pagamento
+                    if (bookingResult.success) {
+                        const { payment_link, payment_message } = bookingResult;
+                        if (payment_message && !finalContent.includes('link de pagamento')) {
+                            finalContent = `${finalContent}\n\n${payment_message}`;
+                            logger.log('Adicionada mensagem de pagamento:', payment_message);
+                        }
+                    }
+                    
                     break;
                 }
                 
@@ -311,14 +296,6 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                 bookingResult.payment_link = paymentLink;
                 bookingResult.payment_message = `Aqui está o link para pagamento: ${paymentLink}\n\nNo link de pagamento você pode escolher se quer pagar no cartão de crédito/débito ou PIX.`;
             }
-            
-            // Send payment link via WhatsApp
-            if (bookingResult.payment_message && waClient) {
-                logger.log(`Sending payment link directly to ${number}: ${bookingResult.payment_link}`);
-                await waClient.sendMessage(number, bookingResult.payment_message, clinicaId);
-            } else {
-                logger.warn('waClient not available or no payment message to send directly.');
-            }
         } catch (finishError) {
             logger.error('Error calling finishAppointment automatically:', finishError);
         }
@@ -374,7 +351,7 @@ function createGptRouter({ logger, conversationStore, waClient }) {
      * @param {string} clinicaId - The clinic ID.
      * @returns {Promise<string>} The response message to be sent back to the user.
      */
-    async function processMessage(message, nome, number, clinicaId) {
+    async function processMessage(message, nome, number, clinicaId, context) {
         try {
             // Get conversation history from the store
             let conversation = conversationStore.getConversation(clinicaId, number); 
@@ -429,7 +406,7 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                 const { name, arguments: args } = gptResponse.function_call;
                 const parsedArgs = JSON.parse(args);
                 
-                const finalContent = await processFunctionCall(name, parsedArgs, nome, number, clinicaId);
+                const finalContent = await processFunctionCall(name, parsedArgs, nome, number, clinicaId, context);
                 
                 // Add final assistant response to store
                 conversationStore.addMessage(clinicaId, number, 'assistant', finalContent); 
