@@ -43,11 +43,9 @@ class AiConfigController extends Controller
         
         // Verificar se o usuário tem permissão (role empresa)
         $userRoles = $user->roles->pluck('slug')->toArray();
-        $hasPermission = in_array(ValidRoles::CLINIC, $userRoles) || 
-                         in_array(ValidRoles::SERVICE, $userRoles) || 
-                         in_array(ValidRoles::COMMERCIAL, $userRoles) || 
-                         in_array(ValidRoles::DOCTOR, $userRoles);
-        
+        $hasPermission = in_array(ValidRoles::ADMIN, $userRoles) || 
+                    array_intersect(ValidRoles::COMPANY_ROLES, $userRoles);
+                    
         if (!$hasPermission) {
             return response()->json(['message' => 'Não autorizado. Apenas usuários com perfil de empresa podem configurar a IA.'], 403);
         }
