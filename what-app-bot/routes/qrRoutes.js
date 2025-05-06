@@ -13,8 +13,10 @@ router.get('/debug/:id', (req, res) => {
 });
 
 // Rota para API de QR code para debug (sem autenticação)
-router.get('/api/whatsapp/qr/:id', (req, res) => {
+// Esta rota será acessada como /api/whatsapp/qr/:id através do routes/index.js
+router.get('/:id', (req, res) => {
     const { id } = req.params;
+    console.log(`Recebendo solicitação de QR code para ID ${id}`);
     
     try {
         let client = clientManager.getClient(id);
@@ -22,26 +24,37 @@ router.get('/api/whatsapp/qr/:id', (req, res) => {
         // Inicializar o cliente se não existir
         if (!client) {
             console.log(`Cliente não encontrado para ID ${id}, inicializando...`);
-            client = clientManager.initializeClient(id);
+            try {
+                // Inicializar sem bootstrapListeners para evitar erros
+                client = clientManager.initializeClient(id);
+            } catch (error) {
+                console.error(`Erro ao inicializar cliente para ID ${id}:`, error);
+            }
         }
 
         // Verificar se o cliente já está autenticado
         if (client && client.isAuthenticated) {
+            console.log(`Cliente ${id} já está autenticado`);
             res.status(200).json({ 
                 status: "success", 
-                message: "Cliente já autenticado", 
-                authenticated: true 
+                connected: true,
+                qrCode: null
             });
         } else {
             const qrCode = getQRCode(id);
             if (qrCode) {
+                console.log(`QR code encontrado para ID ${id}`);
                 res.status(200).json({ 
                     status: "success", 
+                    connected: false,
                     qrCode: qrCode 
                 });
             } else {
+                console.log(`QR code ainda não disponível para ID ${id}`);
                 res.status(200).json({ 
-                    status: "pending", 
+                    status: "success", 
+                    connected: false,
+                    qrCode: null,
                     message: "QR code ainda não disponível, tente novamente em alguns segundos" 
                 });
             }
@@ -50,6 +63,8 @@ router.get('/api/whatsapp/qr/:id', (req, res) => {
         console.error(`Erro ao obter QR code para ID ${id}:`, error);
         res.status(500).json({ 
             status: "error", 
+            connected: false,
+            qrCode: null,
             message: "Erro ao processar a solicitação" 
         });
     }
@@ -84,7 +99,7 @@ router.get('/qr-code/:clinicaId', (req, res) => {
         if (qrCode) {
             res.status(200).json({ qrCodeUrl: qrCode });
         } else {
-            res.status(202).json({ authenticated: false, qrCodeUrl: null }); // 202 indica que o pedido foi aceito, mas ainda está sendo processado
+            res.status(202).json({ authenticated: false, qrCodeUrl: null }); // 202 indica que o pedido foi aceite, mas ainda está sendo processado
         }
     }
 });
