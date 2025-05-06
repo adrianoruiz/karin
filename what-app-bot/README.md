@@ -94,6 +94,105 @@ Para adicionar novos arquivos TypeScript:
 3. Compile com `npm run build`
 4. Importe através do arquivo de barril (`src/utils/index.js`) se necessário
 
+## Persistência de Sessão com Redis
+
+O bot agora utiliza Redis para persistência de sessão, o que permite:
+
+1. Manter o estado da conversa entre reinicializações do servidor
+2. Suportar múltiplas instâncias do bot (escalabilidade horizontal)
+3. Garantir que o agendamento de consultas mantenha a data correta escolhida pelo paciente
+
+### Configuração do Redis Local (Docker)
+
+Para executar o Redis localmente usando Docker:
+
+```bash
+# Iniciar um container Redis
+docker run --name redis-karin -p 6379:6379 -d redis
+
+# Verificar se o container está rodando
+docker ps
+
+# Parar o container
+docker stop redis-karin
+
+# Iniciar o container novamente
+docker start redis-karin
+```
+
+### Configuração do Redis em Produção
+
+Para ambientes de produção, recomendamos:
+
+1. **Redis Cloud**: Serviço gerenciado como Redis Labs ou AWS ElastiCache
+2. **Redis com persistência**: Configure o Redis com persistência para evitar perda de dados
+
+Adicione a URL do Redis no arquivo `.env`:
+
+```bash
+REDIS_URL=redis://usuario:senha@seu-host-redis:6379
+```
+
+## Deploy em Produção
+
+### Usando PM2 com Múltiplas Instâncias
+
+Para executar múltiplas instâncias do bot compartilhando o mesmo Redis:
+
+1. Instale o PM2 globalmente:
+
+```bash
+npm install -g pm2
+```
+
+2. Configure o arquivo `ecosystem.config.js`:
+
+```javascript
+module.exports = {
+  apps: [{
+    name: "karin-bot",
+    script: "index.js",
+    instances: 2,
+    exec_mode: "cluster",
+    env: {
+      NODE_ENV: "production",
+      REDIS_URL: "redis://seu-host-redis:6379"
+    }
+  }]
+};
+```
+
+3. Inicie as instâncias:
+
+```bash
+pm2 start ecosystem.config.js
+```
+
+4. Monitore as instâncias:
+
+```bash
+pm2 monit
+```
+
+### Verificação de Saúde
+
+Para garantir que o bot esteja funcionando corretamente:
+
+1. Verifique a conexão com o Redis: `http://seu-servidor:3001/api/health/redis`
+2. Verifique o status do WhatsApp: `http://seu-servidor:3001/api/health/whatsapp`
+
+## Testes
+
+O projeto inclui testes para garantir o funcionamento correto do fluxo de agendamento:
+
+```bash
+# Executar todos os testes
+npm test
+
+# Executar testes específicos
+npm test -- --testPathPattern=booking.test.js
+```
+
 ## Troubleshooting
 
 ### QR Code não aparece
