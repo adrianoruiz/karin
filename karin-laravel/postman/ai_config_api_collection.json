@@ -1,0 +1,326 @@
+{
+	"info": {
+		"_postman_id": "e52a1e7f-3a48-4d7e-9b8e-bd8c9d5b1d6c",
+		"name": "Karin - Configurações de IA",
+		"description": "Coleção de requisições para gerenciar as configurações de IA no sistema Karin.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Autenticação",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"if (jsonData.access_token) {",
+									"    pm.environment.set(\"token\", jsonData.access_token);",
+									"    pm.environment.set(\"refresh_token\", jsonData.refresh_token);",
+									"    console.log(\"Token guardado na variável de ambiente: \" + jsonData.access_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Autenticação no sistema para obter o token JWT necessário para as chamadas à API de configuração de IA."
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"if (jsonData.access_token) {",
+									"    pm.environment.set(\"token\", jsonData.access_token);",
+									"    console.log(\"Token atualizado na variável de ambiente: \" + jsonData.access_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/refresh",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"refresh"
+							]
+						},
+						"description": "Atualiza o token JWT para continuar usando a API."
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						},
+						"description": "Encerra a sessão do usuário no sistema, invalidando o token JWT atual."
+					},
+					"response": []
+				},
+				{
+					"name": "Informações do Usuário",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"me"
+							]
+						},
+						"description": "Retorna as informações do usuário autenticado, incluindo seus roles e permissões."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de autenticação necessários para gerar e gerenciar o token JWT usado nas chamadas à API de configuração de IA."
+		},
+		{
+			"name": "Configurações de IA",
+			"item": [
+				{
+					"name": "Obter Configurações de IA",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/ai-config",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ai-config"
+							]
+						},
+						"description": "Retorna as configurações de IA do usuário autenticado."
+					},
+					"response": []
+				},
+				{
+					"name": "Salvar/Atualizar Configurações de IA",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"segment_type\": \"clinica_medica\",\n    \"professional_data\": {\n        \"nome\": \"Dr. Carlos Silva\",\n        \"especialidade\": \"Clínica Geral\",\n        \"formacao\": \"Universidade Federal de São Paulo\",\n        \"endereco\": \"Av. Paulista, 1000, São Paulo - SP\",\n        \"atendimentos\": \"Consultas presenciais e online\",\n        \"formasPagamento\": \"Dinheiro, cartão de crédito, débito e PIX\",\n        \"reembolso\": \"Aceita reembolso de planos de saúde\"\n    },\n    \"assistant_name\": \"Dr. Virtual\",\n    \"emojis\": \"😊,👨‍⚕️,👍,💉,🩺\",\n    \"custom_responses\": {\n        \"saudacao\": \"Olá! Sou o assistente virtual do Dr. Carlos Silva. Como posso ajudar?\",\n        \"agradecimento\": \"Obrigado pelo contato! Estamos sempre à disposição para ajudar com sua saúde.\",\n        \"despedida\": \"Até breve! Cuide-se bem e não hesite em voltar se precisar de mais informações.\",\n        \"horario_funcionamento\": \"Nosso horário de atendimento é de segunda a sexta, das 8h às 18h.\",\n        \"emergencia\": \"Para emergências médicas, por favor dirija-se imediatamente ao pronto-socorro mais próximo ou ligue para 192 (SAMU).\"\n    },\n    \"consultation_duration\": 30,\n    \"special_rules\": {\n        \"horario_funcionamento\": \"Segunda a sexta: 8h às 18h, Sábado: 8h às 12h\",\n        \"dias_atendimento\": \"Segunda a sábado\",\n        \"cancelamento\": \"Cancelamentos devem ser realizados com no mínimo 24 horas de antecedência\",\n        \"documentos_necessarios\": \"Documento de identidade, cartão do convênio e pedido médico (se aplicável)\",\n        \"preparo_consulta\": \"Jejum de 8 horas para exames de sangue. Trazer exames anteriores, se houver.\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/ai-config",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ai-config"
+							]
+						},
+						"description": "Cria ou atualiza as configurações de IA para o usuário autenticado. Requer que o usuário tenha role de clínica, serviço ou comercial."
+					},
+					"response": []
+				},
+				{
+					"name": "Alternar Status Ativo da IA",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/ai-config/toggle-active",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ai-config",
+								"toggle-active"
+							]
+						},
+						"description": "Alterna o status ativo/inativo da configuração de IA do usuário autenticado."
+					},
+					"response": []
+				},
+				{
+					"name": "Gerar System Prompt",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/ai/get-system-prompt",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"ai",
+								"get-system-prompt"
+							]
+						},
+						"description": "Gera o system prompt com base nas configurações de IA do usuário especificado."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gerenciar as configurações de IA vinculadas a usuários com role de empresa."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "email",
+			"value": "seu_email@exemplo.com",
+			"type": "string"
+		},
+		{
+			"key": "password",
+			"value": "sua_senha",
+			"type": "string"
+		}
+	]
+} 

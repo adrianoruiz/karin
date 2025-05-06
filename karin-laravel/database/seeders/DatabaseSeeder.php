@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             ChatbotsTableSeeder::class,
             PlanSeeder::class,
             PaymentMethodSeeder::class,
+            AiConfigSeeder::class,
         ]);
     }
 }

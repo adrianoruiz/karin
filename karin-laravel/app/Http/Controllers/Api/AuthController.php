@@ -90,7 +90,29 @@ class AuthController extends Controller
      */
     public function me()
     {
-        return response()->json(Auth::guard('api')->user());
+        $user = Auth::guard('api')->user();
+        if (!$user) {
+            return response()->json(['error' => 'Não autenticado'], 401);
+        }
+        
+        // Carrega o usuário com seus roles
+        $userWithRoles = User::with('roles')->find($user->id);
+        
+        // Cria a resposta
+        return response()->json([
+            'id' => $userWithRoles->id,
+            'name' => $userWithRoles->name,
+            'email' => $userWithRoles->email,
+            'phone' => $userWithRoles->phone,
+            'email_verified_at' => $userWithRoles->email_verified_at,
+            'is_whatsapp_user' => $userWithRoles->is_whatsapp_user,
+            'status' => $userWithRoles->status,
+            'avatar' => $userWithRoles->avatar,
+            'created_at' => $userWithRoles->created_at,
+            'updated_at' => $userWithRoles->updated_at,
+            'deleted_at' => $userWithRoles->deleted_at,
+            'roles' => $userWithRoles->roles
+        ]);
     }
 
     /**

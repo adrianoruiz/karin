@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\{
+    AiConfigController,
+    AiPromptController,
     Api\AppointmentController,
     Api\AuthController,
     Api\ChatLogController,
@@ -139,3 +141,17 @@ Route::prefix('chat-logs')->group(function () {
 Route::get('availabilities', [DoctorAvailabilityController::class, 'index']);
 Route::get('plans', [PlanController::class, 'index']);
 Route::get('plans/{plan}', [PlanController::class, 'publicShow']);
+
+// Rotas para configuração da IA
+Route::group([
+    'prefix' => 'ai-config',
+    'middleware' => 'auth:api'
+], function () {
+    Route::get('/', [AiConfigController::class, 'show']);
+    Route::post('/', [AiConfigController::class, 'store']);
+    Route::post('/toggle-active', [AiConfigController::class, 'toggleActive']);
+    // Rota para gerar o system prompt para IA
+    Route::post('/get-system-prompt', [AiPromptController::class, 'getSystemPrompt']);
+
+});
+
