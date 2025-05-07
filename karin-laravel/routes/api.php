@@ -149,9 +149,11 @@ Route::group([
 ], function () {
     Route::get('/', [AiConfigController::class, 'show']);
     Route::post('/', [AiConfigController::class, 'store']);
+    Route::put('/', [AiConfigController::class, 'store']);
     Route::post('/toggle-active', [AiConfigController::class, 'toggleActive']);
+    
     // Rota para gerar o system prompt para IA
     Route::post('/get-system-prompt', [AiPromptController::class, 'getSystemPrompt']);
-
+    
 });
 
