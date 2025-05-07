@@ -32,6 +32,7 @@ class UserController extends Controller
             'role' => 'sometimes|string',
             'per_page' => 'sometimes|integer|min:1|max:100',
             'search' => 'sometimes|string|max:255',
+            'company_id' => 'sometimes|exists:users,id'
         ]);
 
         if ($validator->fails()) {
@@ -45,6 +46,7 @@ class UserController extends Controller
         $role = $request->input('role');
         $perPage = $request->input('per_page', 15); // Padrão: 15 itens por página
         $search = $request->input('search'); // Busca por nome
+        $companyId = $request->input('company_id'); // ID da empresa (médico/salão)
 
         // Inicializa a query base
         $query = User::with(['userData', 'image']);
@@ -54,6 +56,7 @@ class UserController extends Controller
             $query->where('name', 'ILIKE', "%{$search}%");
         }
 
+        // Aplica filtro por role se fornecido
         if ($role) {
             // Verifica se o role é válido
             $validRoles = $this->getValidRoles();
@@ -83,10 +86,15 @@ class UserController extends Controller
             $query->whereIn('id', $userIds);
         }
 
-     
-        // Caso contrário, usamos paginação
-        return $query->paginate($perPage);
+        // Filtra por company_id se fornecido
+        if ($companyId) {
+            $query->whereHas('companyClientes', function ($q) use ($companyId) {
+                $q->where('company_id', $companyId);
+            });
+        }
 
+        // Retorna a paginação
+        return $query->paginate($perPage);
     }
 
     /**

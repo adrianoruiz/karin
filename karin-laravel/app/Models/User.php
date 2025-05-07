@@ -162,6 +162,22 @@ class User extends Authenticatable implements JWTSubject
     }
 
     /**
+     * Relacionamento com clientes da empresa (médico/salão)
+     */
+    public function companyClientes()
+    {
+        return $this->hasMany(CompanyCliente::class, 'company_id');
+    }
+
+    /**
+     * Relacionamento com empresas do cliente
+     */
+    public function clientCompanies()
+    {
+        return $this->hasMany(CompanyCliente::class, 'client_id');
+    }
+
+    /**
      * Relacionamento com imagem de perfil.
      *
      * @return \Illuminate\Database\Eloquent\Relations\MorphOne
