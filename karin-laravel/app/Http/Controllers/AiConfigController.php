@@ -73,8 +73,27 @@ class AiConfigController extends Controller
      */
     public function toggleActive(Request $request)
     {
+        $validated = $request->validate([
+            'user_id' => 'nullable|exists:users,id',
+        ]);
+
         $user = Auth::user();
-        $aiConfig = AiConfig::where('user_id', $user->id)->first();
+        
+        // Se foi fornecido um user_id, verificar permissão de admin
+        if (isset($validated['user_id']) && $validated['user_id'] != $user->id) {
+            $userRoles = $user->roles->pluck('slug')->toArray();
+            $hasPermission = in_array(ValidRoles::ADMIN, $userRoles);
+                        
+            if (!$hasPermission) {
+                return response()->json(['message' => 'Não autorizado. Apenas administradores podem alterar o status de ativação de outros usuários.'], 403);
+            }
+            
+            $targetUserId = $validated['user_id'];
+        } else {
+            $targetUserId = $user->id;
+        }
+        
+        $aiConfig = AiConfig::where('user_id', $targetUserId)->first();
         
         if (!$aiConfig) {
             return response()->json(['message' => 'Configuração não encontrada'], 404);
@@ -85,7 +104,30 @@ class AiConfigController extends Controller
         
         return response()->json([
             'message' => $aiConfig->is_active ? 'IA ativada com sucesso' : 'IA desativada com sucesso',
-            'is_active' => $aiConfig->is_active
+            'is_active' => $aiConfig->is_active,
+            'user_id' => $targetUserId
         ]);
     }
+
+    /**
+     * Verifica o status de ativação do bot para um usuário específico.
+     */
+    public function botStatus($userId)
+    {
+        $aiConfig = AiConfig::where('user_id', $userId)->first();
+        
+        if (!$aiConfig) {
+            return response()->json([
+                'message' => 'Configuração não encontrada para este usuário',
+                'is_active' => false,
+                'user_id' => $userId
+            ], 404);
+        }
+        
+        return response()->json([
+            'is_active' => $aiConfig->is_active,
+            'user_id' => $userId
+        ]);
+    }
+
 }

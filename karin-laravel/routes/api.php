@@ -152,6 +152,8 @@ Route::group([
     Route::put('/', [AiConfigController::class, 'store']);
     Route::post('/toggle-active', [AiConfigController::class, 'toggleActive']);
     
+    Route::get('/bot-status/{userId}', [AiConfigController::class, 'botStatus']);
+    
     // Rota para gerar o system prompt para IA
     Route::post('/get-system-prompt', [AiPromptController::class, 'getSystemPrompt']);
     
