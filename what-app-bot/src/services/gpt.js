@@ -168,13 +168,21 @@ const finishAppointmentFunction = {
  * Obtém resposta do ChatGPT para uma conversa
  * @param {Array} messages - Histórico de mensagens da conversa
  * @param {string} nome - Nome do usuário
+ * @param {number} clinicaId - ID da clínica para obter o sistema prompt correto
  * @returns {Promise<Object>} Resposta do modelo GPT
  */
-async function getChatGPTResponse(messages, nome) {
+async function getChatGPTResponse(messages, nome, clinicaId = null) {
     const apiKey = process.env.OPENAI_API_KEY;
     
-    // Adicionar mensagem de sistema com as instruções
-    const systemMessage = getSystemMessage(nome);
+    // Adicionar mensagem de sistema com as instruções - agora é assíncrono
+    const systemMessage = await getSystemMessage(nome, clinicaId);
+    
+    // Garantir que temos mensagens válidas
+    if (!Array.isArray(messages)) {
+        console.error('Erro: messages não é um array:', messages);
+        messages = [];
+    }
+    
     const messagesWithSystem = [
         systemMessage,
         ...messages.map(msg => {
@@ -190,6 +198,9 @@ async function getChatGPTResponse(messages, nome) {
     ];
 
     try {
+        // Verificar se a mensagem está bem formada antes de enviar
+        console.log('Enviando mensagens para OpenAI:', JSON.stringify(messagesWithSystem, null, 2));
+        
         const response = await axios.post(
             'https://api.openai.com/v1/chat/completions',
             {

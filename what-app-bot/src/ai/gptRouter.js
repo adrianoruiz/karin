@@ -166,7 +166,7 @@ function createGptRouter({ logger, conversationStore, waClient }) {
             logger.log('Histórico enviado ao GPT após função:', JSON.stringify(currentConversation, null, 2));
             
             // Gerar resposta final com o GPT
-            const finalResponse = await getChatGPTResponse(currentConversation, nome);
+            const finalResponse = await getChatGPTResponse(currentConversation, nome, clinicaId);
             finalContent = finalResponse.content;
             
             // Adicionar informações de pagamento se necessário
@@ -193,7 +193,7 @@ function createGptRouter({ logger, conversationStore, waClient }) {
             
             // Gerar resposta de erro com o GPT
             try {
-                const finalResponse = await getChatGPTResponse(currentConversation, nome);
+                const finalResponse = await getChatGPTResponse(currentConversation, nome, clinicaId);
                 finalContent = finalResponse.content;
             } catch (gptError) {
                 logger.error('Erro ao gerar resposta para erro de função:', gptError);
@@ -225,7 +225,7 @@ function createGptRouter({ logger, conversationStore, waClient }) {
             logger.log('DEBUG - Histórico recuperado para envio ao GPT:', JSON.stringify(conversation, null, 2));
             
             // Obter resposta do GPT
-            const gptResponse = await getChatGPTResponse(conversation, nome);
+            const gptResponse = await getChatGPTResponse(conversation, nome, clinicaId);
             
             // Verificar se a resposta contém uma chamada de função (formato novo - tool_calls)
             if (gptResponse.tool_calls && gptResponse.tool_calls.length > 0) {
