@@ -178,6 +178,26 @@ class User extends Authenticatable implements JWTSubject
     }
 
     /**
+     * Empresas onde o usuário é funcionário
+     * 
+     * @return BelongsToMany
+     */
+    public function employeeCompanies(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'company_user', 'user_id', 'company_id');
+    }
+    
+    /**
+     * Funcionários da empresa (quando este usuário é uma empresa)
+     * 
+     * @return BelongsToMany
+     */
+    public function employees(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'company_user', 'company_id', 'user_id');
+    }
+
+    /**
      * Relacionamento com imagem de perfil.
      *
      * @return \Illuminate\Database\Eloquent\Relations\MorphOne

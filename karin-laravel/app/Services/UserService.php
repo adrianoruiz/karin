@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\WorkingHour;
+use App\Models\CompanyUser;
 use App\Repositories\UserRepository;
 use App\Enum\ValidRoles;
 use Illuminate\Http\UploadedFile;
@@ -291,5 +292,93 @@ class UserService
         $user->save();
 
         return $user->refresh();
+    }
+
+    /**
+     * Vincula um usuário a uma empresa como funcionário.
+     *
+     * @param int $companyId ID da empresa
+     * @param int $userId ID do usuário a ser vinculado
+     * @return bool
+     * @throws \Exception
+     */
+    public function attachUserToCompany(int $companyId, int $userId): bool
+    {
+        // Verifica se a empresa existe
+        $company = $this->findById($companyId);
+        if (!$company) {
+            throw new \Exception('Empresa não encontrada');
+        }
+        
+        // Verifica se o usuário existe
+        $user = $this->findById($userId);
+        if (!$user) {
+            throw new \Exception('Usuário não encontrado');
+        }
+        
+        // Verifica se o usuário já está vinculado à empresa
+        if ($company->employees()->where('user_id', $userId)->exists()) {
+            return true; // Já está vinculado
+        }
+        
+        // Vincula o usuário à empresa
+        $company->employees()->attach($userId);
+        
+        return true;
+    }
+    
+    /**
+     * Remove o vínculo de um usuário com uma empresa.
+     *
+     * @param int $companyId ID da empresa
+     * @param int $userId ID do usuário a ser desvinculado
+     * @return bool
+     * @throws \Exception
+     */
+    public function detachUserFromCompany(int $companyId, int $userId): bool
+    {
+        // Verifica se a empresa existe
+        $company = $this->findById($companyId);
+        if (!$company) {
+            throw new \Exception('Empresa não encontrada');
+        }
+        
+        // Verifica se o usuário existe
+        $user = $this->findById($userId);
+        if (!$user) {
+            throw new \Exception('Usuário não encontrado');
+        }
+        
+        // Verifica se o usuário está vinculado à empresa
+        if (!$company->employees()->where('user_id', $userId)->exists()) {
+            throw new \Exception('Vínculo não encontrado');
+        }
+        
+        // Remove o vínculo do usuário com a empresa
+        $company->employees()->detach($userId);
+        
+        return true;
+    }
+
+    /**
+     * Lista os funcionários de uma empresa.
+     *
+     * @param int $companyId ID da empresa
+     * @param int $perPage Itens por página
+     * @return \Illuminate\Pagination\LengthAwarePaginator
+     * @throws \Exception
+     */
+    public function listCompanyEmployees(int $companyId, int $perPage = 15): \Illuminate\Pagination\LengthAwarePaginator
+    {
+        // Verifica se a empresa existe
+        $company = $this->findById($companyId);
+        if (!$company) {
+            throw new \Exception('Empresa não encontrada');
+        }
+
+        // Retorna os funcionários da empresa com seus horários de atendimento
+        return $company->employees()
+            ->with(['userData', 'workingHours', 'image', 'roles', 'specialties'])
+            ->paginate($perPage);
     }
 } 

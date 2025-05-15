@@ -9,6 +9,7 @@ use App\Models\Role;
 use App\Models\Specialty;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class UserRepository
@@ -21,7 +22,8 @@ class UserRepository
      */
     public function findById(int $id): ?User
     {
-        return User::with(['userData', 'image', 'roles'])->find($id);
+        // return User::with(['userData', 'image', 'roles', 'workingHours'])->find($id);
+        return User::with(['userData', 'image', 'roles', 'addresses', 'specialties', 'workingHours'])->find($id);
     }
     
     /**
@@ -32,7 +34,7 @@ class UserRepository
      */
     public function findCompleteById(int $id): ?User
     {
-        return User::with(['userData', 'image', 'roles', 'addresses', 'specialties'])->find($id);
+        return User::with(['userData', 'image', 'roles', 'addresses', 'specialties', 'workingHours'])->find($id);
     }
     
     /**
@@ -45,6 +47,46 @@ class UserRepository
     public function listWithFilters(array $filters, int $perPage = 15): LengthAwarePaginator
     {
         $query = User::with(['userData', 'image']);
+        
+        $authenticatedUser = Auth::user();
+        
+        // Verifica se o usuário autenticado possui a role 'admin'
+        $isAdmin = false;
+        if ($authenticatedUser) {
+            // Verificamos diretamente através da relação 'roles'
+            $adminRole = DB::table('role_user')
+                ->join('roles', 'roles.id', '=', 'role_user.role_id')
+                ->where('role_user.user_id', $authenticatedUser->id)
+                ->where('roles.slug', 'admin')
+                ->exists();
+                
+            $isAdmin = $adminRole;
+        }
+        
+        // Se não for admin, filtra por empresas relacionadas ao usuário autenticado
+        if (!$isAdmin && $authenticatedUser) {
+            // Obtém as empresas em que o usuário autenticado está vinculado como funcionário
+            $employeeCompanyIds = DB::table('company_user')
+                ->where('user_id', $authenticatedUser->id)
+                ->pluck('company_id')
+                ->toArray();
+            
+            // Obtém as empresas que o usuário possui como proprietário
+            $ownedCompanyIds = [$authenticatedUser->id];
+            
+            // Combina os dois arrays de IDs de empresas
+            $allCompanyIds = array_merge($employeeCompanyIds, $ownedCompanyIds);
+            
+            // Filtra por usuários que estão vinculados às mesmas empresas
+            $query->where(function($q) use ($allCompanyIds) {
+                // Inclui usuários que são funcionários dessas empresas
+                $q->whereHas('employeeCompanies', function($q) use ($allCompanyIds) {
+                    $q->whereIn('company_id', $allCompanyIds);
+                })
+                // Ou inclui as próprias empresas
+                ->orWhereIn('id', $allCompanyIds);
+            });
+        }
         
         // Aplica filtro de busca por nome se fornecido
         if (isset($filters['search']) && !empty($filters['search'])) {
@@ -61,10 +103,15 @@ class UserRepository
             }
         }
         
-        // Filtra por company_id se fornecido
+        // Filtra por company_id específico se fornecido
         if (isset($filters['company_id']) && !empty($filters['company_id'])) {
-            $query->whereHas('companyClientes', function ($q) use ($filters) {
-                $q->where('company_id', $filters['company_id']);
+            $query->where(function($q) use ($filters) {
+                // Inclui usuários que são funcionários dessa empresa específica
+                $q->whereHas('employeeCompanies', function($subQ) use ($filters) {
+                    $subQ->where('company_id', $filters['company_id']);
+                })
+                // Ou inclui a própria empresa
+                ->orWhere('id', $filters['company_id']);
             });
         }
         

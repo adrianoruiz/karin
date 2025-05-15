@@ -472,6 +472,121 @@ A coleção configurada automaticamente salvará o token JWT recebido como vari�
 **URL:** `/api/users/roles`  
 **Autenticação:** Obrigatória  
 
+## Gerenciamento de Funcionários de Empresas
+
+### 1. Listar Funcionários de uma Empresa
+
+**Método:** GET  
+**URL:** `/api/companies/{companyId}/employees`  
+**Autenticação:** Obrigatória  
+
+**Parâmetros de rota:**
+- `companyId`: ID da empresa
+
+**Parâmetros de consulta:**
+- `per_page`: Quantidade de itens por página (padrão: 15)
+
+**Resposta:**
+```json
+{
+    "success": true,
+    "data": {
+        "current_page": 1,
+        "data": [
+            {
+                "id": 2,
+                "name": "Funcionário 1",
+                "email": "funcionario1@exemplo.com",
+                "user_data": {
+                    "birthday": "1990-01-01",
+                    "rg": "123456789",
+                    // ... outros dados do usuário
+                },
+                "working_hours": [
+                    {
+                        "id": 1,
+                        "user_id": 2,
+                        "day_of_week": 1,
+                        "opens_at": "08:00:00",
+                        "closes_at": "18:00:00",
+                        "is_open": true
+                    },
+                    // ... outros dias da semana
+                ],
+                "specialties": [
+                    {
+                        "id": 1,
+                        "name": "Clínica Geral",
+                        // ... outros dados da especialidade
+                    }
+                ],
+                // ... outros dados do usuário
+            },
+            // ... outros funcionários
+        ],
+        "first_page_url": "http://seusite.com/api/companies/1/employees?page=1",
+        "from": 1,
+        "last_page": 1,
+        // ... outros dados de paginação
+    }
+}
+```
+
+**Observações:**
+- A resposta inclui os dados completos do usuário, incluindo informações pessoais, horários de atendimento, especialidades e imagem de perfil.
+- Os horários de atendimento (`working_hours`) são fornecidos para todos os dias da semana (0-6, onde 0 = domingo, 6 = sábado).
+
+### 2. Vincular um Usuário como Funcionário da Empresa
+
+**Método:** POST  
+**URL:** `/api/companies/{companyId}/employees`  
+**Autenticação:** Obrigatória  
+
+**Parâmetros de rota:**
+- `companyId`: ID da empresa
+
+**Corpo da requisição:**
+```json
+{
+    "user_id": 2
+}
+```
+
+**Campos:**
+- `user_id`: ID do usuário a ser vinculado como funcionário (obrigatório)
+
+**Resposta:**
+```json
+{
+    "success": true,
+    "message": "Funcionário vinculado com sucesso",
+    "data": true
+}
+```
+
+### 3. Desvincular um Funcionário da Empresa
+
+**Método:** DELETE  
+**URL:** `/api/companies/{companyId}/employees/{employeeId}`  
+**Autenticação:** Obrigatória  
+
+**Parâmetros de rota:**
+- `companyId`: ID da empresa
+- `employeeId`: ID do funcionário a ser desvinculado
+
+**Resposta:**
+```json
+{
+    "success": true,
+    "message": "Funcionário desvinculado com sucesso"
+}
+```
+
+**Observações:**
+- Apenas usuários com permissões adequadas (administradores ou proprietários da empresa) podem gerenciar funcionários
+- Um usuário pode ser funcionário de várias empresas simultaneamente
+- Na listagem de usuários (GET /api/users), apenas os usuários relacionados às empresas do usuário autenticado serão retornados, a menos que o usuário seja administrador
+
 ## Exemplos Práticos
 
 ### Criando um usuário baseado no RootSeeder

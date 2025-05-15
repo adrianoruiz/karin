@@ -8,6 +8,7 @@ use App\Http\Controllers\{
     Api\AppointmentController,
     Api\AuthController,
     Api\ChatLogController,
+    Api\CompanyEmployeeController,
     Api\DoctorAvailabilityController,
     Api\PatientAppointmentController,
     Api\PlanController,
@@ -74,6 +75,11 @@ Route::middleware('auth:api')->group(function () {
     // Rotas com parâmetros de ID
     Route::put('users/{id}/complete', [UserController::class, 'updateComplete']);
     Route::post('users/{id}/avatar', [UserController::class, 'uploadAvatar']);
+    
+    // Rotas para gerenciar funcionários da empresa
+    Route::get('companies/{companyId}/employees', [CompanyEmployeeController::class, 'index']);
+    Route::post('companies/{companyId}/employees', [CompanyEmployeeController::class, 'store']);
+    Route::delete('companies/{companyId}/employees/{userId}', [CompanyEmployeeController::class, 'destroy']);
 });
 
 // Rotas para horários de funcionamento
