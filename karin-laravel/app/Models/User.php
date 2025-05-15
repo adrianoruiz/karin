@@ -217,4 +217,14 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(Plan::class, 'user_id');
     }
+
+    /**
+     * Relacionamento com especialidades.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function specialties(): BelongsToMany
+    {
+        return $this->belongsToMany(Specialty::class)->withTimestamps();
+    }
 }

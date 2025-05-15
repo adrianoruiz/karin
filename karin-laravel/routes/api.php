@@ -11,6 +11,7 @@ use App\Http\Controllers\{
     Api\DoctorAvailabilityController,
     Api\PatientAppointmentController,
     Api\PlanController,
+    Api\SpecialtyController,
     Api\UserController,
     Api\WhatsappController,
     ChatbotController,
@@ -133,6 +134,13 @@ Route::prefix('chat-logs')->group(function () {
     Route::get('/unread/messages', [ChatLogController::class, 'getUnreadMessages']);
     Route::post('/mark-all-as-read', [ChatLogController::class, 'markAllAsRead']);
     Route::post('/active-bot', [ChatLogController::class, 'activeBot']);
+});
+
+// Rotas para especialidades
+Route::apiResource('specialties', SpecialtyController::class);
+Route::prefix('users/{user}')->group(function () {
+    Route::get('/specialties', [SpecialtyController::class, 'getUserSpecialties']);
+    Route::post('/specialties', [SpecialtyController::class, 'syncUserSpecialties']);
 });
 
 // Rota pública para teste de chat-logs

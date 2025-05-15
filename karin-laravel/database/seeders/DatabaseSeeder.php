@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             PlanSeeder::class,
             PaymentMethodSeeder::class,
             AiConfigSeeder::class,
+            SpecialtySeeder::class,
         ]);
     }
 }

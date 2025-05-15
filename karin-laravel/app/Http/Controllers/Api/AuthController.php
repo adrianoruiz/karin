@@ -95,8 +95,8 @@ class AuthController extends Controller
             return response()->json(['error' => 'Não autenticado'], 401);
         }
         
-        // Carrega o usuário com seus roles
-        $userWithRoles = User::with('roles')->find($user->id);
+        // Carrega o usuário com seus roles e userData
+        $userWithRoles = User::with(['roles', 'userData'])->find($user->id);
         
         // Cria a resposta
         return response()->json([
@@ -111,7 +111,8 @@ class AuthController extends Controller
             'created_at' => $userWithRoles->created_at,
             'updated_at' => $userWithRoles->updated_at,
             'deleted_at' => $userWithRoles->deleted_at,
-            'roles' => $userWithRoles->roles
+            'roles' => $userWithRoles->roles,
+            'segment_types' => $userWithRoles->userData ? $userWithRoles->userData->segment_types : null
         ]);
     }
 
