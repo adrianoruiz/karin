@@ -64,6 +64,10 @@ Route::group([
 ], function () {
     Route::apiResource('/', UserController::class);
     Route::get('/roles', [UserController::class, 'getAllRoles']);
+    
+    // Rotas para usuário completo (com user_data, address e specialties)
+    Route::post('/complete', [UserController::class, 'storeComplete']);
+    Route::put('/{id}/complete', [UserController::class, 'updateComplete']);
 });
 
 // Rotas de agendamentos

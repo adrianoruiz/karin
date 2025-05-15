@@ -4,161 +4,79 @@ namespace App\Http\Controllers\Api;
 
 use App\Enum\ValidRoles;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\StoreUserRequest;
+use App\Http\Requests\User\UpdateUserRequest;
+use App\Http\Requests\User\StoreCompleteUserRequest;
+use App\Http\Requests\User\UpdateCompleteUserRequest;
+use App\Services\UserService;
 use Illuminate\Http\Request;
-
-use App\Models\{
-    Role,
-    User
-};
-use Illuminate\Support\Facades\{
-    Hash,
-    Validator
-};
-
+use Illuminate\Http\JsonResponse;
 
 
 class UserController extends Controller
 {
+    /**
+     * @var UserService
+     */
+    protected UserService $userService;
+    
+    /**
+     * Construtor do controlador.
+     * 
+     * @param UserService $userService
+     */
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
+    
     /**
      * Retorna a lista de usuários filtrados por função (role).
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
-        // Validação dos parâmetros da requisição
-        $validator = Validator::make($request->all(), [
-            'role' => 'sometimes|string',
-            'per_page' => 'sometimes|integer|min:1|max:100',
-            'search' => 'sometimes|string|max:255',
-            'company_id' => 'sometimes|exists:users,id'
-        ]);
-
-        if ($validator->fails()) {
+        try {
+            $filters = $request->only(['role', 'search', 'company_id']);
+            $perPage = $request->input('per_page', 15);
+            
+            $users = $this->userService->listWithFilters($filters, $perPage);
+            
+            return response()->json($users);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Parâmetros inválidos',
-                'errors' => $validator->errors()
-            ], 422);
+                'message' => 'Erro ao listar usuários',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $role = $request->input('role');
-        $perPage = $request->input('per_page', 15); // Padrão: 15 itens por página
-        $search = $request->input('search'); // Busca por nome
-        $companyId = $request->input('company_id'); // ID da empresa (médico/salão)
-
-        // Inicializa a query base
-        $query = User::with(['userData', 'image']);
-
-        // Aplica filtro de busca por nome se fornecido
-        if ($search) {
-            $query->where('name', 'ILIKE', "%{$search}%");
-        }
-
-        // Aplica filtro por role se fornecido
-        if ($role) {
-            // Verifica se o role é válido
-            $validRoles = $this->getValidRoles();
-            if (!in_array($role, $validRoles)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Função inválida',
-                    'valid_roles' => $validRoles
-                ], 422);
-            }
-
-            // Busca os usuários com a função especificada
-            $roleModel = Role::where('slug', $role)->first();
-            
-            if (!$roleModel) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Função não encontrada no banco de dados',
-                    'role' => $role
-                ], 404);
-            }
-
-            // Obtém IDs dos usuários com a função especificada
-            $userIds = $roleModel->users()->pluck('users.id');
-            
-            // Aplica o filtro de IDs à query principal
-            $query->whereIn('id', $userIds);
-        }
-
-        // Filtra por company_id se fornecido
-        if ($companyId) {
-            $query->whereHas('companyClientes', function ($q) use ($companyId) {
-                $q->where('company_id', $companyId);
-            });
-        }
-
-        // Retorna a paginação
-        return $query->paginate($perPage);
     }
 
     /**
      * Cria um novo usuário.
      *
-     * @param Request $request
+     * @param StoreUserRequest $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(StoreUserRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
-            'phone' => 'nullable|string|max:20',
-            'is_whatsapp_user' => 'nullable|boolean',
-            'status' => 'nullable|boolean',
-            'roles' => 'nullable|array',
-            'roles.*' => 'string'
-        ]);
-
-        if ($validator->fails()) {
+        try {
+            $user = $this->userService->create($request->validated());
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Usuário criado com sucesso',
+                'data' => $user
+            ], 201);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erro de validação',
-                'errors' => $validator->errors()
-            ], 422);
+                'message' => 'Erro ao criar usuário',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $user = new User();
-        $user->name = $request->input('name');
-        $user->email = $request->input('email');
-        $user->password = Hash::make($request->input('password'));
-        $user->phone = $request->input('phone');
-        $user->is_whatsapp_user = $request->input('is_whatsapp_user', false);
-        $user->status = $request->input('status', true);
-        $user->save();
-
-        // Atribui roles ao usuário, se fornecidos
-        if ($request->has('roles')) {
-            $roles = $request->input('roles');
-            $validRoles = $this->getValidRoles();
-            $rolesToAttach = [];
-
-            foreach ($roles as $role) {
-                if (in_array($role, $validRoles)) {
-                    $roleModel = Role::where('slug', $role)->first();
-                    if ($roleModel) {
-                        $rolesToAttach[] = $roleModel->id;
-                    }
-                }
-            }
-
-            $user->roles()->sync($rolesToAttach);
-        }
-
-        // Carrega os relacionamentos para a resposta
-        $user->load(['userData', 'image', 'roles']);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Usuário criado com sucesso',
-            'data' => $user
-        ], 201);
     }
 
     /**
@@ -167,106 +85,62 @@ class UserController extends Controller
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show($id)
+    public function show(int $id): JsonResponse
     {
-        $user = User::with(['userData', 'image', 'roles'])->find($id);
-
-        if (!$user) {
+        try {
+            $user = $this->userService->findById($id);
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuário não encontrado'
+                ], 404);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'data' => $user
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Usuário não encontrado'
-            ], 404);
+                'message' => 'Erro ao buscar usuário',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'data' => $user
-        ]);
     }
 
     /**
      * Atualiza os dados de um usuário existente.
      *
-     * @param Request $request
+     * @param UpdateUserRequest $request
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, $id)
+    public function update(UpdateUserRequest $request, int $id): JsonResponse
     {
-        $user = User::find($id);
-
-        if (!$user) {
+        try {
+            $user = $this->userService->update($id, $request->validated());
+            
             return response()->json([
-                'success' => false,
-                'message' => 'Usuário não encontrado'
-            ], 404);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|string|email|max:255|unique:users,email,' . $id,
-            'password' => 'sometimes|string|min:8',
-            'phone' => 'nullable|string|max:20',
-            'is_whatsapp_user' => 'nullable|boolean',
-            'status' => 'nullable|boolean',
-            'roles' => 'nullable|array',
-            'roles.*' => 'string'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erro de validação',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        if ($request->has('name')) {
-            $user->name = $request->input('name');
-        }
-        if ($request->has('email')) {
-            $user->email = $request->input('email');
-        }
-        if ($request->has('password')) {
-            $user->password = Hash::make($request->input('password'));
-        }
-        if ($request->has('phone')) {
-            $user->phone = $request->input('phone');
-        }
-        if ($request->has('is_whatsapp_user')) {
-            $user->is_whatsapp_user = $request->input('is_whatsapp_user');
-        }
-        if ($request->has('status')) {
-            $user->status = $request->input('status');
-        }
-        $user->save();
-
-        // Atualiza roles do usuário, se fornecidos
-        if ($request->has('roles')) {
-            $roles = $request->input('roles');
-            $validRoles = $this->getValidRoles();
-            $rolesToAttach = [];
-
-            foreach ($roles as $role) {
-                if (in_array($role, $validRoles)) {
-                    $roleModel = Role::where('slug', $role)->first();
-                    if ($roleModel) {
-                        $rolesToAttach[] = $roleModel->id;
-                    }
-                }
+                'success' => true,
+                'message' => 'Usuário atualizado com sucesso',
+                'data' => $user
+            ]);
+        } catch (\Exception $e) {
+            if ($e->getMessage() === 'Usuário não encontrado') {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 404);
             }
-
-            $user->roles()->sync($rolesToAttach);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao atualizar usuário',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        // Carrega os relacionamentos para a resposta
-        $user->load(['userData', 'image', 'roles']);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Usuário atualizado com sucesso',
-            'data' => $user
-        ]);
     }
 
     /**
@@ -275,23 +149,29 @@ class UserController extends Controller
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy($id)
+    public function destroy(int $id): JsonResponse
     {
-        $user = User::find($id);
-
-        if (!$user) {
+        try {
+            $this->userService->delete($id);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Usuário excluído com sucesso'
+            ]);
+        } catch (\Exception $e) {
+            if ($e->getMessage() === 'Usuário não encontrado') {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 404);
+            }
+            
             return response()->json([
                 'success' => false,
-                'message' => 'Usuário não encontrado'
-            ], 404);
+                'message' => 'Erro ao excluir usuário',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $user->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Usuário excluído com sucesso'
-        ]);
     }
 
     /**
@@ -299,24 +179,79 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getAllRoles()
+    public function getAllRoles(): JsonResponse
     {
-        $roles = $this->getValidRoles();
-
-        return response()->json([
-            'success' => true,
-            'data' => $roles
-        ]);
+        try {
+            $roles = $this->userService->getAllRoles();
+            
+            return response()->json([
+                'success' => true,
+                'data' => $roles
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao listar funções',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
-     * Retorna um array com todas as funções válidas.
+     * Cria um usuário completo com todos os dados relacionados.
      *
-     * @return array
+     * @param StoreCompleteUserRequest $request
+     * @return \Illuminate\Http\JsonResponse
      */
-    private function getValidRoles()
+    public function storeComplete(StoreCompleteUserRequest $request): JsonResponse
     {
-        $reflection = new \ReflectionClass(ValidRoles::class);
-        return array_values($reflection->getConstants());
+        try {
+            $user = $this->userService->createComplete($request->validated());
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Usuário criado com sucesso',
+                'data' => $user
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao criar usuário',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Atualiza um usuário completo com todos os dados relacionados.
+     *
+     * @param UpdateCompleteUserRequest $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateComplete(UpdateCompleteUserRequest $request, int $id): JsonResponse
+    {
+        try {
+            $user = $this->userService->updateComplete($id, $request->validated());
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Usuário atualizado com sucesso',
+                'data' => $user
+            ]);
+        } catch (\Exception $e) {
+            if ($e->getMessage() === 'Usuário não encontrado') {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 404);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao atualizar usuário',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

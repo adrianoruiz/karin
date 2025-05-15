@@ -1,0 +1,606 @@
+{
+	"info": {
+		"_postman_id": "d41ebc05-76f9-4d5c-a1f9-fa8c55b37a56",
+		"name": "Karin Laravel - Users API",
+		"description": "Coleção de endpoints para gerenciar usuários no sistema Karin, incluindo especialidades, userData, roles e endereços.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Autenticação",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"ruiz@7cliques.com.br\",\n    \"password\": \"admin#9407\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Usuários",
+			"item": [
+				{
+					"name": "Listar usuários",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users?role=&per_page=10&search=",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users"
+							],
+							"query": [
+								{
+									"key": "role",
+									"value": "",
+									"description": "Filtrar por role (admin, clinic, patient, etc.)"
+								},
+								{
+									"key": "per_page",
+									"value": "10",
+									"description": "Quantidade de itens por página"
+								},
+								{
+									"key": "search",
+									"value": "",
+									"description": "Buscar por nome"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Obter usuário por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Criar usuário completo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Novo Usuário\",\n    \"email\": \"novo.usuario@exemplo.com\",\n    \"password\": \"senha123\",\n    \"phone\": \"47999887766\",\n    \"is_whatsapp_user\": true,\n    \"status\": true,\n    \"roles\": [\"clinic\"],\n    \"user_data\": {\n        \"birthday\": \"1990-01-01\",\n        \"rg\": \"1234567\",\n        \"cpf\": \"12345678901\",\n        \"fantasy\": \"Nome Fantasia\",\n        \"cnpj\": \"12345678901234\",\n        \"corporate_name\": \"Nome Corporativo\",\n        \"segment_types\": \"clinica-medica\"\n    },\n    \"address\": {\n        \"street\": \"Rua Exemplo\",\n        \"number\": \"123\",\n        \"complement\": \"Apto 101\",\n        \"neighborhood\": \"Centro\",\n        \"postal_code\": \"12345678\",\n        \"city_id\": 1,\n        \"default\": true\n    },\n    \"specialty_ids\": [1, 2, 3]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/complete",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"complete"
+							]
+						}
+					}
+				},
+				{
+					"name": "Atualizar usuário",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Usuário Atualizado\",\n    \"phone\": \"47999112233\",\n    \"roles\": [\"clinic\", \"doctor\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Atualizar usuário completo",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Usuário Atualizado\",\n    \"email\": \"atualizado@exemplo.com\",\n    \"phone\": \"47999112233\",\n    \"is_whatsapp_user\": true,\n    \"status\": true,\n    \"roles\": [\"clinic\", \"doctor\"],\n    \"user_data\": {\n        \"birthday\": \"1985-06-15\",\n        \"rg\": \"9876543\",\n        \"cpf\": \"98765432101\",\n        \"fantasy\": \"Nome Fantasia Atualizado\",\n        \"cnpj\": \"98765432109876\",\n        \"corporate_name\": \"Nome Corporativo Atualizado\",\n        \"segment_types\": \"clinica-medica\"\n    },\n    \"address\": {\n        \"id\": 1,\n        \"street\": \"Rua Atualizada\",\n        \"number\": \"456\",\n        \"complement\": \"Sala 202\",\n        \"neighborhood\": \"Bairro Atualizado\",\n        \"postal_code\": \"87654321\",\n        \"city_id\": 2,\n        \"default\": true\n    },\n    \"specialty_ids\": [4, 5, 6]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/1/complete",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"1",
+								"complete"
+							]
+						}
+					}
+				},
+				{
+					"name": "Excluir usuário",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"1"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Dados de Usuário",
+			"item": [
+				{
+					"name": "Atualizar dados de usuário",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"birthday\": \"1985-05-15\",\n    \"rg\": \"7654321\",\n    \"cpf\": \"98765432100\",\n    \"fantasy\": \"Nome Fantasia Atualizado\",\n    \"cnpj\": \"43210987654321\",\n    \"corporate_name\": \"Nome Corporativo Atualizado\",\n    \"segment_types\": \"clinica-odonto\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/1/user-data",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"1",
+								"user-data"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Endereços",
+			"item": [
+				{
+					"name": "Listar endereços do usuário",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/1/addresses",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"1",
+								"addresses"
+							]
+						}
+					}
+				},
+				{
+					"name": "Adicionar endereço ao usuário",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"street\": \"Rua Nova\",\n    \"number\": \"456\",\n    \"complement\": \"Casa\",\n    \"neighborhood\": \"Bairro Novo\",\n    \"postal_code\": \"87654321\",\n    \"city_id\": 2,\n    \"default\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/1/addresses",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"1",
+								"addresses"
+							]
+						}
+					}
+				},
+				{
+					"name": "Atualizar endereço",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"street\": \"Rua Atualizada\",\n    \"number\": \"789\",\n    \"default\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/1/addresses/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"1",
+								"addresses",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Excluir endereço",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/1/addresses/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"1",
+								"addresses",
+								"1"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Especialidades",
+			"item": [
+				{
+					"name": "Listar especialidades do usuário",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/1/specialties",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"1",
+								"specialties"
+							]
+						}
+					}
+				},
+				{
+					"name": "Atualizar especialidades do usuário",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"specialty_ids\": [1, 2, 3]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/1/specialties",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"1",
+								"specialties"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Funções (Roles)",
+			"item": [
+				{
+					"name": "Listar todas as funções",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/roles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"roles"
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"if (pm.response.code === 200 || pm.response.code === 201) {",
+					"    // Se a resposta contiver access_token, salva na variável de ambiente",
+					"    if (pm.response.json().access_token) {",
+					"        pm.environment.set('token', pm.response.json().access_token);",
+					"        console.log('Token salvo: ' + pm.response.json().access_token);",
+					"    }",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "seu_token_jwt_aqui",
+			"type": "string"
+		}
+	]
+} 
