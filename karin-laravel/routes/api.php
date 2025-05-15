@@ -8,10 +8,12 @@ use App\Http\Controllers\{
     Api\AppointmentController,
     Api\AuthController,
     Api\ChatLogController,
+    Api\CityController,
     Api\CompanyEmployeeController,
     Api\DoctorAvailabilityController,
     Api\PatientAppointmentController,
     Api\PlanController,
+    Api\ProvinceController,
     Api\SpecialtyController,
     Api\UserController,
     Api\UserWorkingHourController,
@@ -187,5 +189,20 @@ Route::group([
     // Rota para gerar o system prompt para IA
     Route::post('/get-system-prompt', [AiPromptController::class, 'getSystemPrompt']);
     
+});
+
+// Rotas para Províncias e Cidades
+Route::group([
+    'prefix' => 'locations'
+], function () {
+    // Rotas de Províncias
+    Route::get('/provinces', [ProvinceController::class, 'index']);
+    Route::get('/provinces/with-cities', [ProvinceController::class, 'withCities']);
+    Route::get('/provinces/{id}', [ProvinceController::class, 'show']);
+    
+    // Rotas de Cidades
+    Route::get('/cities', [CityController::class, 'index']);
+    Route::get('/cities/{id}', [CityController::class, 'show']);
+    Route::get('/provinces/{provinceId}/cities', [CityController::class, 'byProvince']);
 });
 
