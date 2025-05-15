@@ -47,7 +47,7 @@ class StoreCompleteUserRequest extends FormRequest
             'address.number' => 'required_with:address|string|max:20',
             'address.complement' => 'nullable|string|max:255',
             'address.neighborhood' => 'required_with:address|string|max:255',
-            'address.postal_code' => 'required_with:address|string|max:10',
+            'address.zip' => 'required_with:address|string|max:10',
             'address.city_id' => 'required_with:address|exists:cities,id',
             'address.default' => 'nullable|boolean',
             
@@ -74,7 +74,7 @@ class StoreCompleteUserRequest extends FormRequest
             'address.street.required_with' => 'O campo rua é obrigatório quando um endereço é fornecido.',
             'address.number.required_with' => 'O campo número é obrigatório quando um endereço é fornecido.',
             'address.neighborhood.required_with' => 'O campo bairro é obrigatório quando um endereço é fornecido.',
-            'address.postal_code.required_with' => 'O campo CEP é obrigatório quando um endereço é fornecido.',
+            'address.zip.required_with' => 'O campo CEP é obrigatório quando um endereço é fornecido.',
             'address.city_id.required_with' => 'O campo cidade é obrigatório quando um endereço é fornecido.',
             'address.city_id.exists' => 'A cidade selecionada não existe.',
             'specialty_ids.*.exists' => 'Uma ou mais especialidades selecionadas não existem.'

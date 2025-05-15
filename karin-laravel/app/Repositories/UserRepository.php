@@ -370,7 +370,7 @@ class UserRepository
         $address->number = $addressData['number'];
         $address->complement = $addressData['complement'] ?? null;
         $address->neighborhood = $addressData['neighborhood'];
-        $address->postal_code = $addressData['postal_code'];
+        $address->zip = $addressData['zip'];
         $address->city_id = $addressData['city_id'];
         $address->default = $addressData['default'] ?? false;
         
@@ -402,7 +402,7 @@ class UserRepository
         $address->number = $addressData['number'];
         $address->complement = $addressData['complement'] ?? null;
         $address->neighborhood = $addressData['neighborhood'];
-        $address->postal_code = $addressData['postal_code'];
+        $address->zip = $addressData['zip'];
         $address->city_id = $addressData['city_id'];
         
         // Se estiver marcando como padrão, desmarca outros endereços
