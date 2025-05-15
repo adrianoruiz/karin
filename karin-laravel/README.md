@@ -7,6 +7,74 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Sobre o Projeto Karin Laravel
+
+Este é o backend do sistema Karin, desenvolvido com Laravel. Ele fornece uma API completa para gerenciamento de usuários, horários, agendamentos, e outras funcionalidades.
+
+### Funcionalidades Principais
+
+- Autenticação JWT
+- Gerenciamento de usuários e perfis
+- Gerenciamento de especialidades
+- Gestão de horários de funcionamento
+- Upload de avatares
+- Agendamentos e consultas
+- Configurações de IA e chatbot
+
+### Novas Funcionalidades
+
+#### Horários de Funcionamento
+
+O sistema agora suporta o gerenciamento completo de horários de funcionamento para clínicas e profissionais:
+
+- Configuração para cada dia da semana (domingo a sábado)
+- Definição de horário de abertura e fechamento
+- Possibilidade de marcar dias como fechados
+- Validação automática dos dados
+
+Documentação: `docs/users_api_guide.md` - Seção "Gerenciamento de Horários de Funcionamento"
+
+#### Upload de Avatar
+
+Implementamos um sistema de upload de imagens de perfil:
+
+- Suporte para formatos JPG, JPEG, PNG e WebP
+- Limite de tamanho de 2MB
+- Armazenamento otimizado
+- Geração automática de URLs públicas
+
+Documentação: `docs/users_api_guide.md` - Seção "Upload de Avatar"
+
+## Documentação da API
+
+A documentação completa da API está disponível em:
+
+- `docs/users_api_guide.md`: Guia de uso da API de usuários
+- `postman_tests/working_hours_avatar.md`: Exemplos de testes das novas funcionalidades
+
+## Instalação e Configuração
+
+```bash
+# Clonar o repositório
+git clone https://github.com/seu-usuario/karin-laravel.git
+
+# Instalar dependências
+composer install
+
+# Configurar o arquivo .env
+cp .env.example .env
+php artisan key:generate
+
+# Executar migrações
+php artisan migrate
+
+# Criar link simbólico para armazenamento
+php artisan storage:link
+
+# Iniciar o servidor
+php artisan serve
+```
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

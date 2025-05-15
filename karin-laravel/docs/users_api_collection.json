@@ -30,12 +30,11 @@
 							"raw": "{\n    \"email\": \"ruiz@7cliques.com.br\",\n    \"password\": \"admin#9407\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/auth/login",
+							"raw": "<<baseurl>>/auth/login",
 							"host": [
-								"{{base_url}}"
+								"<<baseurl>>"
 							],
 							"path": [
-								"api",
 								"auth",
 								"login"
 							]
@@ -64,12 +63,11 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/users?role=&per_page=10&search=",
+							"raw": "<<baseurl>>/users?role=&per_page=10&search=",
 							"host": [
-								"{{base_url}}"
+								"<<baseurl>>"
 							],
 							"path": [
-								"api",
 								"users"
 							],
 							"query": [
@@ -109,12 +107,11 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/users/1",
+							"raw": "<<baseurl>>/users/1",
 							"host": [
-								"{{base_url}}"
+								"<<baseurl>>"
 							],
 							"path": [
-								"api",
 								"users",
 								"1"
 							]
@@ -147,12 +144,11 @@
 							"raw": "{\n    \"name\": \"Novo Usuário\",\n    \"email\": \"novo.usuario@exemplo.com\",\n    \"password\": \"senha123\",\n    \"phone\": \"47999887766\",\n    \"is_whatsapp_user\": true,\n    \"status\": true,\n    \"roles\": [\"clinic\"],\n    \"user_data\": {\n        \"birthday\": \"1990-01-01\",\n        \"rg\": \"1234567\",\n        \"cpf\": \"12345678901\",\n        \"fantasy\": \"Nome Fantasia\",\n        \"cnpj\": \"12345678901234\",\n        \"corporate_name\": \"Nome Corporativo\",\n        \"segment_types\": \"clinica-medica\"\n    },\n    \"address\": {\n        \"street\": \"Rua Exemplo\",\n        \"number\": \"123\",\n        \"complement\": \"Apto 101\",\n        \"neighborhood\": \"Centro\",\n        \"postal_code\": \"12345678\",\n        \"city_id\": 1,\n        \"default\": true\n    },\n    \"specialty_ids\": [1, 2, 3]\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/users/complete",
+							"raw": "<<baseurl>>/users/complete",
 							"host": [
-								"{{base_url}}"
+								"<<baseurl>>"
 							],
 							"path": [
-								"api",
 								"users",
 								"complete"
 							]
@@ -185,12 +181,11 @@
 							"raw": "{\n    \"name\": \"Usuário Atualizado\",\n    \"phone\": \"47999112233\",\n    \"roles\": [\"clinic\", \"doctor\"]\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/users/1",
+							"raw": "<<baseurl>>/users/1",
 							"host": [
-								"{{base_url}}"
+								"<<baseurl>>"
 							],
 							"path": [
-								"api",
 								"users",
 								"1"
 							]
@@ -223,12 +218,11 @@
 							"raw": "{\n    \"name\": \"Usuário Atualizado\",\n    \"email\": \"atualizado@exemplo.com\",\n    \"phone\": \"47999112233\",\n    \"is_whatsapp_user\": true,\n    \"status\": true,\n    \"roles\": [\"clinic\", \"doctor\"],\n    \"user_data\": {\n        \"birthday\": \"1985-06-15\",\n        \"rg\": \"9876543\",\n        \"cpf\": \"98765432101\",\n        \"fantasy\": \"Nome Fantasia Atualizado\",\n        \"cnpj\": \"98765432109876\",\n        \"corporate_name\": \"Nome Corporativo Atualizado\",\n        \"segment_types\": \"clinica-medica\"\n    },\n    \"address\": {\n        \"id\": 1,\n        \"street\": \"Rua Atualizada\",\n        \"number\": \"456\",\n        \"complement\": \"Sala 202\",\n        \"neighborhood\": \"Bairro Atualizado\",\n        \"postal_code\": \"87654321\",\n        \"city_id\": 2,\n        \"default\": true\n    },\n    \"specialty_ids\": [4, 5, 6]\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/users/1/complete",
+							"raw": "<<baseurl>>/users/1/complete",
 							"host": [
-								"{{base_url}}"
+								"<<baseurl>>"
 							],
 							"path": [
-								"api",
 								"users",
 								"1",
 								"complete"
@@ -253,12 +247,11 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/users/1",
+							"raw": "<<baseurl>>/users/1",
 							"host": [
-								"{{base_url}}"
+								"<<baseurl>>"
 							],
 							"path": [
-								"api",
 								"users",
 								"1"
 							]
@@ -292,12 +285,11 @@
 							]
 						},
 						"url": {
-							"raw": "{{base_url}}/api/users/1/avatar",
+							"raw": "<<baseurl>>/users/1/avatar",
 							"host": [
-								"{{base_url}}"
+								"<<baseurl>>"
 							],
 							"path": [
-								"api",
 								"users",
 								"1",
 								"avatar"
@@ -337,12 +329,11 @@
 							"raw": "{\n    \"birthday\": \"1985-05-15\",\n    \"rg\": \"7654321\",\n    \"cpf\": \"98765432100\",\n    \"fantasy\": \"Nome Fantasia Atualizado\",\n    \"cnpj\": \"43210987654321\",\n    \"corporate_name\": \"Nome Corporativo Atualizado\",\n    \"segment_types\": \"clinica-odonto\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/users/1/user-data",
+							"raw": "<<baseurl>>/users/1/user-data",
 							"host": [
-								"{{base_url}}"
+								"<<baseurl>>"
 							],
 							"path": [
-								"api",
 								"users",
 								"1",
 								"user-data"
@@ -372,12 +363,11 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/users/1/addresses",
+							"raw": "<<baseurl>>/users/1/addresses",
 							"host": [
-								"{{base_url}}"
+								"<<baseurl>>"
 							],
 							"path": [
-								"api",
 								"users",
 								"1",
 								"addresses"
@@ -411,12 +401,11 @@
 							"raw": "{\n    \"street\": \"Rua Nova\",\n    \"number\": \"456\",\n    \"complement\": \"Casa\",\n    \"neighborhood\": \"Bairro Novo\",\n    \"postal_code\": \"87654321\",\n    \"city_id\": 2,\n    \"default\": false\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/users/1/addresses",
+							"raw": "<<baseurl>>/users/1/addresses",
 							"host": [
-								"{{base_url}}"
+								"<<baseurl>>"
 							],
 							"path": [
-								"api",
 								"users",
 								"1",
 								"addresses"
@@ -450,12 +439,11 @@
 							"raw": "{\n    \"street\": \"Rua Atualizada\",\n    \"number\": \"789\",\n    \"default\": true\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/users/1/addresses/1",
+							"raw": "<<baseurl>>/users/1/addresses/1",
 							"host": [
-								"{{base_url}}"
+								"<<baseurl>>"
 							],
 							"path": [
-								"api",
 								"users",
 								"1",
 								"addresses",
@@ -481,12 +469,11 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/users/1/addresses/1",
+							"raw": "<<baseurl>>/users/1/addresses/1",
 							"host": [
-								"{{base_url}}"
+								"<<baseurl>>"
 							],
 							"path": [
-								"api",
 								"users",
 								"1",
 								"addresses",
@@ -517,12 +504,11 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/users/1/working-hours",
+							"raw": "<<baseurl>>/users/1/working-hours",
 							"host": [
-								"{{base_url}}"
+								"<<baseurl>>"
 							],
 							"path": [
-								"api",
 								"users",
 								"1",
 								"working-hours"
@@ -557,12 +543,11 @@
 							"raw": "{\n  \"hours\": [\n    {\n      \"day_of_week\": 0,\n      \"is_open\": true,\n      \"opens_at\": \"08:00\",\n      \"closes_at\": \"18:00\"\n    },\n    {\n      \"day_of_week\": 1,\n      \"is_open\": true,\n      \"opens_at\": \"08:00\",\n      \"closes_at\": \"18:00\"\n    },\n    {\n      \"day_of_week\": 2,\n      \"is_open\": true,\n      \"opens_at\": \"08:00\",\n      \"closes_at\": \"18:00\"\n    },\n    {\n      \"day_of_week\": 3,\n      \"is_open\": true,\n      \"opens_at\": \"08:00\",\n      \"closes_at\": \"18:00\"\n    },\n    {\n      \"day_of_week\": 4,\n      \"is_open\": true,\n      \"opens_at\": \"08:00\",\n      \"closes_at\": \"18:00\"\n    },\n    {\n      \"day_of_week\": 5,\n      \"is_open\": true,\n      \"opens_at\": \"08:00\",\n      \"closes_at\": \"16:00\"\n    },\n    {\n      \"day_of_week\": 6,\n      \"is_open\": false,\n      \"opens_at\": null,\n      \"closes_at\": null\n    }\n  ]\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/users/1/working-hours",
+							"raw": "<<baseurl>>/users/1/working-hours",
 							"host": [
-								"{{base_url}}"
+								"<<baseurl>>"
 							],
 							"path": [
-								"api",
 								"users",
 								"1",
 								"working-hours"
@@ -594,12 +579,11 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/users/1/specialties",
+							"raw": "<<baseurl>>/users/1/specialties",
 							"host": [
-								"{{base_url}}"
+								"<<baseurl>>"
 							],
 							"path": [
-								"api",
 								"users",
 								"1",
 								"specialties"
@@ -633,12 +617,11 @@
 							"raw": "{\n    \"specialty_ids\": [1, 2, 3]\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/users/1/specialties",
+							"raw": "<<baseurl>>/users/1/specialties",
 							"host": [
-								"{{base_url}}"
+								"<<baseurl>>"
 							],
 							"path": [
-								"api",
 								"users",
 								"1",
 								"specialties"
@@ -668,12 +651,11 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/users/roles",
+							"raw": "<<baseurl>>/users/roles",
 							"host": [
-								"{{base_url}}"
+								"<<baseurl>>"
 							],
 							"path": [
-								"api",
 								"users",
 								"roles"
 							]

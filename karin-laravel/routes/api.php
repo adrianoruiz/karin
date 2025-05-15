@@ -59,19 +59,21 @@ Route::group([
 });
 
 // Rotas de usuários por função - protegidas por autenticação
-Route::group([
-    'prefix' => 'users',
-    'middleware' => 'auth:api'
-], function () {
-    Route::apiResource('/', UserController::class);
-    Route::get('/roles', [UserController::class, 'getAllRoles']);
+Route::middleware('auth:api')->group(function () {
+    // Rotas específicas de usuários (devem vir antes das rotas com parâmetros)
+    Route::get('users/roles', [UserController::class, 'getAllRoles']);
+    Route::post('users/complete', [UserController::class, 'storeComplete']);
     
-    // Rotas para usuário completo (com user_data, address e specialties)
-    Route::post('/complete', [UserController::class, 'storeComplete']);
-    Route::put('/{id}/complete', [UserController::class, 'updateComplete']);
+    // Rotas de recursos para usuários
+    Route::get('users', [UserController::class, 'index']);
+    Route::post('users', [UserController::class, 'store']);
+    Route::get('users/{id}', [UserController::class, 'show']);
+    Route::put('users/{id}', [UserController::class, 'update']);
+    Route::delete('users/{id}', [UserController::class, 'destroy']);
     
-    // Rota para upload de avatar
-    Route::post('/{id}/avatar', [UserController::class, 'uploadAvatar']);
+    // Rotas com parâmetros de ID
+    Route::put('users/{id}/complete', [UserController::class, 'updateComplete']);
+    Route::post('users/{id}/avatar', [UserController::class, 'uploadAvatar']);
 });
 
 // Rotas para horários de funcionamento
