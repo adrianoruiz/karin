@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "d41ebc05-76f9-4d5c-a1f9-fa8c55b37a56",
 		"name": "Karin Laravel - Users API",
-		"description": "Coleção de endpoints para gerenciar usuários no sistema Karin, incluindo especialidades, userData, roles e endereços.",
+		"description": "Coleção de endpoints para gerenciar usuários no sistema Karin, incluindo especialidades, userData, roles, endereços, horários de funcionamento e avatares.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -264,6 +264,47 @@
 							]
 						}
 					}
+				},
+				{
+					"name": "Upload de Avatar",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "avatar",
+									"type": "file",
+									"description": "Arquivo de imagem (jpg, jpeg, png, webp) com no máximo 2MB"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/1/avatar",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"1",
+								"avatar"
+							]
+						},
+						"description": "Faz upload de um arquivo de imagem como avatar para o usuário."
+					}
 				}
 			]
 		},
@@ -455,6 +496,83 @@
 					}
 				}
 			]
+		},
+		{
+			"name": "Horários de Funcionamento",
+			"item": [
+				{
+					"name": "Listar horários de funcionamento",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/1/working-hours",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"1",
+								"working-hours"
+							]
+						},
+						"description": "Lista os horários de funcionamento do usuário para cada dia da semana."
+					}
+				},
+				{
+					"name": "Salvar horários de funcionamento",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"hours\": [\n    {\n      \"day_of_week\": 0,\n      \"is_open\": true,\n      \"opens_at\": \"08:00\",\n      \"closes_at\": \"18:00\"\n    },\n    {\n      \"day_of_week\": 1,\n      \"is_open\": true,\n      \"opens_at\": \"08:00\",\n      \"closes_at\": \"18:00\"\n    },\n    {\n      \"day_of_week\": 2,\n      \"is_open\": true,\n      \"opens_at\": \"08:00\",\n      \"closes_at\": \"18:00\"\n    },\n    {\n      \"day_of_week\": 3,\n      \"is_open\": true,\n      \"opens_at\": \"08:00\",\n      \"closes_at\": \"18:00\"\n    },\n    {\n      \"day_of_week\": 4,\n      \"is_open\": true,\n      \"opens_at\": \"08:00\",\n      \"closes_at\": \"18:00\"\n    },\n    {\n      \"day_of_week\": 5,\n      \"is_open\": true,\n      \"opens_at\": \"08:00\",\n      \"closes_at\": \"16:00\"\n    },\n    {\n      \"day_of_week\": 6,\n      \"is_open\": false,\n      \"opens_at\": null,\n      \"closes_at\": null\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/1/working-hours",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"1",
+								"working-hours"
+							]
+						},
+						"description": "Atualiza ou cria os horários de funcionamento para todos os dias da semana."
+					}
+				}
+			],
+			"description": "Endpoints para gerenciar os horários de funcionamento de um usuário."
 		},
 		{
 			"name": "Especialidades",

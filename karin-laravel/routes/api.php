@@ -13,6 +13,7 @@ use App\Http\Controllers\{
     Api\PlanController,
     Api\SpecialtyController,
     Api\UserController,
+    Api\UserWorkingHourController,
     Api\WhatsappController,
     ChatbotController,
     ChatbotCrudController
@@ -68,6 +69,15 @@ Route::group([
     // Rotas para usuário completo (com user_data, address e specialties)
     Route::post('/complete', [UserController::class, 'storeComplete']);
     Route::put('/{id}/complete', [UserController::class, 'updateComplete']);
+    
+    // Rota para upload de avatar
+    Route::post('/{id}/avatar', [UserController::class, 'uploadAvatar']);
+});
+
+// Rotas para horários de funcionamento
+Route::middleware('auth:api')->prefix('users/{user}')->group(function () {
+    Route::get('/working-hours', [UserWorkingHourController::class, 'index']);
+    Route::post('/working-hours', [UserWorkingHourController::class, 'store']);
 });
 
 // Rotas de agendamentos

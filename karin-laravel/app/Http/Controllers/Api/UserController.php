@@ -8,6 +8,7 @@ use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Requests\User\StoreCompleteUserRequest;
 use App\Http\Requests\User\UpdateCompleteUserRequest;
+use App\Http\Requests\UploadAvatarRequest;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -250,6 +251,43 @@ class UserController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao atualizar usuário',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Faz o upload e atualiza o avatar do usuário.
+     *
+     * @param UploadAvatarRequest $request
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function uploadAvatar(UploadAvatarRequest $request, int $id): JsonResponse
+    {
+        try {
+            $user = $this->userService->findById($id);
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuário não encontrado'
+                ], 404);
+            }
+
+            $updatedUser = $this->userService->updateAvatar($id, $request->file('avatar'));
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Avatar atualizado com sucesso',
+                'data' => [
+                    'avatar_url' => $updatedUser->avatar
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao atualizar avatar',
                 'error' => $e->getMessage()
             ], 500);
         }

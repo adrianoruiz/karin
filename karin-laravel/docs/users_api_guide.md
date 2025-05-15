@@ -1,6 +1,6 @@
 # API de Usuários - Karin Laravel
 
-Este documento descreve os endpoints disponíveis para gerenciar usuários no sistema Karin Laravel, incluindo informações sobre como trabalhar com especialidades, dados de usuário, funções (roles) e endereços.
+Este documento descreve os endpoints disponíveis para gerenciar usuários no sistema Karin Laravel, incluindo informações sobre como trabalhar com especialidades, dados de usuário, funções (roles), endereços, horários de funcionamento e upload de avatares.
 
 ## Configuração no Postman
 
@@ -62,6 +62,8 @@ A coleção configurada automaticamente salvará o token JWT recebido como vari�
 
 **Parâmetros de rota:**
 - `id`: ID do usuário
+
+**Nota importante:** Certifique-se de usar a rota correta. A rota deve ser `/api/users/{id}` e não `/api/users/1` diretamente.
 
 ### 3. Criar Usuário Completo
 
@@ -216,6 +218,29 @@ A coleção configurada automaticamente salvará o token JWT recebido como vari�
 **Parâmetros de rota:**
 - `id`: ID do usuário
 
+### 7. Upload de Avatar
+
+**Método:** POST  
+**URL:** `/api/users/{id}/avatar`  
+**Autenticação:** Obrigatória  
+
+**Parâmetros de rota:**
+- `id`: ID do usuário
+
+**Corpo da requisição (multipart/form-data):**
+- `avatar`: Arquivo de imagem (jpg, jpeg, png, webp) com tamanho máximo de 2MB
+
+**Resposta:**
+```json
+{
+    "success": true,
+    "message": "Avatar atualizado com sucesso",
+    "data": {
+        "avatar_url": "http://seusite.com/storage/avatars/abcdefgh123456.jpg"
+    }
+}
+```
+
 ## Gerenciamento de Dados do Usuário
 
 ### 1. Atualizar Dados do Usuário
@@ -301,6 +326,111 @@ A coleção configurada automaticamente salvará o token JWT recebido como vari�
 **Parâmetros de rota:**
 - `userId`: ID do usuário
 - `addressId`: ID do endereço
+
+## Gerenciamento de Horários de Funcionamento
+
+### 1. Listar Horários de Funcionamento
+
+**Método:** GET  
+**URL:** `/api/users/{userId}/working-hours`  
+**Autenticação:** Obrigatória  
+
+**Parâmetros de rota:**
+- `userId`: ID do usuário
+
+**Resposta:**
+```json
+{
+    "success": true,
+    "data": [
+        {
+            "id": 1,
+            "user_id": 1,
+            "day_of_week": 0,
+            "opens_at": "08:00:00",
+            "closes_at": "18:00:00",
+            "is_open": true,
+            "created_at": "2023-05-15T12:34:56.000000Z",
+            "updated_at": "2023-05-15T12:34:56.000000Z"
+        },
+        // ... outros dias da semana (1-6)
+    ]
+}
+```
+
+### 2. Salvar Horários de Funcionamento
+
+**Método:** POST  
+**URL:** `/api/users/{userId}/working-hours`  
+**Autenticação:** Obrigatória  
+
+**Parâmetros de rota:**
+- `userId`: ID do usuário
+
+**Corpo da requisição:**
+```json
+{
+    "hours": [
+        {
+            "day_of_week": 0,
+            "is_open": true,
+            "opens_at": "08:00",
+            "closes_at": "18:00"
+        },
+        {
+            "day_of_week": 1,
+            "is_open": true,
+            "opens_at": "08:00",
+            "closes_at": "18:00"
+        },
+        {
+            "day_of_week": 2,
+            "is_open": true,
+            "opens_at": "08:00",
+            "closes_at": "18:00"
+        },
+        {
+            "day_of_week": 3,
+            "is_open": true,
+            "opens_at": "08:00",
+            "closes_at": "18:00"
+        },
+        {
+            "day_of_week": 4,
+            "is_open": true,
+            "opens_at": "08:00",
+            "closes_at": "18:00"
+        },
+        {
+            "day_of_week": 5,
+            "is_open": true,
+            "opens_at": "08:00",
+            "closes_at": "16:00"
+        },
+        {
+            "day_of_week": 6,
+            "is_open": false,
+            "opens_at": null,
+            "closes_at": null
+        }
+    ]
+}
+```
+
+**Observações:**
+- É necessário enviar informações para todos os 7 dias da semana
+- `day_of_week`: Dia da semana (0-6, onde 0 = domingo, 6 = sábado)
+- `is_open`: Se está aberto naquele dia
+- `opens_at`: Horário de abertura no formato HH:MM
+- `closes_at`: Horário de fechamento no formato HH:MM
+
+**Resposta:**
+```json
+{
+    "success": true,
+    "message": "Horário salvo com sucesso"
+}
+```
 
 ## Gerenciamento de Especialidades
 
@@ -388,10 +518,42 @@ Para adicionar especialidades a um médico/clínica:
 }
 ```
 
+### Configurando Horários de Funcionamento
+
+Para configurar os horários de funcionamento de uma clínica ou profissional:
+
+1. Obtenha os horários atuais: `GET /api/users/{userId}/working-hours`
+2. Envie os novos horários para os 7 dias da semana:
+
+```json
+{
+    "hours": [
+        {"day_of_week": 0, "is_open": false, "opens_at": null, "closes_at": null},
+        {"day_of_week": 1, "is_open": true, "opens_at": "08:00", "closes_at": "18:00"},
+        {"day_of_week": 2, "is_open": true, "opens_at": "08:00", "closes_at": "18:00"},
+        {"day_of_week": 3, "is_open": true, "opens_at": "08:00", "closes_at": "18:00"},
+        {"day_of_week": 4, "is_open": true, "opens_at": "08:00", "closes_at": "18:00"},
+        {"day_of_week": 5, "is_open": true, "opens_at": "08:00", "closes_at": "17:00"},
+        {"day_of_week": 6, "is_open": false, "opens_at": null, "closes_at": null}
+    ]
+}
+```
+
+### Fazendo Upload de Avatar
+
+Para atualizar a imagem de perfil de um usuário:
+
+1. Prepare um formulário com o campo de arquivo `avatar`
+2. Use o formato `multipart/form-data` para enviar o arquivo
+3. Envie a requisição: `POST /api/users/{userId}/avatar`
+
 ## Validações e Regras de Negócio
 
 1. Os e-mails devem ser únicos no sistema.
 2. As senhas devem ter no mínimo 8 caracteres.
 3. Um usuário só pode ter especialidades que correspondam ao seu `segment_type`.
 4. As funções (roles) devem ser válidas conforme definido em `ValidRoles`.
-5. Apenas usuários autorizados podem criar, atualizar ou excluir outros usuários. 
+5. Apenas usuários autorizados podem criar, atualizar ou excluir outros usuários.
+6. Avatares devem ser arquivos de imagem válidos (jpg, jpeg, png, webp) com no máximo 2MB.
+7. Horários de funcionamento precisam incluir todos os 7 dias da semana.
+8. O horário de fechamento deve ser posterior ao horário de abertura. 

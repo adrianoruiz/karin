@@ -3,9 +3,12 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Models\WorkingHour;
 use App\Repositories\UserRepository;
 use App\Enum\ValidRoles;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Storage;
 
 class UserService
 {
@@ -228,5 +231,65 @@ class UserService
         
         // A validação real é feita no repositório
         return true;
+    }
+    
+    /**
+     * Atualiza ou cria registros de horários de funcionamento para um usuário.
+     *
+     * @param int $userId
+     * @param array $hours
+     * @return void
+     * @throws \Exception
+     */
+    public function upsertWorkingHours(int $userId, array $hours): void
+    {
+        $user = $this->findById($userId);
+        if (!$user) {
+            throw new \Exception('Usuário não encontrado');
+        }
+
+        $formattedHours = collect($hours)->map(fn($h) => array_merge($h, ['user_id' => $userId]));
+        
+        WorkingHour::upsert(
+            $formattedHours->toArray(), 
+            ['user_id', 'day_of_week'], 
+            ['opens_at', 'closes_at', 'is_open']
+        );
+    }
+
+    /**
+     * Atualiza o avatar do usuário.
+     *
+     * @param int $userId
+     * @param UploadedFile $file
+     * @return User
+     * @throws \Exception
+     */
+    public function updateAvatar(int $userId, UploadedFile $file): User
+    {
+        $user = $this->findById($userId);
+        if (!$user) {
+            throw new \Exception('Usuário não encontrado');
+        }
+
+        // Remover avatar anterior se existir
+        if ($user->image) {
+            Storage::disk('public')->delete($user->image->path);
+            $user->image->delete();
+        }
+
+        // Salvar novo avatar
+        $path = $file->store('avatars', 'public');
+        $user->image()->create([
+            'path' => $path,
+            'imageable_type' => User::class,
+            'imageable_id' => $user->id
+        ]);
+        
+        // Atualizar campo avatar no usuário
+        $user->avatar = asset('storage/' . $path);
+        $user->save();
+
+        return $user->refresh();
     }
 } 

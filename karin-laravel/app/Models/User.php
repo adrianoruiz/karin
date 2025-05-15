@@ -227,4 +227,14 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->belongsToMany(Specialty::class)->withTimestamps();
     }
+
+    /**
+     * Relacionamento com horários de funcionamento.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function workingHours(): HasMany
+    {
+        return $this->hasMany(WorkingHour::class);
+    }
 }
