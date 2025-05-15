@@ -372,7 +372,7 @@ class UserRepository
         $address->neighborhood = $addressData['neighborhood'];
         $address->zip = $addressData['zip'];
         $address->city_id = $addressData['city_id'];
-        $address->default = $addressData['default'] ?? false;
+        $address->default_address = $addressData['default'] ?? true;
         
         $user->addresses()->save($address);
         
@@ -407,8 +407,8 @@ class UserRepository
         
         // Se estiver marcando como padrão, desmarca outros endereços
         if (isset($addressData['default']) && $addressData['default']) {
-            $user->addresses()->update(['default' => false]);
-            $address->default = true;
+            $user->addresses()->update(['default_address' => false]);
+            $address->default_address = true;
         }
         
         $address->save();
