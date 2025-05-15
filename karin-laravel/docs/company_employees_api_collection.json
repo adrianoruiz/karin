@@ -1,0 +1,120 @@
+{
+  "info": {
+    "name": "API de Gerenciamento de Funcionários",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Listar Funcionários",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/employees?per_page=15",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "employees"
+          ],
+          "query": [
+            {
+              "key": "per_page",
+              "value": "15"
+            }
+          ]
+        },
+        "description": "Retorna a lista de funcionários de uma empresa"
+      },
+      "response": []
+    },
+    {
+      "name": "Vincular Funcionário",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"user_id\": 2\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/employees",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "employees"
+          ]
+        },
+        "description": "Vincula um usuário como funcionário da empresa"
+      },
+      "response": []
+    },
+    {
+      "name": "Desvincular Funcionário",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/companies/{{company_id}}/employees/{{user_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "companies",
+            "{{company_id}}",
+            "employees",
+            "{{user_id}}"
+          ]
+        },
+        "description": "Remove o vínculo entre um funcionário e uma empresa"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api"
+    },
+    {
+      "key": "token",
+      "value": "seu_token_jwt_aqui"
+    },
+    {
+      "key": "company_id",
+      "value": "1"
+    },
+    {
+      "key": "user_id",
+      "value": "2"
+    }
+  ]
+} 
