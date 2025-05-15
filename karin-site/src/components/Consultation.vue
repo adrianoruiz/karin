@@ -48,6 +48,7 @@
             <div class="pt-4 text-center lg:text-left">
               <a
                 href="/conversion/consulta-online.html"
+                
                 target="_blank"
                 class="inline-flex items-center bg-[#7B736C] text-white px-8 py-3 rounded-full text-lg hover:bg-[#635C57] transition-colors animate-shake hover:animate-shake"
               >
