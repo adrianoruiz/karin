@@ -24,13 +24,13 @@ class StoreCompleteUserRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
+            'password' => 'required|string|min:4',
             'phone' => 'nullable|string|max:20',
             'is_whatsapp_user' => 'nullable|boolean',
             'status' => 'nullable|boolean',
             'roles' => 'nullable|array',
             'roles.*' => 'string',
-            
+
             // Validação de dados do usuário
             'user_data' => 'nullable|array',
             'user_data.birthday' => 'nullable|date',
@@ -40,7 +40,7 @@ class StoreCompleteUserRequest extends FormRequest
             'user_data.cnpj' => 'nullable|string|max:18',
             'user_data.corporate_name' => 'nullable|string|max:255',
             'user_data.segment_types' => 'nullable|string|in:clinica-medica,salao-beleza,clinica-odonto',
-            
+
             // Validação de endereço
             'address' => 'nullable|array',
             'address.street' => 'required_with:address|string|max:255',
@@ -50,7 +50,7 @@ class StoreCompleteUserRequest extends FormRequest
             'address.zip' => 'required_with:address|string|max:10',
             'address.city_id' => 'required_with:address|exists:cities,id',
             'address.default' => 'nullable|boolean',
-            
+
             // Validação de especialidades
             'specialty_ids' => 'nullable|array',
             'specialty_ids.*' => 'exists:specialties,id'
@@ -80,4 +80,4 @@ class StoreCompleteUserRequest extends FormRequest
             'specialty_ids.*.exists' => 'Uma ou mais especialidades selecionadas não existem.'
         ];
     }
-} 
+}

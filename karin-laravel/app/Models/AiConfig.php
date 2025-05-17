@@ -18,12 +18,14 @@ class AiConfig extends Model
         'custom_responses',
         'consultation_duration',
         'special_rules',
-        'is_active'
+        'is_active',
+        'prompt_fixed',
     ];
 
     protected $casts = [
         'professional_data' => 'json',
         'custom_responses' => 'json',
+        'prompt_fixed' => 'string',
         'special_rules' => 'json',
         'is_active' => 'boolean'
     ];
@@ -32,4 +34,4 @@ class AiConfig extends Model
     {
         return $this->belongsTo(User::class);
     }
-} 
+}
