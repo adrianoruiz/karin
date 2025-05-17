@@ -44,8 +44,37 @@ function isMessageSentByBot(clinicaId, messageBody) {
                         (messageBody && typeof messageBody.message === 'string') ? messageBody.message : 
                         JSON.stringify(messageBody).substring(0, 100);
     
+    // Casos especiais para identificar vCards e mensagens de contato
+    if (messageText.startsWith('BEGIN:VCARD') || messageText.includes('BEGIN:VCARD')) {
+        logger.log(`vCard message detected, treating as bot message for clinicaId: ${clinicaId}`);
+        // Não precisamos verificar o cache, vamos assumir que qualquer vCard é enviado pelo bot
+        return true;
+    }
+    
+    // Para mensagens normais, use a verificação padrão com o cache
     const messageKey = `bot_msg:${clinicaId}:${messageText.substring(0, 50)}`;
-    const result = botResponseCache.get(messageKey);
+    let result = botResponseCache.get(messageKey);
+    
+    // Se não foi encontrado pelo prefixo exato, procure pela versão mais curta para VCards e mensagens longas
+    if (!result && messageText.length > 50) {
+        // Tente alguns prefixos comuns
+        const prefixes = [
+            'BEGIN:VCARD',
+            'Enviado! O contato',
+            'Prontinho!',
+            'Feito!',
+            'CONTACT_SENT_TO'
+        ];
+        
+        for (const prefix of prefixes) {
+            const alternateKey = `bot_msg:${clinicaId}:${prefix}`;
+            if (botResponseCache.get(alternateKey)) {
+                result = true;
+                logger.log(`Message identified as bot message via prefix: ${prefix}`);
+                break;
+            }
+        }
+    }
     
     // Apenas log quando encontrar a mensagem
     if (result) {

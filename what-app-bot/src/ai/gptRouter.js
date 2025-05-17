@@ -155,7 +155,7 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                 // Novos casos para compartilhar contatos
                 case 'shareManicureContact': {
                     logger.log(`Solicitação para compartilhar contato da Manicure para ${senderNumber} (Clínica ${clinicaId})`);
-                    await whatsappService.sendVCardMessage(clinicaId, senderNumber, 'Larissa Mota', '+5547992237813');
+                    await whatsappService.sendVCardMessage(clinicaId, senderNumber, 'Larissa Mota', '+5547992237813', 'Manicure');
                     functionResultContent = JSON.stringify({ success: true, message: "Contato da manicure enviado." });
                     // A resposta final ao usuário virá do GPT após esta função retornar.
                     // O GPT será instruído pela system message a dar uma resposta confirmatória.
@@ -164,14 +164,14 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                 }
                 case 'shareSobrancelhasContact': {
                     logger.log(`Solicitação para compartilhar contato de Sobrancelhas para ${senderNumber} (Clínica ${clinicaId})`);
-                    await whatsappService.sendVCardMessage(clinicaId, senderNumber, 'Duda', '+5547996304206');
+                    await whatsappService.sendVCardMessage(clinicaId, senderNumber, 'Duda', '+5547996304206', 'Sobrancelhas');
                     functionResultContent = JSON.stringify({ success: true, message: "Contato de sobrancelhas enviado." });
                     finalContent = "Feito! O contato da Duda (Sobrancelhas) foi enviado para você. ✨";
                     break;
                 }
                 case 'shareDepilacaoContact': {
                     logger.log(`Solicitação para compartilhar contato de Depilação para ${senderNumber} (Clínica ${clinicaId})`);
-                    await whatsappService.sendVCardMessage(clinicaId, senderNumber, 'Alice', '+5547984986125');
+                    await whatsappService.sendVCardMessage(clinicaId, senderNumber, 'Alice', '+5547984986125', 'Depilação');
                     functionResultContent = JSON.stringify({ success: true, message: "Contato de depilação enviado." });
                     finalContent = "Enviado! O contato da Alice (Depilação) já está com você. 😊";
                     break;

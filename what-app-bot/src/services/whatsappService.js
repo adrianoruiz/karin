@@ -91,9 +91,10 @@ async function sendWhatsAppMessage(client, number, message, clinicaId) {
  * @param {string} recipientNumber - Número do destinatário (ex: '5547999999999@c.us').
  * @param {string} contactName - Nome completo do contato a ser enviado.
  * @param {string} contactPhone - Número de telefone do contato a ser enviado (ex: '+5547988888888').
+ * @param {string} [contactDescription] - Descrição opcional do contato (ex: "Depilação").
  * @returns {Promise<object>} Resultado da operação.
  */
-async function sendVCardMessage(clinicaId, recipientNumber, contactName, contactPhone) {
+async function sendVCardMessage(clinicaId, recipientNumber, contactName, contactPhone, contactDescription = '') {
     try {
         const client = clientManager.getClient(clinicaId);
         if (!client || !client.info) { 
@@ -102,6 +103,11 @@ async function sendVCardMessage(clinicaId, recipientNumber, contactName, contact
         }
 
         const formattedRecipientNumber = formatPhoneNumber(recipientNumber);
+        
+        // Formatar o nome com a descrição, se fornecida
+        const displayName = contactDescription 
+            ? `${contactName} (${contactDescription})` 
+            : contactName;
         
         // Remove qualquer formato especial do número de telefone do contato (espaços, traços, parênteses)
         // e garante que tenha apenas dígitos, mantendo o "+" inicial se houver
@@ -115,12 +121,10 @@ async function sendVCardMessage(clinicaId, recipientNumber, contactName, contact
             ? cleanContactPhone.substring(1) + '@c.us'
             : cleanContactPhone + '@c.us';
 
-        logger.log(`Tentando enviar contato para ${formattedRecipientNumber}: Nome: ${contactName}, Tel: ${contactPhone}, ID: ${contactId}`);
+        logger.log(`Tentando enviar contato para ${formattedRecipientNumber}: Nome: ${displayName}, Tel: ${contactPhone}, ID: ${contactId}`);
         
-        // Marca a mensagem como enviada pelo bot para evitar processamento como entrada do usuário
-        markMessageAsSentByBot(clinicaId, `CONTACT_SENT_TO:${formattedRecipientNumber}_CONTACT:${contactName}`);
-
         let response;
+        let vCardString = ''; // Variável para armazenar o vCard bruto (para marcar como mensagem de bot)
         
         try {
             // Método 1: Tenta obter o contato por ID e enviar o objeto Contact diretamente
@@ -128,6 +132,12 @@ async function sendVCardMessage(clinicaId, recipientNumber, contactName, contact
             const contact = await client.getContactById(contactId);
             
             if (contact) {
+                // Precisamos pré-marcar não apenas a resposta de confirmação, mas também o próprio vCard
+                // Criamos um vCard String para marcar, mesmo que enviemos o objeto Contact
+                vCardString = `BEGIN:VCARD\nVERSION:3.0\nN:;${displayName};;;\nFN:${displayName}\nTEL;TYPE=CELL:${contactPhone}\nEND:VCARD`;
+                markMessageAsSentByBot(clinicaId, vCardString);
+                
+                // Enviar o objeto Contact
                 logger.log(`Contato encontrado, enviando objeto Contact diretamente`);
                 response = await client.sendMessage(formattedRecipientNumber, contact);
                 logger.log('Contato enviado com sucesso como objeto Contact!');
@@ -138,21 +148,35 @@ async function sendVCardMessage(clinicaId, recipientNumber, contactName, contact
             // Método 2: Fallback - Se não conseguir obter o contato, usar o método vCard
             logger.log(`Não foi possível obter o contato por ID: ${contactError.message}. Usando vCard como fallback.`);
             
-            // Cria o vCard
-            const vCard = `BEGIN:VCARD
+            // Cria o vCard com nome formatado
+            // Importante: O formato correto de N: é Sobrenome;Nome;SegundoNome;Prefixo;Sufixo
+            // Para simplificar, usamos apenas o campo Nome e deixamos os outros vazios
+            vCardString = `BEGIN:VCARD
 VERSION:3.0
-N:${contactName};;;
-FN:${contactName}
+N:;${displayName};;;
+FN:${displayName}
 TEL;TYPE=CELL;waid=${cleanContactPhone.replace(/^\+/, '')}:${contactPhone}
 END:VCARD`;
             
+            // IMPORTANTE: Marcar o vCard como mensagem enviada pelo bot ANTES de enviar
+            // Isto é crucial para evitar que o sistema desative o bot após envio de vCard
+            markMessageAsSentByBot(clinicaId, vCardString);
+            
+            // Marcar também uma versão simplificada do vCard (primeiros caracteres)
+            // porque o sistema pode identificar apenas o início da mensagem
+            markMessageAsSentByBot(clinicaId, 'BEGIN:VCARD');
+            
             // Envia o vCard como string com parseVCards explicitamente configurado
-            response = await client.sendMessage(formattedRecipientNumber, vCard, { 
+            response = await client.sendMessage(formattedRecipientNumber, vCardString, { 
                 parseVCards: true 
             });
             
             logger.log('vCard enviado como texto com parseVCards: true');
         }
+        
+        // Marca a mensagem com uma tag que também identificará a mensagem de confirmação
+        const confirmMsg = `Enviado! O contato da ${displayName} já está com você.`;
+        markMessageAsSentByBot(clinicaId, confirmMsg);
         
         return {
             status: 'success',
