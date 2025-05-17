@@ -17,7 +17,7 @@ class UserService
      * @var UserRepository
      */
     protected UserRepository $userRepository;
-    
+
     /**
      * Construtor do serviço.
      * 
@@ -27,7 +27,7 @@ class UserService
     {
         $this->userRepository = $userRepository;
     }
-    
+
     /**
      * Lista usuários com filtros.
      * 
@@ -41,10 +41,10 @@ class UserService
         if (isset($filters['role']) && !empty($filters['role'])) {
             $this->validateRole($filters['role']);
         }
-        
+
         return $this->userRepository->listWithFilters($filters, $perPage);
     }
-    
+
     /**
      * Obtém um usuário pelo ID.
      * 
@@ -55,7 +55,7 @@ class UserService
     {
         return $this->userRepository->findById($id);
     }
-    
+
     /**
      * Obtém um usuário completo pelo ID com todos os seus relacionamentos.
      * 
@@ -66,7 +66,7 @@ class UserService
     {
         return $this->userRepository->findCompleteById($id);
     }
-    
+
     /**
      * Cria um novo usuário.
      * 
@@ -78,10 +78,10 @@ class UserService
         if (isset($userData['roles'])) {
             $this->validateRoles($userData['roles']);
         }
-        
+
         return $this->userRepository->create($userData);
     }
-    
+
     /**
      * Atualiza um usuário existente.
      * 
@@ -93,18 +93,18 @@ class UserService
     public function update(int $id, array $userData): User
     {
         $user = $this->userRepository->findById($id);
-        
+
         if (!$user) {
             throw new \Exception('Usuário não encontrado');
         }
-        
+
         if (isset($userData['roles'])) {
             $this->validateRoles($userData['roles']);
         }
-        
+
         return $this->userRepository->update($user, $userData);
     }
-    
+
     /**
      * Remove um usuário.
      * 
@@ -115,14 +115,14 @@ class UserService
     public function delete(int $id): bool
     {
         $user = $this->userRepository->findById($id);
-        
+
         if (!$user) {
             throw new \Exception('Usuário não encontrado');
         }
-        
+
         return $this->userRepository->delete($user);
     }
-    
+
     /**
      * Cria um usuário completo com todos os relacionamentos.
      * 
@@ -134,12 +134,12 @@ class UserService
         if (isset($userData['roles'])) {
             $this->validateRoles($userData['roles']);
         }
-        
+
         $this->validateSpecialtiesSegmentType($userData);
-        
+
         return $this->userRepository->createComplete($userData);
     }
-    
+
     /**
      * Atualiza um usuário completo com todos os relacionamentos.
      * 
@@ -151,18 +151,18 @@ class UserService
     public function updateComplete(int $id, array $userData): User
     {
         $user = $this->userRepository->findById($id);
-        
+
         if (!$user) {
             throw new \Exception('Usuário não encontrado');
         }
-        
+
         if (isset($userData['roles'])) {
             $this->validateRoles($userData['roles']);
         }
-        
+
         return $this->userRepository->updateComplete($user, $userData);
     }
-    
+
     /**
      * Obtém a lista de todas as funções válidas.
      * 
@@ -170,9 +170,10 @@ class UserService
      */
     public function getAllRoles(): array
     {
-        return $this->getValidRoles();
+        // Retorna todos os registros da tabela roles
+        return \App\Models\Role::all()->toArray();
     }
-    
+
     /**
      * Valida se a função fornecida é válida.
      * 
@@ -183,14 +184,14 @@ class UserService
     protected function validateRole(string $role): bool
     {
         $validRoles = $this->getValidRoles();
-        
+
         if (!in_array($role, $validRoles)) {
             throw new \Exception("A função '{$role}' não é válida");
         }
-        
+
         return true;
     }
-    
+
     /**
      * Valida um array de funções.
      * 
@@ -203,10 +204,10 @@ class UserService
         foreach ($roles as $role) {
             $this->validateRole($role);
         }
-        
+
         return true;
     }
-    
+
     /**
      * Retorna um array com todas as funções válidas.
      * 
@@ -217,7 +218,7 @@ class UserService
         $reflection = new \ReflectionClass(ValidRoles::class);
         return array_values($reflection->getConstants());
     }
-    
+
     /**
      * Valida se as especialidades correspondem ao segment_type do usuário.
      * 
@@ -229,11 +230,11 @@ class UserService
         if (!isset($userData['specialty_ids']) || !isset($userData['user_data']['segment_types'])) {
             return true;
         }
-        
+
         // A validação real é feita no repositório
         return true;
     }
-    
+
     /**
      * Atualiza ou cria registros de horários de funcionamento para um usuário.
      *
@@ -250,10 +251,10 @@ class UserService
         }
 
         $formattedHours = collect($hours)->map(fn($h) => array_merge($h, ['user_id' => $userId]));
-        
+
         WorkingHour::upsert(
-            $formattedHours->toArray(), 
-            ['user_id', 'day_of_week'], 
+            $formattedHours->toArray(),
+            ['user_id', 'day_of_week'],
             ['opens_at', 'closes_at', 'is_open']
         );
     }
@@ -286,7 +287,7 @@ class UserService
             'imageable_type' => User::class,
             'imageable_id' => $user->id
         ]);
-        
+
         // Atualizar campo avatar no usuário
         $user->avatar = asset('storage/' . $path);
         $user->save();
@@ -309,24 +310,24 @@ class UserService
         if (!$company) {
             throw new \Exception('Empresa não encontrada');
         }
-        
+
         // Verifica se o usuário existe
         $user = $this->findById($userId);
         if (!$user) {
             throw new \Exception('Usuário não encontrado');
         }
-        
+
         // Verifica se o usuário já está vinculado à empresa
         if ($company->employees()->where('user_id', $userId)->exists()) {
             return true; // Já está vinculado
         }
-        
+
         // Vincula o usuário à empresa
         $company->employees()->attach($userId);
-        
+
         return true;
     }
-    
+
     /**
      * Remove o vínculo de um usuário com uma empresa.
      *
@@ -342,21 +343,21 @@ class UserService
         if (!$company) {
             throw new \Exception('Empresa não encontrada');
         }
-        
+
         // Verifica se o usuário existe
         $user = $this->findById($userId);
         if (!$user) {
             throw new \Exception('Usuário não encontrado');
         }
-        
+
         // Verifica se o usuário está vinculado à empresa
         if (!$company->employees()->where('user_id', $userId)->exists()) {
             throw new \Exception('Vínculo não encontrado');
         }
-        
+
         // Remove o vínculo do usuário com a empresa
         $company->employees()->detach($userId);
-        
+
         return true;
     }
 
@@ -381,4 +382,4 @@ class UserService
             ->with(['userData', 'workingHours', 'image', 'roles', 'specialties'])
             ->paginate($perPage);
     }
-} 
+}
