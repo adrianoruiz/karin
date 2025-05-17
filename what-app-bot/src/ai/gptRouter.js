@@ -17,6 +17,8 @@ function createGptRouter({ logger, conversationStore, waClient }) {
         updateAppointment, 
         finishAppointment 
     } = require('../services/tools');
+    // Importar o whatsappService para enviar vCards
+    const whatsappService = require('../services/whatsappService');
     
     /**
      * Process function call and return the final response
@@ -30,8 +32,10 @@ function createGptRouter({ logger, conversationStore, waClient }) {
      */
     async function processFunctionCall(name, parsedArgs, nome, number, clinicaId, context) {
         let functionResultContent = null;
-        let finalContent = "Desculpe, não consegui processar sua solicitação."; // Default error
-        
+        let finalContent = "Desculpe, não consegui processar sua solicitação.";
+        // Obter o número do remetente da mensagem original para enviar o vCard
+        const senderNumber = context && context.from ? context.from : number;
+
         try {
             // Executar a função apropriada
             switch (name) {
@@ -148,26 +152,58 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                     functionResultContent = JSON.stringify(finishResult);
                     break;
                 }
-                
+                // Novos casos para compartilhar contatos
+                case 'shareManicureContact': {
+                    logger.log(`Solicitação para compartilhar contato da Manicure para ${senderNumber} (Clínica ${clinicaId})`);
+                    await whatsappService.sendVCardMessage(clinicaId, senderNumber, 'Larissa Mota', '+5547992237813');
+                    functionResultContent = JSON.stringify({ success: true, message: "Contato da manicure enviado." });
+                    // A resposta final ao usuário virá do GPT após esta função retornar.
+                    // O GPT será instruído pela system message a dar uma resposta confirmatória.
+                    finalContent = "Prontinho! Acabei de enviar o contato da Larissa Mota (Manicure) para você. 💅"; 
+                    break;
+                }
+                case 'shareSobrancelhasContact': {
+                    logger.log(`Solicitação para compartilhar contato de Sobrancelhas para ${senderNumber} (Clínica ${clinicaId})`);
+                    await whatsappService.sendVCardMessage(clinicaId, senderNumber, 'Duda', '+5547996304206');
+                    functionResultContent = JSON.stringify({ success: true, message: "Contato de sobrancelhas enviado." });
+                    finalContent = "Feito! O contato da Duda (Sobrancelhas) foi enviado para você. ✨";
+                    break;
+                }
+                case 'shareDepilacaoContact': {
+                    logger.log(`Solicitação para compartilhar contato de Depilação para ${senderNumber} (Clínica ${clinicaId})`);
+                    await whatsappService.sendVCardMessage(clinicaId, senderNumber, 'Alice', '+5547984986125');
+                    functionResultContent = JSON.stringify({ success: true, message: "Contato de depilação enviado." });
+                    finalContent = "Enviado! O contato da Alice (Depilação) já está com você. 😊";
+                    break;
+                }
                 default: {
                     logger.warn(`Função desconhecida: ${name}`);
                     functionResultContent = JSON.stringify({ error: `Função desconhecida: ${name}` });
+                    finalContent = "Desculpe, não entendi o que você precisa.";
+                    // Não vamos chamar o GPT novamente aqui para evitar loops se for uma função realmente desconhecida.
+                    // Simplesmente retornamos finalContent diretamente.
+                    await sessionStore.addMessage(clinicaId, number, 'assistant', finalContent);
+                    return finalContent;
                 }
             }
             
             // Adicionar resultado da função ao histórico da conversa
+            // Para os casos de vCard, o `finalContent` já é a resposta final ao usuário, 
+            // então não precisamos chamar o GPT novamente, a menos que queiramos uma resposta mais elaborada dele.
+            // Por simplicidade e para evitar chamadas desnecessárias, vamos retornar finalContent diretamente
+            // para os casos de vCard, e para outros casos, continuamos o fluxo normal de chamar o GPT.
+
+            if (['shareManicureContact', 'shareSobrancelhasContact', 'shareDepilacaoContact'].includes(name)) {
+                await sessionStore.addMessage(clinicaId, number, 'assistant', finalContent);
+                return finalContent; // Retorna a mensagem de confirmação diretamente
+            }
+            
+            // Para outras funções, continuar com a chamada ao GPT
             await sessionStore.addMessage(clinicaId, number, 'function', functionResultContent, name);
-            
-            // Obter a conversa atualizada
             const currentConversation = await sessionStore.getConversation(clinicaId, number);
-            logger.log('DEBUG - Histórico recuperado para envio ao GPT:', JSON.stringify(currentConversation, null, 2));
-            
-            // LOG DETALHADO DO HISTÓRICO ENVIADO AO GPT
-            logger.log('Histórico enviado ao GPT após função:', JSON.stringify(currentConversation, null, 2));
-            
-            // Gerar resposta final com o GPT
-            const finalResponse = await getChatGPTResponse(currentConversation, nome, clinicaId);
-            finalContent = finalResponse.content;
+            logger.log('DEBUG - Histórico recuperado para envio ao GPT após função:', JSON.stringify(currentConversation, null, 2));
+            const gptFinalResponse = await getChatGPTResponse(currentConversation, nome, clinicaId);
+            finalContent = gptFinalResponse.content;
             
             // Adicionar informações de pagamento se necessário
             if ((name === 'bookAppointment' || name === 'finishAppointment') && functionResultContent) {

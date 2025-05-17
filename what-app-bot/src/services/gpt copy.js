@@ -164,37 +164,6 @@ const finishAppointmentFunction = {
     }
 };
 
-// Novas funções para compartilhar contatos
-const shareManicureContactFunction = {
-    name: "shareManicureContact",
-    description: "Compartilha o contato da Manicure (Larissa Mota) quando solicitado.",
-    parameters: {
-        type: "object",
-        properties: {}, // Sem parâmetros necessários, a ação é fixa
-        required: []
-    }
-};
-
-const shareSobrancelhasContactFunction = {
-    name: "shareSobrancelhasContact",
-    description: "Compartilha o contato de Sobrancelhas (Duda) quando solicitado.",
-    parameters: {
-        type: "object",
-        properties: {}, // Sem parâmetros necessários
-        required: []
-    }
-};
-
-const shareDepilacaoContactFunction = {
-    name: "shareDepilacaoContact",
-    description: "Compartilha o contato de Depilação (Alice) quando solicitado.",
-    parameters: {
-        type: "object",
-        properties: {}, // Sem parâmetros necessários
-        required: []
-    }
-};
-
 /**
  * Obtém resposta do ChatGPT para uma conversa
  * @param {Array} messages - Histórico de mensagens da conversa
@@ -243,11 +212,7 @@ async function getChatGPTResponse(messages, nome, clinicaId = null) {
                     paymentMethodsFunction,
                     bookingFunction, 
                     updateBookingFunction, 
-                    finishAppointmentFunction,
-                    // Adicionar novas funções aqui
-                    shareManicureContactFunction,
-                    shareSobrancelhasContactFunction,
-                    shareDepilacaoContactFunction
+                    finishAppointmentFunction
                 ],
                 function_call: "auto",
                 max_tokens: 300,
@@ -318,9 +283,6 @@ module.exports = {
     bookingFunction,
     updateBookingFunction,
     finishAppointmentFunction,
-    shareManicureContactFunction,
-    shareSobrancelhasContactFunction,
-    shareDepilacaoContactFunction,
     // Funções de implementação
     getAvailableAppointments,
     getPlans,

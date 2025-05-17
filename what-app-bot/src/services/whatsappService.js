@@ -86,6 +86,89 @@ async function sendWhatsAppMessage(client, number, message, clinicaId) {
 }
 
 /**
+ * Envia um contato (vCard) via WhatsApp.
+ * @param {string} clinicaId - ID da clínica para obter o cliente correto.
+ * @param {string} recipientNumber - Número do destinatário (ex: '5547999999999@c.us').
+ * @param {string} contactName - Nome completo do contato a ser enviado.
+ * @param {string} contactPhone - Número de telefone do contato a ser enviado (ex: '+5547988888888').
+ * @returns {Promise<object>} Resultado da operação.
+ */
+async function sendVCardMessage(clinicaId, recipientNumber, contactName, contactPhone) {
+    try {
+        const client = clientManager.getClient(clinicaId);
+        if (!client || !client.info) { 
+            logger.error(`Cliente não encontrado, não autenticado ou não pronto para clínica ${clinicaId}`);
+            throw new Error(`WhatsApp client for clinica ${clinicaId} is not available or not ready.`);
+        }
+
+        const formattedRecipientNumber = formatPhoneNumber(recipientNumber);
+        
+        // Remove qualquer formato especial do número de telefone do contato (espaços, traços, parênteses)
+        // e garante que tenha apenas dígitos, mantendo o "+" inicial se houver
+        const cleanContactPhone = contactPhone.startsWith('+') 
+            ? '+' + contactPhone.substring(1).replace(/\D/g, '')
+            : contactPhone.replace(/\D/g, '');
+        
+        // Formata o ID do contato para o formato whatsapp-web.js
+        // Se o número já começa com "+" (formato internacional), remove o "+" para o ID whatsapp
+        const contactId = cleanContactPhone.startsWith('+')
+            ? cleanContactPhone.substring(1) + '@c.us'
+            : cleanContactPhone + '@c.us';
+
+        logger.log(`Tentando enviar contato para ${formattedRecipientNumber}: Nome: ${contactName}, Tel: ${contactPhone}, ID: ${contactId}`);
+        
+        // Marca a mensagem como enviada pelo bot para evitar processamento como entrada do usuário
+        markMessageAsSentByBot(clinicaId, `CONTACT_SENT_TO:${formattedRecipientNumber}_CONTACT:${contactName}`);
+
+        let response;
+        
+        try {
+            // Método 1: Tenta obter o contato por ID e enviar o objeto Contact diretamente
+            logger.log(`Tentando obter contato por ID: ${contactId}`);
+            const contact = await client.getContactById(contactId);
+            
+            if (contact) {
+                logger.log(`Contato encontrado, enviando objeto Contact diretamente`);
+                response = await client.sendMessage(formattedRecipientNumber, contact);
+                logger.log('Contato enviado com sucesso como objeto Contact!');
+            } else {
+                throw new Error('Contato não encontrado por ID');
+            }
+        } catch (contactError) {
+            // Método 2: Fallback - Se não conseguir obter o contato, usar o método vCard
+            logger.log(`Não foi possível obter o contato por ID: ${contactError.message}. Usando vCard como fallback.`);
+            
+            // Cria o vCard
+            const vCard = `BEGIN:VCARD
+VERSION:3.0
+N:${contactName};;;
+FN:${contactName}
+TEL;TYPE=CELL;waid=${cleanContactPhone.replace(/^\+/, '')}:${contactPhone}
+END:VCARD`;
+            
+            // Envia o vCard como string com parseVCards explicitamente configurado
+            response = await client.sendMessage(formattedRecipientNumber, vCard, { 
+                parseVCards: true 
+            });
+            
+            logger.log('vCard enviado como texto com parseVCards: true');
+        }
+        
+        return {
+            status: 'success',
+            message: 'Contato enviado com sucesso!',
+            messageId: response.id ? response.id._serialized : null
+        };
+    } catch (err) {
+        logger.error(`Erro ao enviar contato para ${recipientNumber} (Clínica ${clinicaId}):`, err);
+        return {
+            status: 'error',
+            message: `Erro ao enviar contato: ${err.message}`
+        };
+    }
+}
+
+/**
  * Reseta o estado de resposta manual para um usuário específico ou para todos da clínica.
  * @param {string} clinicaId - ID da clínica.
  * @param {string} [phoneNumber] - Número de telefone (opcional).
@@ -143,6 +226,7 @@ function resetGreetingState() {
 module.exports = {
     getMessageType,
     sendWhatsAppMessage,
+    sendVCardMessage,
     resetManualResponseState,
     resetGreetingState,
     // Re-exportar funções de marca/verificação de mensagens enviadas pelo bot
