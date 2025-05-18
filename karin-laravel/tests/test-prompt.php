@@ -10,7 +10,7 @@ $app = require_once __DIR__ . '/../bootstrap/app.php';
 $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
 // Buscar a configuração do usuário 19 (Paulo Vozz)
-$aiConfig = AiConfig::where('user_id', 19)->first();
+$aiConfig = AiConfig::where('user_id', 2)->first();
 
 if (!$aiConfig) {
     echo "Configuração não encontrada para o usuário 19\n";
