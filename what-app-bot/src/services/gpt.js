@@ -6,200 +6,30 @@ require('dotenv').config();
 
 // Importar o system message
 const getSystemMessage = require('./ai/systemMessage');
+// Importar o registro de tools
+const { getFunctionsForSegment } = require('./ai/toolRegistry');
+// Importar o clinicStore para obter o segment_type
+const clinicStore = require('../store/clinicStore');
 
-// Definições das funções disponíveis para o GPT
-const availabilityFunction = {
-    name: "getAvailableAppointments",
-    description: "Busca os horários disponíveis para agendamento de consultas",
-    parameters: {
-        type: "object",
-        properties: {
-            date: {
-                type: "string",
-                description: "Data para verificar a disponibilidade (formato: YYYY-MM-DD, ou expressões como 'hoje', 'amanhã', 'próxima segunda', etc)"
-            }
-        },
-        required: []
-    }
-};
+// Importar implementações das tools (para exportação, se necessário pelo gptRouter)
+const toolImplementations = require('./tools');
 
-const plansFunction = {
-    name: "getAvailablePlans",
-    description: "Retorna os planos de consulta disponíveis com valores e detalhes",
-    parameters: {
-        type: "object",
-        properties: {},
-        required: []
-    }
-};
-
-const paymentMethodsFunction = {
-    name: "getPaymentMethods",
-    description: "Retorna os métodos de pagamento disponíveis",
-    parameters: {
-        type: "object",
-        properties: {},
-        required: []
-    }
-};
-
-const bookingFunction = {
-    name: "bookAppointment",
-    description: "Agenda uma consulta com a Dra. Karin Boldarini",
-    parameters: {
-        type: "object",
-        properties: {
-            name: {
-                type: "string",
-                description: "Nome completo do paciente"
-            },
-            cpf: {
-                type: "string",
-                description: "CPF do paciente"
-            },
-            phone: {
-                type: "string",
-                description: "Telefone do paciente (com DDD)"
-            },
-            birthdate: {
-                type: "string",
-                description: "Data de nascimento do paciente (formato: DD/MM/AAAA ou YYYY-MM-DD)"
-            },
-            date: {
-                type: "string",
-                description: "Data da consulta (formato YYYY-MM-DD)"
-            },
-            time: {
-                type: "string",
-                description: "Horário da consulta (formato HH:MM ou HHh)"
-            },
-            slot_id: {
-                type: "string",
-                description: "ID do slot de horário (opcional, formato: YYYY-MM-DDThhmm)"
-            },
-            modality: {
-                type: "string",
-                description: "Modalidade da consulta ('online' ou 'presencial')"
-            },
-            payment_method: {
-                type: "string",
-                description: "Método de pagamento preferido (cartão de crédito, cartão de débito, pix)"
-            },
-            observations: {
-                type: "string",
-                description: "Observações ou necessidades específicas do paciente"
-            }
-        },
-        required: ["name", "phone", "date", "time", "modality"]
-    }
-};
-
-const updateBookingFunction = {
-    name: "updateAppointment",
-    description: "Atualiza um agendamento existente com informações adicionais como método de pagamento e tipo de consulta",
-    parameters: {
-        type: "object",
-        properties: {
-            appointment_id: {
-                type: "number",
-                description: "ID do agendamento a ser atualizado"
-            },
-            is_online: {
-                type: "boolean",
-                description: "Se a consulta será online (true) ou presencial (false)"
-            },
-            payment_method: {
-                type: "string",
-                description: "Método de pagamento (cartão de crédito, cartão de débito, pix)"
-            },
-            observations: {
-                type: "string",
-                description: "Observações adicionais sobre a consulta"
-            }
-        },
-        required: ["appointment_id"]
-    }
-};
-
-const finishAppointmentFunction = {
-    name: "finishAppointment",
-    description: "Finaliza o processo de agendamento, adicionando o link correto e enviando mensagem para a Dra. Karin",
-    parameters: {
-        type: "object",
-        properties: {
-            appointment_id: {
-                type: "number",
-                description: "ID do agendamento"
-            },
-            patient_name: {
-                type: "string",
-                description: "Nome do paciente"
-            },
-            patient_phone: {
-                type: "string",
-                description: "Telefone do paciente"
-            },
-            appointment_date: {
-                type: "string",
-                description: "Data da consulta no formato YYYY-MM-DD"
-            },
-            appointment_time: {
-                type: "string",
-                description: "Hora da consulta no formato HH:MM"
-            },
-            is_online: {
-                type: "boolean",
-                description: "Se a consulta será online (true) ou presencial (false)"
-            },
-            payment_method: {
-                type: "string",
-                description: "Método de pagamento (cartão de crédito, cartão de débito, pix)"
-            },
-            observations: {
-                type: "string",
-                description: "Observações adicionais sobre a consulta"
-            }
-        },
-        required: ["patient_name", "appointment_date", "appointment_time", "is_online"]
-    }
-};
-
-// Novas funções para compartilhar contatos
-const shareManicureContactFunction = {
-    name: "shareManicureContact",
-    description: "Compartilha o contato da Manicure (Larissa Mota) quando solicitado.",
-    parameters: {
-        type: "object",
-        properties: {}, // Sem parâmetros necessários, a ação é fixa
-        required: []
-    }
-};
-
-const shareSobrancelhasContactFunction = {
-    name: "shareSobrancelhasContact",
-    description: "Compartilha o contato de Sobrancelhas (Duda) quando solicitado.",
-    parameters: {
-        type: "object",
-        properties: {}, // Sem parâmetros necessários
-        required: []
-    }
-};
-
-const shareDepilacaoContactFunction = {
-    name: "shareDepilacaoContact",
-    description: "Compartilha o contato de Depilação (Alice) quando solicitado.",
-    parameters: {
-        type: "object",
-        properties: {}, // Sem parâmetros necessários
-        required: []
-    }
-};
+// Placeholder: Função para obter o segment_type da clínica.
+// No futuro, isso deve vir de uma API, banco de dados ou cache.
+// Baseado no JSON: user_id: 1 -> clinica-odonto, user_id: 2 -> clinica-medica, user_id: 14 -> salao-beleza
+async function getSegmentTypeForClinica(clinicaId) {
+   
+    // Agora busca do clinicStore
+    const segmentType = clinicStore.getSegmentTypeForClinicaId(clinicaId);
+    // Se segmentType for null ou undefined, getFunctionsForSegment já tem um fallback para 'default'
+    return segmentType || 'default'; 
+}
 
 /**
  * Obtém resposta do ChatGPT para uma conversa
  * @param {Array} messages - Histórico de mensagens da conversa
  * @param {string} nome - Nome do usuário
- * @param {number} clinicaId - ID da clínica para obter o sistema prompt correto
+ * @param {number|string} clinicaId - ID da clínica para obter o system prompt e tools corretas
  * @returns {Promise<Object>} Resposta do modelo GPT
  */
 async function getChatGPTResponse(messages, nome, clinicaId = null) {
@@ -228,27 +58,21 @@ async function getChatGPTResponse(messages, nome, clinicaId = null) {
         })
     ];
 
+    // Obter o tipo de segmento para carregar as tools corretas
+    const segmentType = await getSegmentTypeForClinica(clinicaId);
+    const availableFunctions = getFunctionsForSegment(segmentType);
+
     try {
         // Verificar se a mensagem está bem formada antes de enviar
         console.log('Enviando mensagens para OpenAI:', JSON.stringify(messagesWithSystem, null, 2));
+        console.log(`[gptService] Usando tools para segmento "${segmentType}":`, availableFunctions.map(f => f.name));
         
         const response = await axios.post(
             'https://api.openai.com/v1/chat/completions',
             {
                 model: "gpt-4.1-mini", // Ou outro modelo atual
                 messages: messagesWithSystem,
-                functions: [
-                    availabilityFunction, 
-                    plansFunction, 
-                    paymentMethodsFunction,
-                    bookingFunction, 
-                    updateBookingFunction, 
-                    finishAppointmentFunction,
-                    // Adicionar novas funções aqui
-                    shareManicureContactFunction,
-                    shareSobrancelhasContactFunction,
-                    shareDepilacaoContactFunction
-                ],
+                functions: availableFunctions, // Tools dinâmicas baseadas no segmento
                 function_call: "auto",
                 max_tokens: 300,
                 temperature: 0.7
@@ -299,33 +123,13 @@ async function transcribeAudio(audioBuffer) {
     }
 }
 
-// Importar funções de tools (exportação fictícia, ajuste conforme necessário)
-const { 
-    getAvailableAppointments, 
-    getPlans, 
-    bookAppointment, 
-    updateAppointment, 
-    finishAppointment 
-} = require('./tools');
-
 module.exports = {
     getChatGPTResponse,
     transcribeAudio,
-    // Definições das funções
-    availabilityFunction,
-    plansFunction,
-    paymentMethodsFunction,
-    bookingFunction,
-    updateBookingFunction,
-    finishAppointmentFunction,
-    shareManicureContactFunction,
-    shareSobrancelhasContactFunction,
-    shareDepilacaoContactFunction,
-    // Funções de implementação
-    getAvailableAppointments,
-    getPlans,
-    bookAppointment,
-    updateAppointment,
-    finishAppointment,
-    // Regras - agora implementadas diretamente via system message
+    // Exportar implementações das tools, caso o gptRouter precise delas diretamente daqui.
+    // Idealmente, gptRouter importaria de './tools' ou de um registro de implementações.
+    ...toolImplementations,
+    // As definições das tools (...Function) não são mais exportadas daqui,
+    // pois são gerenciadas pelo toolRegistry e toolDefinitions.
+    // Se o gptRouter precisar dos nomes/definições, ele pode importar de toolRegistry.
 };

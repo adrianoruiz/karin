@@ -13,6 +13,9 @@ const { bootstrapListeners } = require('./src/boot/waListeners');
 const { createGreetingService } = require('./src/services/greetingService');
 const { Logger } = require('./src/utils/index'); // Need logger
 
+// Importar o clinicStore
+const clinicStore = require('./src/store/clinicStore');
+
 // Importe o roteador principal
 const routes = require('./routes');
 
@@ -35,6 +38,14 @@ async function loadClinicas() {
         logger.log('Buscando clínicas da API...');
         const response = await axios.get(`${config.apiUrl}whatsapp/list-whats-users`);
         const clinicas = response.data.data; 
+
+        // Armazenar dados das clínicas no store
+        if (clinicas) {
+            clinicStore.setClinicsData(clinicas);
+        } else {
+            clinicStore.setClinicsData([]); // Limpar ou definir como vazio se não houver clínicas
+            logger.warn('Nenhuma clínica retornada pela API ou dados em formato inesperado.');
+        }
 
         logger.log(`Iniciando clientes para ${clinicas ? clinicas.length : 0} clínicas`);
         
