@@ -9,7 +9,7 @@ use App\Models\User;
 
 class WhatsappController extends Controller
 {
-     
+
 
     /**
      * Listar todos os usuários do WhatsApp.
@@ -18,13 +18,24 @@ class WhatsappController extends Controller
      */
     public function listWhatsappUsers()
     {
-        $whatsappUsers = User::where('is_whatsapp_user', true)
-                            ->whereNotNull('phone')
-                            ->get();
+        $whatsappUsers = User::with(['userData'])
+            ->where('is_whatsapp_user', true)
+            ->whereNotNull('phone')
+            ->get();
+
+        // Formatar para incluir segment_types diretamente
+        $usersData = $whatsappUsers->map(function ($user) {
+            return array_merge(
+                $user->toArray(),
+                [
+                    'segment_types' => $user->userData->segment_types ?? null
+                ]
+            );
+        });
 
         return response()->json([
             'success' => true,
-            'data' => $whatsappUsers,
+            'data' => $usersData,
             'message' => 'Lista de usuários do WhatsApp obtida com sucesso'
         ]);
     }
