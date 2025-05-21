@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\AiConfig;
 use Illuminate\Console\Command;
 
 class SetPromptFixed extends Command
@@ -18,7 +19,7 @@ class SetPromptFixed extends Command
      *
      * @var string
      */
-    protected $description = 'Seta o campo prompt_fixed do AiConfig a partir de um arquivo de texto';
+    protected $description = 'Seta o campo prompt_fixed do AiConfig a partir de um arquivo de texto ou markdown';
 
     /**
      * Execute the console command.
@@ -35,7 +36,7 @@ class SetPromptFixed extends Command
 
         $prompt = file_get_contents($file);
 
-        $aiConfig = \App\Models\AiConfig::where('user_id', $userId)->first();
+        $aiConfig = AiConfig::where('user_id', $userId)->first();
         if (!$aiConfig) {
             $this->error('Configuração não encontrada para o usuário ' . $userId);
             return 1;

@@ -186,7 +186,7 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->belongsToMany(User::class, 'company_user', 'user_id', 'company_id');
     }
-    
+
     /**
      * Funcionários da empresa (quando este usuário é uma empresa)
      * 
@@ -216,7 +216,7 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(DoctorAvailability::class, 'doctor_id');
     }
-    
+
     /**
      * Relacionamento com formas de pagamento aceitas pelo médico.
      *
@@ -227,7 +227,7 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsToMany(PaymentMethod::class, 'doctor_payment_method', 'user_id', 'payment_method_id')
             ->withTimestamps();
     }
-    
+
     /**
      * Relacionamento com planos oferecidos pelo médico.
      *
@@ -256,5 +256,15 @@ class User extends Authenticatable implements JWTSubject
     public function workingHours(): HasMany
     {
         return $this->hasMany(WorkingHour::class);
+    }
+
+    /**
+     * Relacionamento com configuração de IA.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function aiConfig(): HasOne
+    {
+        return $this->hasOne(AiConfig::class);
     }
 }
