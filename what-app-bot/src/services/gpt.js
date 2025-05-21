@@ -25,6 +25,51 @@ async function getSegmentTypeForClinica(clinicaId) {
     return segmentType || 'default'; 
 }
 
+// Cache em memória para o status da IA das clínicas
+const aiStatusCache = new Map();
+const AI_STATUS_CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutos em milissegundos
+
+/**
+ * Busca o status de ativação da IA para uma clínica específica via API, com cache.
+ * @param {string|number} clinicaId - O ID da clínica.
+ * @returns {Promise<boolean>} True se a IA estiver ativa, false caso contrário.
+ */
+async function fetchAiStatusForClinica(clinicaId) {
+    if (!clinicaId) {
+        console.error('[gptService.fetchAiStatusForClinica] clinicaId não fornecido.');
+        return false;
+    }
+
+    // Verificar cache primeiro
+    const cachedEntry = aiStatusCache.get(clinicaId);
+    if (cachedEntry && (Date.now() - cachedEntry.timestamp < AI_STATUS_CACHE_TTL_MS)) {
+        console.log(`[gptService.fetchAiStatusForClinica] Status da IA para clinica ${clinicaId} (do cache): ${cachedEntry.isActive}`);
+        return cachedEntry.isActive;
+    }
+
+    try {
+        const apiUrl = process.env.API_URL || require('../../config').apiUrl; // Garante que apiUrl está disponível
+        const response = await axios.get(`${apiUrl}whatsapp/status/${clinicaId}`);
+        if (response.data && typeof response.data.is_active === 'boolean') {
+            const isActive = response.data.is_active;
+            console.log(`[gptService.fetchAiStatusForClinica] Status da IA para clinica ${clinicaId} (da API): ${isActive}`);
+            // Armazenar no cache
+            aiStatusCache.set(clinicaId, { isActive, timestamp: Date.now() });
+            return isActive;
+        }
+        console.warn(`[gptService.fetchAiStatusForClinica] Resposta inesperada da API para clinica ${clinicaId}:`, response.data);
+        // Não armazenar no cache em caso de resposta inesperada, mas pode limpar uma entrada antiga se existir
+        aiStatusCache.delete(clinicaId); 
+        return false; // Default para false se a resposta não for o esperado
+    } catch (error) {
+        console.error(`[gptService.fetchAiStatusForClinica] Erro ao buscar status da IA para clinica ${clinicaId}:`, error.message);
+        // Não armazenar no cache em caso de erro, mas pode limpar uma entrada antiga se existir
+        aiStatusCache.delete(clinicaId);
+        // Em caso de erro na API, considerar um comportamento de fallback, por ex, assumir inativo
+        return false; 
+    }
+}
+
 /**
  * Obtém resposta do ChatGPT para uma conversa
  * @param {Array} messages - Histórico de mensagens da conversa
@@ -126,6 +171,7 @@ async function transcribeAudio(audioBuffer) {
 module.exports = {
     getChatGPTResponse,
     transcribeAudio,
+    fetchAiStatusForClinica,
     // Exportar implementações das tools, caso o gptRouter precise delas diretamente daqui.
     // Idealmente, gptRouter importaria de './tools' ou de um registro de implementações.
     ...toolImplementations,

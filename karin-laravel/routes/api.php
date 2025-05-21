@@ -46,6 +46,9 @@ Route::group([
     Route::get('me', [AuthController::class, 'me']);
 });
 
+// Rotas de verificação de status do bot (sem autenticação)
+Route::get('bot/status/{companyId}', [AiConfigController::class, 'checkBotStatus']);
+
 // Rotas de WhatsApp
 Route::group([
     'prefix' => 'whatsapp',
@@ -56,8 +59,10 @@ Route::group([
 
 Route::group([
     'prefix' => 'whatsapp',
-   
+
 ], function () {
+    Route::get('status/{companyId}', [AiConfigController::class, 'checkBotStatus']);
+
     Route::get('list-whats-users', [WhatsappController::class, 'listWhatsappUsers']);
 });
 
@@ -66,18 +71,18 @@ Route::middleware('auth:api')->group(function () {
     // Rotas específicas de usuários (devem vir antes das rotas com parâmetros)
     Route::get('users/roles', [UserController::class, 'getAllRoles']);
     Route::post('users/complete', [UserController::class, 'storeComplete']);
-    
+
     // Rotas de recursos para usuários
     Route::get('users', [UserController::class, 'index']);
     Route::post('users', [UserController::class, 'store']);
     Route::get('users/{id}', [UserController::class, 'show']);
     Route::put('users/{id}', [UserController::class, 'update']);
     Route::delete('users/{id}', [UserController::class, 'destroy']);
-    
+
     // Rotas com parâmetros de ID
     Route::put('users/{id}/complete', [UserController::class, 'updateComplete']);
     Route::post('users/{id}/avatar', [UserController::class, 'uploadAvatar']);
-    
+
     // Rotas para gerenciar funcionários da empresa
     Route::get('companies/{companyId}/employees', [CompanyEmployeeController::class, 'index']);
     Route::post('companies/{companyId}/employees', [CompanyEmployeeController::class, 'store']);
@@ -112,7 +117,7 @@ Route::group([
     // Rotas específicas primeiro
     Route::get('/type/{type}', [ChatbotCrudController::class, 'getByType']);
     Route::get('/default/{type}', [ChatbotCrudController::class, 'getDefaultByType']);
-    
+
     // Rotas genéricas depois
     Route::get('/', [ChatbotCrudController::class, 'index']);
     Route::post('/', [ChatbotCrudController::class, 'store']);
@@ -135,7 +140,6 @@ Route::group([
     'prefix' => 'chatbots',
 ], function () {
     Route::post('/message-type', [ChatbotController::class, 'getPersonalizedMessageByType']);
-        
 });
 
 // Rotas protegidas por autenticação
@@ -146,8 +150,7 @@ Route::middleware('auth:api')->group(function () {
     Route::prefix('availabilities')->group(function () {
         Route::post('/recurring', [DoctorAvailabilityController::class, 'storeRecurring']);
     });
-
- });
+});
 
 
 
@@ -183,12 +186,11 @@ Route::group([
     Route::post('/', [AiConfigController::class, 'store']);
     Route::put('/', [AiConfigController::class, 'store']);
     Route::post('/toggle-active', [AiConfigController::class, 'toggleActive']);
-    
+
     Route::get('/bot-status/{userId}', [AiConfigController::class, 'botStatus']);
-    
+
     // Rota para gerar o system prompt para IA
     Route::post('/get-system-prompt', [AiPromptController::class, 'getSystemPrompt']);
-    
 });
 
 // Rotas para Províncias e Cidades
@@ -199,10 +201,9 @@ Route::group([
     Route::get('/provinces', [ProvinceController::class, 'index']);
     Route::get('/provinces/with-cities', [ProvinceController::class, 'withCities']);
     Route::get('/provinces/{id}', [ProvinceController::class, 'show']);
-    
+
     // Rotas de Cidades
     Route::get('/cities', [CityController::class, 'index']);
     Route::get('/cities/{id}', [CityController::class, 'show']);
     Route::get('/provinces/{provinceId}/cities', [CityController::class, 'byProvince']);
 });
-

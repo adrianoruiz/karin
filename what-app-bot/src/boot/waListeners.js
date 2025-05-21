@@ -9,6 +9,12 @@ const { createManualModeService } = require('../services/manualModeService');
 const { createGptRouter } = require('../ai/gptRouter');
 const { createAudioHandler } = require('../handlers/audioHandler');
 
+// Importar o clinicStore para verificar o status da IA (não mais usado para status da IA)
+// const clinicStore = require('../store/clinicStore');
+
+// Importar a função para buscar o status da IA via API
+const { fetchAiStatusForClinica } = require('../services/gpt'); // Ou o caminho correto para gpt.js
+
 // Need getMessageType from whatsappService temporarily
 // Ideally, these should be moved to more appropriate modules later.
 // For now, we'll require the (now very small) whatsappService file.
@@ -60,6 +66,18 @@ async function bootstrapListeners(client, clinicaId) {
             logger.log(`Client not authenticated for clinica ${clinicaId}.`);
             return;
         }
+
+        // <<< ADICIONAR VERIFICAÇÃO DO STATUS DA IA AQUI >>>
+        const isAiActive = await fetchAiStatusForClinica(clinicaId);
+        if (!isAiActive) {
+            logger.warn(`[waListeners] IA está DESATIVADA para clinicaId ${clinicaId} (via API). Não processando mensagem via GPT.`);
+            // Considera não enviar mensagem para não poluir, ou envia uma mensagem única na primeira vez que tentar e estiver desativado.
+            // Por agora, vamos apenas logar e retornar para evitar processamento.
+            // Se decidir enviar mensagem, descomente a linha abaixo e ajuste waClient se necessário:
+            // await client.sendMessage(message.from, "Desculpe, nosso assistente virtual está temporariamente indisponível. Por favor, aguarde o contato de um de nossos atendentes.");
+            return; // Interrompe o processamento se a IA estiver desativada
+        }
+        // <<< FIM DA VERIFICAÇÃO DO STATUS DA IA >>>
 
         try {
             // Basic Filters

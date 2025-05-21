@@ -16,11 +16,11 @@ class AiConfigController extends Controller
     {
         $user = Auth::user();
         $aiConfig = AiConfig::where('user_id', $user->id)->first();
-        
+
         if (!$aiConfig) {
             return response()->json(['message' => 'Configuração não encontrada'], 404);
         }
-        
+
         return response()->json($aiConfig);
     }
 
@@ -40,12 +40,12 @@ class AiConfigController extends Controller
         ]);
 
         $user = Auth::user();
-        
+
         // Verificar se o usuário tem permissão (role empresa)
         $userRoles = $user->roles->pluck('slug')->toArray();
-        $hasPermission = in_array(ValidRoles::ADMIN, $userRoles) || 
-                    array_intersect(ValidRoles::COMPANY_ROLES, $userRoles);
-                    
+        $hasPermission = in_array(ValidRoles::ADMIN, $userRoles) ||
+            array_intersect(ValidRoles::COMPANY_ROLES, $userRoles);
+
         if (!$hasPermission) {
             return response()->json(['message' => 'Não autorizado. Apenas usuários com perfil de empresa podem configurar a IA.'], 403);
         }
@@ -78,30 +78,30 @@ class AiConfigController extends Controller
         ]);
 
         $user = Auth::user();
-        
+
         // Se foi fornecido um user_id, verificar permissão de admin
         if (isset($validated['user_id']) && $validated['user_id'] != $user->id) {
             $userRoles = $user->roles->pluck('slug')->toArray();
             $hasPermission = in_array(ValidRoles::ADMIN, $userRoles);
-                        
+
             if (!$hasPermission) {
                 return response()->json(['message' => 'Não autorizado. Apenas administradores podem alterar o status de ativação de outros usuários.'], 403);
             }
-            
+
             $targetUserId = $validated['user_id'];
         } else {
             $targetUserId = $user->id;
         }
-        
+
         $aiConfig = AiConfig::where('user_id', $targetUserId)->first();
-        
+
         if (!$aiConfig) {
             return response()->json(['message' => 'Configuração não encontrada'], 404);
         }
-        
+
         $aiConfig->is_active = !$aiConfig->is_active;
         $aiConfig->save();
-        
+
         return response()->json([
             'message' => $aiConfig->is_active ? 'IA ativada com sucesso' : 'IA desativada com sucesso',
             'is_active' => $aiConfig->is_active,
@@ -115,7 +115,7 @@ class AiConfigController extends Controller
     public function botStatus($userId)
     {
         $aiConfig = AiConfig::where('user_id', $userId)->first();
-        
+
         if (!$aiConfig) {
             return response()->json([
                 'message' => 'Configuração não encontrada para este usuário',
@@ -123,11 +123,28 @@ class AiConfigController extends Controller
                 'user_id' => $userId
             ], 404);
         }
-        
+
         return response()->json([
             'is_active' => $aiConfig->is_active,
             'user_id' => $userId
         ]);
     }
 
+    /**
+     * Verifica o status de ativação do bot para uma empresa (leve, sem autenticação)
+     * 
+     * @param int $companyId ID da empresa
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function checkBotStatus($companyId)
+    {
+        $aiConfig = AiConfig::where('user_id', $companyId)
+            ->select('is_active')
+            ->first();
+
+        return response()->json([
+            'is_active' => $aiConfig ? (bool)$aiConfig->is_active : false,
+            'company_id' => (int)$companyId
+        ]);
+    }
 }

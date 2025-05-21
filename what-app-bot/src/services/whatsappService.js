@@ -2,12 +2,6 @@
 // This file should now be empty or contain only unrelated temporary code.
 // All core WhatsApp service logic has been moved.
 
-// Remove remaining imports if they are no longer needed after moving getMessageType
-// const axios = require('axios'); 
-// const config = require('../../config'); 
-// const { UNWANTED_PATIENT_NAME_WORDS } = require('../constants/patient');
-// const { Logger } = require('../utils/index'); 
-// const logger = new Logger(process.env.NODE_ENV !== 'production');
 
 const { formatPhoneNumber } = require('../utils/formattedNumber');
 const { createMessageTypeService } = require('./messageTypeService');
