@@ -9,7 +9,10 @@
 function createGptRouter({ logger, conversationStore, waClient }) {
     // Importamos o sessionStore
     const sessionStore = require('../services/sessionStore');
-    const { getChatGPTResponse } = require('../services/gpt');
+    // Importamos o serviço GPT (getChatGPTResponse) e o processIncomingMessageWithDebounce 
+    const { getChatGPTResponse, processIncomingMessageWithDebounce } = require('../services/gpt');
+    // Importar debounceManager para garantir que está inicializado corretamente
+    require('../services/debounceManager');
     const { 
         getAvailableAppointments, 
         getPlans, 
@@ -258,80 +261,67 @@ function createGptRouter({ logger, conversationStore, waClient }) {
             // Adicionar mensagem do usuário ao histórico
             await sessionStore.addMessage(clinicaId, number, 'user', message);
             conversation = await sessionStore.getConversation(clinicaId, number);
-            logger.log('DEBUG - Histórico recuperado para envio ao GPT:', JSON.stringify(conversation, null, 2));
+            logger.log('DEBUG - Histórico atualizado após adicionar mensagem do usuário:', JSON.stringify(conversation, null, 2));
             
-            // Obter resposta do GPT
-            const gptResponse = await getChatGPTResponse(conversation, nome, clinicaId);
+            // Criar um objeto de mensagem para o debounceManager
+            const messageObj = {
+                id: Date.now().toString(),
+                body: message,
+                timestamp: Math.floor(Date.now() / 1000),
+                type: 'chat',
+                hasMedia: false
+            };
             
-            // Verificar se a resposta contém uma chamada de função (formato novo - tool_calls)
-            if (gptResponse.tool_calls && gptResponse.tool_calls.length > 0) {
-                const functionCall = gptResponse.tool_calls[0];
-                logger.log(`Função detectada (tool_calls): ${functionCall.function.name}`);
-                
-                // Processar argumentos da função
-                const parsedArgs = JSON.parse(functionCall.function.arguments);
-                
-                // Executar função e obter resposta final
-                const functionResponse = await processFunctionCall(
-                    functionCall.function.name,
-                    parsedArgs,
-                    nome,
-                    number,
-                    clinicaId,
-                    context
-                );
-                
-                // Garantir que temos uma resposta válida
-                const validResponse = typeof functionResponse === 'string' && functionResponse
-                    ? functionResponse
-                    : "Olá! Sou a Neusa, secretária virtual da Dra. Karin Boldarini. Como posso ajudar você hoje? 😊";
-                
-                // Adicionar resposta ao histórico
-                await sessionStore.addMessage(clinicaId, number, 'assistant', validResponse);
-                
-                return validResponse;
-            }
-            // Verificar formato antigo de chamada de função (function_call)
-            else if (gptResponse.function_call) {
-                logger.log(`Função detectada (function_call): ${gptResponse.function_call.name}`);
-                
-                // Processar argumentos da função
-                const parsedArgs = JSON.parse(gptResponse.function_call.arguments);
-                
-                // Executar função e obter resposta final
-                const functionResponse = await processFunctionCall(
-                    gptResponse.function_call.name,
-                    parsedArgs,
-                    nome,
-                    number,
-                    clinicaId,
-                    context
-                );
-                
-                // Garantir que temos uma resposta válida
-                const validResponse = typeof functionResponse === 'string' && functionResponse
-                    ? functionResponse
-                    : "Olá! Sou a Neusa, secretária virtual da Dra. Karin Boldarini. Como posso ajudar você hoje? 😊";
-                
-                // Adicionar resposta ao histórico
-                await sessionStore.addMessage(clinicaId, number, 'assistant', validResponse);
-                
-                return validResponse;
-            }
-            
-            // Resposta normal do GPT (sem chamada de função)
-            const responseContent = gptResponse.content;
-            
-            // Verificar se temos uma resposta válida
-            if (!responseContent) {
-                logger.error('Resposta do GPT sem conteúdo:', gptResponse);
-                return "Desculpe, não consegui gerar uma resposta válida. Como posso ajudar você?";
-            }
-            
-            // Adicionar resposta ao histórico
-            await sessionStore.addMessage(clinicaId, number, 'assistant', responseContent);
-            return responseContent;
-            
+            // Retornar uma Promise que será resolvida quando a resposta estiver pronta
+            return new Promise((resolve, reject) => {
+                // Usar processIncomingMessageWithDebounce para agrupar mensagens enviadas rapidamente
+                processIncomingMessageWithDebounce(
+                    `${clinicaId}:${number}`,  // chatId
+                    messageObj,                // objeto da mensagem
+                    nome,                      // Nome do usuário
+                    clinicaId,                 // ID da clínica
+                    conversation,              // Histórico da conversa
+                    async (chatId, content) => {
+                        // Callback para quando a resposta estiver pronta
+                        try {
+                            // Verificar se a resposta é uma string válida
+                            const validResponse = typeof content === 'string' && content
+                                ? content
+                                : "Olá! Sou a secretária virtual. Como posso ajudar você hoje? 😊";
+                            
+                            // Resolver a Promise com a resposta final
+                            resolve(validResponse);
+                        } catch (callbackError) {
+                            logger.error('Erro no callback de processIncomingMessageWithDebounce:', callbackError);
+                            reject(callbackError);
+                        }
+                    },
+                    async (chatId, presenceType) => {
+                        // Callback para gerenciar "digitando..."
+                        try {
+                            const userNumber = chatId.split(':')[1];
+                            if (presenceType === 'composing') {
+                                if (waClient.client) {
+                                    await waClient.client.sendPresenceAvailable();
+                                    await waClient.client.startTyping(userNumber + '@c.us');
+                                }
+                            } else if (presenceType === 'paused') {
+                                if (waClient.client) {
+                                    await waClient.client.stopTyping(userNumber + '@c.us');
+                                    await waClient.client.sendPresenceUnavailable();
+                                }
+                            }
+                        } catch (typingError) {
+                            logger.warn('Erro ao enviar status de digitação:', typingError);
+                            // Não falhar a operação principal por erro de status de digitação
+                        }
+                    },
+                    10000  // debounceWaitMs: 10 segundos para buffer
+                ).catch(debounceError => {
+                    logger.error('Erro em processIncomingMessageWithDebounce:', debounceError);
+                    reject(debounceError);
+                });
+            });
         } catch (error) {
             logger.error('Erro ao processar mensagem:', error);
             return "Desculpe, houve um erro ao processar sua mensagem. Por favor, tente novamente mais tarde.";

@@ -449,7 +449,7 @@ async function processIncomingMessageWithDebounce(
     conversationHistory, 
     sendMessageCallback,
     sendTypingCallback = null,
-    debounceWaitMs = 4000 // Padrão de 4 segundos
+    debounceWaitMs = 8000 // Padrão de 8 segundos
 ) {
     logger.info(`[gptService.processIncomingMessageWithDebounce] Recebida mensagem para chatId: ${chatId}, clinicaId: ${clinicaId}`);
     logger.debug(`[gptService.processIncomingMessageWithDebounce] Message Object:`, messageObj);
@@ -530,6 +530,7 @@ async function processIncomingMessageWithDebounce(
         return onFlushCallback(flushedChatId, flushedMessages, userName, clinicaId, conversationHistory, sendMessageCallback);
     };
 
+    console.log(`INFO: [gptService] PRESTES A CHAMAR pushMessage para chatId: ${chatId} com debounceWaitMs: ${debounceWaitMs}`);
     pushMessage(chatId, messageObj, boundOnFlush, debounceWaitMs);
 }
 

@@ -1,7 +1,7 @@
 const logger = require('./logger');
 
 // Configurações
-const DEFAULT_WAIT_MS = 4000; // 4 segundos
+const DEFAULT_WAIT_MS = 8000; // 8 segundos (aumentado de 4 segundos)
 const REDIS_KEY_PREFIX = 'whatsapp:buffer:';
 const REDIS_EXPIRY_SECONDS = 60 * 60; // 1 hora em segundos
 
@@ -61,7 +61,9 @@ async function downloadMediaIfExists(messageObj) {
  * @param {number} [waitMs=DEFAULT_WAIT_MS] - Tempo de espera em ms.
  */
 async function pushMessage(chatId, messageObj, onFlush, waitMs = DEFAULT_WAIT_MS) {
-  logger.debug(`[DebounceManager] pushMessage para chatId: ${chatId}`);
+  // logger.info(`[DebounceManager] ALERTA: Função pushMessage ACIONADA para chatId: ${chatId} com waitMs: ${waitMs}`); // Log de ALTA VISIBILIDADE
+  console.log(`INFO: [DebounceManager] ALERTA: Função pushMessage ACIONADA para chatId: ${chatId} com waitMs: ${waitMs}`);
+  logger.debug(`[DebounceManager] pushMessage para chatId: ${chatId}. Aguardando ${waitMs}ms.`);
   try {
     // Primeiro, baixar a mídia se existir
     if (messageObj.hasMedia) {
@@ -100,57 +102,76 @@ async function pushMessage(chatId, messageObj, onFlush, waitMs = DEFAULT_WAIT_MS
         'EX',
         REDIS_EXPIRY_SECONDS
       );
+      logger.debug(`[DebounceManager] Buffer para ${chatId} salvo no Redis com ${buffer.length} mensagens.`);
     } else {
       memoryBuffer.set(chatId, buffer);
+      logger.debug(`[DebounceManager] Buffer para ${chatId} salvo na memória com ${buffer.length} mensagens.`);
     }
 
     // Limpa timer anterior se existir
     if (timers.has(chatId)) {
-      clearTimeout(timers.get(chatId));
+      const oldTimer = timers.get(chatId);
+      clearTimeout(oldTimer);
       logger.debug(`[DebounceManager] Timer anterior para ${chatId} limpo.`);
     }
 
     // Configura novo timer
     logger.debug(`[DebounceManager] Configurando novo timer de ${waitMs}ms para chatId: ${chatId}`);
-    timers.set(
-      chatId,
-      setTimeout(async () => {
-        logger.info(`[DebounceManager] Timer disparado para chatId: ${chatId}. Processando buffer.`);
-        let finalBufferToFlush = [];
-        try {
-          if (useRedis && redisClient) {
-            const finalBufferJson = await redisClient.get(`${REDIS_KEY_PREFIX}${chatId}`);
-            if (finalBufferJson) {
-              finalBufferToFlush = JSON.parse(finalBufferJson);
-            }
-            await redisClient.del(`${REDIS_KEY_PREFIX}${chatId}`);
-            logger.debug(`[DebounceManager] Buffer do Redis para ${chatId} limpo.`);
+    const newTimer = setTimeout(async () => {
+      logger.info(`[DebounceManager] Timer disparado para chatId: ${chatId}. Processando buffer.`);
+      let finalBufferToFlush = [];
+      try {
+        if (useRedis && redisClient) {
+          logger.debug(`[DebounceManager/Timer] Lendo buffer do Redis para ${chatId}.`);
+          const finalBufferJson = await redisClient.get(`${REDIS_KEY_PREFIX}${chatId}`);
+          if (finalBufferJson) {
+            finalBufferToFlush = JSON.parse(finalBufferJson);
+            logger.debug(`[DebounceManager/Timer] ${finalBufferToFlush.length} mensagens lidas do Redis para ${chatId}.`);
           } else {
-            if (memoryBuffer.has(chatId)) {
-              finalBufferToFlush = memoryBuffer.get(chatId);
-              memoryBuffer.delete(chatId);
-              logger.debug(`[DebounceManager] Buffer da memória para ${chatId} limpo.`);
-            }
+            logger.debug(`[DebounceManager/Timer] Nenhum buffer encontrado no Redis para ${chatId}.`);
           }
-          
-          timers.delete(chatId);
-
-          if (finalBufferToFlush.length > 0) {
-            logger.info(`[DebounceManager] Processando ${finalBufferToFlush.length} mensagens para chatId: ${chatId} via onFlush.`);
-            // Chamada da onFlush com chatId e o array de mensagens
-            await onFlush(chatId, finalBufferToFlush); 
+          await redisClient.del(`${REDIS_KEY_PREFIX}${chatId}`);
+          logger.debug(`[DebounceManager/Timer] Buffer do Redis para ${chatId} limpo.`);
+        } else {
+          logger.debug(`[DebounceManager/Timer] Lendo buffer da memória para ${chatId}.`);
+          if (memoryBuffer.has(chatId)) {
+            finalBufferToFlush = memoryBuffer.get(chatId);
+            memoryBuffer.delete(chatId);
+            logger.debug(`[DebounceManager/Timer] ${finalBufferToFlush.length} mensagens lidas da memória para ${chatId} e buffer limpo.`);
           } else {
-            logger.info(`[DebounceManager] Sem mensagens no buffer para chatId: ${chatId} após o timer.`);
+            logger.debug(`[DebounceManager/Timer] Nenhum buffer encontrado na memória para ${chatId}.`);
           }
-        } catch (error) {
-          logger.error(`[DebounceManager] Erro ao processar buffer no timer para ${chatId}:`, error);
-          // Tentar limpar em caso de erro para evitar loops ou dados presos
-          if (useRedis && redisClient) await redisClient.del(`${REDIS_KEY_PREFIX}${chatId}`);
-          else memoryBuffer.delete(chatId);
-          timers.delete(chatId);
         }
-      }, waitMs)
-    );
+        
+        timers.delete(chatId); // Crucial: remover o timer da map após sua execução.
+
+        if (finalBufferToFlush.length > 0) {
+          logger.info(`[DebounceManager/Timer] Processando ${finalBufferToFlush.length} mensagens acumuladas para chatId: ${chatId} via onFlush.`);
+          await onFlush(chatId, finalBufferToFlush); 
+        } else {
+          logger.info(`[DebounceManager/Timer] Sem mensagens no buffer para chatId: ${chatId} após o timer. Nada a fazer.`);
+        }
+      } catch (error) {
+        logger.error(`[DebounceManager/Timer] Erro ao processar buffer no timer para ${chatId}:`, error);
+        // Limpeza de emergência em caso de erro durante o processamento do buffer
+        logger.warn(`[DebounceManager/Timer] Tentando limpeza de emergência do buffer e timer para ${chatId}.`);
+        if (useRedis && redisClient) {
+          try { 
+            await redisClient.del(`${REDIS_KEY_PREFIX}${chatId}`);
+            logger.debug(`[DebounceManager/Timer] Limpeza de emergência do Redis para ${chatId} OK.`);
+          } catch (e) { 
+            logger.error(`[DebounceManager/Timer] Falha na limpeza de emergência do Redis para ${chatId}`, e); 
+          }
+        } else {
+          memoryBuffer.delete(chatId);
+          logger.debug(`[DebounceManager/Timer] Limpeza de emergência da memória para ${chatId} OK.`);
+        }
+        timers.delete(chatId); // Garantir que o timer seja removido em caso de erro também.
+      }
+    }, waitMs);
+    
+    // Armazenar o novo timer
+    timers.set(chatId, newTimer);
   } catch (error) {
     logger.error(`[DebounceManager] Erro em pushMessage para ${chatId}:`, error);
     // Considerar uma falha suave, talvez chamando onFlush com a mensagem atual
