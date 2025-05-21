@@ -13,7 +13,7 @@ const { createAudioHandler } = require('../handlers/audioHandler');
 // const clinicStore = require('../store/clinicStore');
 
 // Importar a função para buscar o status da IA via API
-const { fetchAiStatusForClinica } = require('../services/gpt'); // Ou o caminho correto para gpt.js
+const { fetchAiStatusForClinica, processIncomingMessageWithDebounce } = require('../services/gpt'); // Adicionado processIncomingMessageWithDebounce
 
 // Need getMessageType from whatsappService temporarily
 // Ideally, these should be moved to more appropriate modules later.
@@ -129,7 +129,55 @@ async function bootstrapListeners(client, clinicaId) {
                 return; 
             }
 
-            // 6. Regular Text Message Processing
+            // 6. Processar imagens
+            if (message.type === 'image') {
+                logger.log(`Detectada imagem do usuário ${number}. Encaminhando para processamento com debounce.`);
+                try {
+                    // Obter histórico da conversa do store
+                    const conversationHistory = conversationStore.getMessages(clinicaId, number);
+                    
+                    // Processamento com debounce para manusear a imagem
+                    await processIncomingMessageWithDebounce(
+                        `${clinicaId}:${number}`, // chatId
+                        message, // objeto da mensagem (contém hasMedia: true)
+                        nome, // Nome do usuário
+                        clinicaId, // ID da clínica
+                        conversationHistory, // Histórico da conversa
+                        async (chatId, content) => {
+                            // Callback para enviar a resposta
+                            const userNumber = chatId.split(':')[1];
+                            
+                            // Marcar mensagem como do bot antes de enviar
+                            markMessageAsSentByBot(clinicaId, content);
+                            
+                            await waClient.sendMessage(userNumber, content, clinicaId, false);
+                            logger.log(`Resposta da imagem enviada para ${userNumber}`);
+                            
+                            // Adicionar resposta ao histórico da conversa
+                            conversationStore.addMessage(clinicaId, userNumber, 'assistant', content);
+                        },
+                        async (chatId, presenceType) => {
+                            // Callback para gerenciar digitando...
+                            if (presenceType === 'composing') {
+                                const userNumber = chatId.split(':')[1];
+                                await client.sendPresenceAvailable();
+                                await client.startTyping(userNumber + '@c.us');
+                            } else if (presenceType === 'paused') {
+                                const userNumber = chatId.split(':')[1];
+                                await client.stopTyping(userNumber + '@c.us');
+                                await client.sendPresenceUnavailable();
+                            }
+                        }
+                    );
+                    // A mensagem é processada de forma assíncrona, então nada mais é feito aqui
+                    return;
+                } catch (imgError) {
+                    logger.error('Erro ao processar imagem:', imgError);
+                    // Continuar com o fluxo normal em caso de erro
+                }
+            }
+
+            // 7. Regular Text Message Processing
             logger.log(`Processing text message for ${number}`);
             try {
                 // Criar contexto da mensagem
