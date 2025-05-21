@@ -47,7 +47,7 @@ class DoctorAvailabilityController extends Controller
     }
 
     /**
-     * Cadastra novos horários disponíveis
+     * Cadastra novos horários disponíveis e remove os que não estão mais na lista
      *
      * @param Request $request
      * @return JsonResponse
@@ -65,6 +65,26 @@ class DoctorAvailabilityController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        // Busca todos os horários existentes para o médico na data especificada
+        $existingAvailabilities = DoctorAvailability::where('doctor_id', $request->doctor_id)
+            ->whereDate('date', $request->date)
+            ->where('status', 'available')
+            ->get();
+
+        // Horários que serão removidos (não estão na lista enviada)
+        $timesToRemove = [];
+        foreach ($existingAvailabilities as $existing) {
+            if (!in_array($existing->time, $request->times)) {
+                $timesToRemove[] = $existing->id;
+            }
+        }
+
+        // Remove os horários que não estão mais na lista
+        if (!empty($timesToRemove)) {
+            DoctorAvailability::whereIn('id', $timesToRemove)->delete();
+        }
+
+        // Adiciona novos horários que ainda não existem
         $availabilities = [];
         foreach ($request->times as $time) {
             // Verifica se já existe disponibilidade para este horário
@@ -84,9 +104,13 @@ class DoctorAvailabilityController extends Controller
         }
 
         return response()->json([
-            'message' => 'Horários cadastrados com sucesso!',
-            'availabilities' => $availabilities
-        ], 201);
+            'message' => 'Horários atualizados com sucesso!',
+            'availabilities' => DoctorAvailability::where('doctor_id', $request->doctor_id)
+                ->whereDate('date', $request->date)
+                ->where('status', 'available')
+                ->orderBy('time')
+                ->get()
+        ], 200);
     }
 
     /**
