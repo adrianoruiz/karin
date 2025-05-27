@@ -1,7 +1,7 @@
 const logger = require('./logger');
 
 // Configurações
-const DEFAULT_WAIT_MS = 8000; // 8 segundos (aumentado de 4 segundos)
+const DEFAULT_WAIT_MS = 7000; // 7 segundos
 const REDIS_KEY_PREFIX = 'whatsapp:buffer:';
 const REDIS_EXPIRY_SECONDS = 60 * 60; // 1 hora em segundos
 

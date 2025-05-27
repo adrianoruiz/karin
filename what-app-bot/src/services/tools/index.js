@@ -8,6 +8,7 @@ const { bookingFunction, bookAppointment, checkAvailability } = require('./booki
 const { paymentMethodsFunction, getPaymentMethods, getPaymentMethodIdByName } = require('./payment');
 const { updateBookingFunction, updateAppointment } = require('./updateBooking');
 const { finishAppointmentFunction, finishAppointment } = require('./finishAppointment');
+const { shareManicureContact, shareSobrancelhasContact, shareDepilacaoContact } = require('./contacts');
 
 module.exports = {
     availabilityFunction,
@@ -24,5 +25,8 @@ module.exports = {
     updateBookingFunction,
     updateAppointment,
     finishAppointmentFunction,
-    finishAppointment
+    finishAppointment,
+    shareManicureContact,
+    shareSobrancelhasContact,
+    shareDepilacaoContact
 };
