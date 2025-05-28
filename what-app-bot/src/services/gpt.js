@@ -22,6 +22,9 @@ const { processImage } = require('./ai/imageProcessor');
 // Importar implementações das tools (para exportação, se necessário pelo gptRouter)
 const toolImplementations = require('./tools');
 
+// Importar o chatStatusService para marcar como não lida
+const { markChatAsUnreadBackground } = require('./chatStatusService');
+
 // Placeholder: Função para obter o segment_type da clínica.
 // No futuro, isso deve vir de uma API, banco de dados ou cache.
 // Baseado no JSON: user_id: 1 -> clinica-odonto, user_id: 2 -> clinica-medica, user_id: 14 -> salao-beleza
@@ -425,12 +428,26 @@ async function onFlushCallback(chatId, bufferedMessages, userName, clinicaId, co
             logger.info(`[gptService.onFlushCallback] Enviando resposta final para ${chatId}: "${gptResponse.content.substring(0, 50)}..."`);
             await sendMessageCallback(chatId, gptResponse.content);
             
+            // **NOVO**: Marcar como não lida
+            const [clinicaIdExtracted, userNumber] = chatId.split(':');
+            if (clinicaIdExtracted && userNumber) {
+                const { clientManager } = require('./qr/qrcode');
+                const client = clientManager.getClient(clinicaIdExtracted);
+                
+                if (client) {
+                    // Executar em background
+                    markChatAsUnreadBackground(client, userNumber, null, (err) => {
+                        logger.warn(`Falha ao marcar chat como não lido para ${chatId}:`, err);
+                    });
+                }
+            }
+            
             // CRÍTICO: Adicionar a resposta da IA ao histórico para manter memória da conversa
             // Extrair clinicaId e number do chatId para salvar no sessionStore
-            const [clinicaId, userNumber] = chatId.split(':');
-            if (clinicaId && userNumber) {
+            const [clinicaId, userNumberForSession] = chatId.split(':');
+            if (clinicaId && userNumberForSession) {
                 const sessionStore = require('./sessionStore');
-                await sessionStore.addMessage(clinicaId, userNumber, 'assistant', gptResponse.content);
+                await sessionStore.addMessage(clinicaId, userNumberForSession, 'assistant', gptResponse.content);
                 logger.debug(`[gptService.onFlushCallback] Resposta da IA adicionada ao sessionStore para ${chatId}`);
             } else {
                 logger.warn(`[gptService.onFlushCallback] Não foi possível extrair clinicaId e userNumber do chatId: ${chatId}`);

@@ -13,6 +13,8 @@ function createGptRouter({ logger, conversationStore, waClient }) {
     const { getChatGPTResponse, processIncomingMessageWithDebounce } = require('../services/gpt');
     // Importar debounceManager para garantir que está inicializado corretamente
     require('../services/debounceManager');
+    // Importar o chatStatusService para marcar como não lida
+    const { markChatAsUnreadBackground } = require('../services/chatStatusService');
     const { 
         getAvailableAppointments, 
         getPlans, 
@@ -305,6 +307,15 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                             
                             // Resolver a Promise com a resposta final
                             resolve(validResponse);
+                            
+                            // **NOVO**: Marcar como não lida após resolver
+                            const userNumber = chatId.split(':')[1];
+                            if (waClient.client && userNumber) {
+                                // Executar em background para não afetar a resposta
+                                markChatAsUnreadBackground(waClient.client, userNumber, null, (err) => {
+                                    logger.warn('Falha ao marcar chat como não lido:', err);
+                                });
+                            }
                         } catch (callbackError) {
                             logger.error('Erro no callback de processIncomingMessageWithDebounce:', callbackError);
                             reject(callbackError);

@@ -18,5 +18,9 @@ module.exports = {
         ? 'drakarin.com.br'
         : 'drakarin.com.br',
     greetingCacheTTL: 86400, // TTL de 24 horas
-    manualResponseTTL: 86400 // Tempo em segundos para desativar o chatbot após resposta manual (24 horas)
+    manualResponseTTL: 86400, // Tempo em segundos para desativar o chatbot após resposta manual (24 horas)
+    
+    // Configurações para marcar como não lida
+    markUnreadDelay: parseInt(process.env.MARK_UNREAD_DELAY_MS) || 4000, // Delay em ms para marcar como não lida
+    enableMarkUnread: process.env.ENABLE_MARK_UNREAD !== 'false' // Habilitado por padrão, pode ser desabilitado via env
 };
