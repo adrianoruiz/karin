@@ -355,14 +355,18 @@ async function onFlushCallback(chatId, bufferedMessages, userName, clinicaId, co
         : finalCombinedMessage;
 
     // 2. Formatar para o getChatGPTResponse
-    // Adiciona a mensagem concatenada ao histórico da conversa.
-    // ATENÇÃO: Esta é uma forma SIMPLES de gerenciar o histórico.
-    // Em um sistema real, o conversationHistory precisaria ser gerenciado de forma mais robusta (ex: Redis, DB)
-    // e truncado para evitar exceder os limites de token da API.
+    // IMPORTANTE: Incluir o histórico da conversa para manter memória (nome do cachorro, etc)
+    // mas adicionar APENAS as mensagens novas do buffer para evitar duplicação
+    
+    // Criar prompt com histórico + mensagens novas do buffer
     const currentConversation = [
-        ...conversationHistory,
-        { role: 'user', content: messageWithImageNote } // Usar a mensagem com a nota da imagem
+        ...conversationHistory, // Manter memória da conversa
+        { role: 'user', content: messageWithImageNote } // Adicionar apenas as mensagens novas do buffer
     ];
+    
+    // Log para debug - mostrar que estamos incluindo histórico + buffer atual
+    logger.info(`[gptService.onFlushCallback] Enviando para GPT: ${conversationHistory.length} mensagens do histórico + ${bufferedMessages.length} mensagens novas do buffer`);
+    logger.debug(`[gptService.onFlushCallback] Histórico: ${conversationHistory.length} msgs | Buffer atual: ${bufferedMessages.length} msgs | Total: ${currentConversation.length} msgs`);
 
     try {
         // 3. Chamar getChatGPTResponse
@@ -420,9 +424,17 @@ async function onFlushCallback(chatId, bufferedMessages, userName, clinicaId, co
         if (gptResponse && gptResponse.content) {
             logger.info(`[gptService.onFlushCallback] Enviando resposta final para ${chatId}: "${gptResponse.content.substring(0, 50)}..."`);
             await sendMessageCallback(chatId, gptResponse.content);
-            // Adicionar a resposta da IA ao histórico (para a próxima interação)
-            // Nota: O gerenciamento de conversationHistory deve ser feito fora desta função,
-            // esta função apenas usa o que é passado e o atualiza para chamadas de função.
+            
+            // CRÍTICO: Adicionar a resposta da IA ao histórico para manter memória da conversa
+            // Extrair clinicaId e number do chatId para salvar no sessionStore
+            const [clinicaId, userNumber] = chatId.split(':');
+            if (clinicaId && userNumber) {
+                const sessionStore = require('./sessionStore');
+                await sessionStore.addMessage(clinicaId, userNumber, 'assistant', gptResponse.content);
+                logger.debug(`[gptService.onFlushCallback] Resposta da IA adicionada ao sessionStore para ${chatId}`);
+            } else {
+                logger.warn(`[gptService.onFlushCallback] Não foi possível extrair clinicaId e userNumber do chatId: ${chatId}`);
+            }
         } else {
             logger.warn(`[gptService.onFlushCallback] GPT não retornou conteúdo para ${chatId} após processamento completo. Resposta:`, gptResponse);
             // Enviar mensagem de fallback
