@@ -342,11 +342,17 @@ async function bookAppointment(appointmentData) {
         
         // Se a mensagem contém "sucesso", considera como sucesso mesmo se o status não for 200
         if (response.data && response.data.message && response.data.message.toLowerCase().includes('sucesso')) {
+            // Retornar resultado do agendamento com link correto
+            const consultationLink = isOnline ? "https://mpago.li/2cc49wX" : "https://mpago.li/2Nz1i2h";
+            const successMessage = `Consulta agendada com sucesso! ✅\n\nPara confirmar sua consulta, clique no link de pagamento: ${consultationLink}\n\nVocê pode pagar com cartão de crédito, débito ou PIX. 💳`;
+            
             return {
                 success: true,
-                message: response.data.message,
+                message: successMessage,
                 appointment: response.data.appointment,
                 is_online: isOnline,
+                payment_link: consultationLink,
+                payment_message: successMessage,
                 errors: {}
             };
         }
@@ -428,13 +434,16 @@ async function bookAppointment(appointmentData) {
         }
         
         // Retornar resultado do agendamento
+        const finalConsultationLink = isOnline ? "https://mpago.li/2cc49wX" : "https://mpago.li/2Nz1i2h";
+        const finalSuccessMessage = `Consulta agendada com sucesso! ✅\n\nPara confirmar sua consulta, clique no link de pagamento: ${finalConsultationLink}\n\nVocê pode pagar com cartão de crédito, débito ou PIX. 💳`;
+        
         return {
             success: true,
-            message: response.data.message || "Consulta agendada com sucesso!",
+            message: finalSuccessMessage,
             appointment: response.data.appointment,
             is_online: isOnline,
-            payment_link: paymentLink,
-            payment_message: payment_message,
+            payment_link: finalConsultationLink,
+            payment_message: finalSuccessMessage,
             errors: {}
         };
     } catch (error) {
