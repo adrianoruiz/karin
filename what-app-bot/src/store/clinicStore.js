@@ -31,15 +31,20 @@ function getAllClinicsData() {
  * @returns {string|null} O segment_type da clínica ou 'default' se não encontrado.
  */
 function getSegmentTypeForClinicaId(clinicaId) {
+    logger.log(`[clinicStore] Buscando segment_type para clinicaId: ${clinicaId}`);
+    logger.log(`[clinicStore] Total de clínicas armazenadas: ${clinicsData.length}`);
+    
     const clinic = clinicsData.find(c => String(c.id) === String(clinicaId));
     if (clinic && clinic.segment_types) {
-        // logger.log(`[clinicStore] Segment type para clinicaId ${clinicaId}: ${clinic.segment_types}`);
+        logger.log(`[clinicStore] Segment type para clinicaId ${clinicaId}: ${clinic.segment_types} (nível raiz)`);
         return clinic.segment_types;
     } else if (clinic) {
+        logger.log(`[clinicStore] Clínica ${clinicaId} encontrada:`, JSON.stringify(clinic, null, 2));
         logger.warn(`[clinicStore] ClinicaId ${clinicaId} encontrado, mas não possui segment_types. Retornando 'default'.`);
         return 'default'; // Ou null, dependendo da lógica desejada
     }
     logger.warn(`[clinicStore] ClinicaId ${clinicaId} não encontrado no store. Retornando 'default'.`);
+    logger.log(`[clinicStore] IDs disponíveis: ${clinicsData.map(c => c.id).join(', ')}`);
     return 'default'; // Retorna um tipo padrão se não encontrar
 }
 

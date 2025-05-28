@@ -561,6 +561,27 @@ async function processIncomingMessageWithDebounce(
     pushMessage(chatId, messageObj, boundOnFlush, debounceWaitMs);
 }
 
+/**
+ * Envia link de pagamento automaticamente após agendamento bem-sucedido
+ * @param {string} chatId - ID do chat
+ * @param {boolean} isOnline - Se a consulta é online ou presencial
+ * @param {function} sendMessageCallback - Função para enviar mensagem
+ */
+async function sendPaymentLink(chatId, isOnline, sendMessageCallback) {
+    try {
+        const consultationLink = isOnline ? "https://mpago.li/2cc49wX" : "https://mpago.li/2Nz1i2h";
+        const paymentMessage = `Para confirmar sua consulta, clique no link de pagamento: ${consultationLink}`;
+        
+        logger.info(`[gptService.sendPaymentLink] Enviando link de pagamento para ${chatId}: ${consultationLink}`);
+        await sendMessageCallback(chatId, paymentMessage);
+        
+        return { success: true, link: consultationLink };
+    } catch (error) {
+        logger.error(`[gptService.sendPaymentLink] Erro ao enviar link de pagamento para ${chatId}:`, error);
+        return { success: false, error: error.message };
+    }
+}
+
 // ---- FIM DA LÓGICA DE DEBOUNCE E PROCESSAMENTO ----
 
 module.exports = {
@@ -568,6 +589,7 @@ module.exports = {
     transcribeAudio,
     fetchAiStatusForClinica,
     processIncomingMessageWithDebounce, // Nova função exportada
+    sendPaymentLink, // Adicionando a nova função
     // Exportar implementações das tools, caso o gptRouter precise delas diretamente daqui.
     // Idealmente, gptRouter importaria de './tools' ou de um registro de implementações.
     ...toolImplementations,

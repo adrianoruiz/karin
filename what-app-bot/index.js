@@ -76,6 +76,14 @@ async function loadClinicas() {
         const response = await axios.get(`${config.apiUrl}whatsapp/list-whats-users`);
         const clinicas = response.data.data; 
 
+        // Log para debug dos dados recebidos
+        if (clinicas && Array.isArray(clinicas)) {
+            logger.log(`Dados recebidos da API: ${clinicas.length} clínicas`);
+            clinicas.forEach(clinica => {
+                logger.log(`[clinicStore] Clínica ${clinica.id}: segment_types = ${clinica.segment_types || 'undefined'}`);
+            });
+        }
+
         // Armazenar dados das clínicas no store
         if (clinicas) {
             clinicStore.setClinicsData(clinicas);
