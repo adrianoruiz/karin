@@ -69,9 +69,9 @@ const bookingFunction = {
                 type: "string",
                 description: "ID do slot de horário (opcional, formato: YYYY-MM-DDThhmm)"
             },
-            modality: {
-                type: "string",
-                description: "Modalidade da consulta ('online' ou 'presencial')"
+            is_online: {
+                type: "boolean",
+                description: "Se a consulta será online (true) ou presencial (false)"
             },
             payment_method: {
                 type: "string",
@@ -82,7 +82,7 @@ const bookingFunction = {
                 description: "Observações ou necessidades específicas do paciente"
             }
         },
-        required: ["name", "phone", "date", "time", "modality"]
+        required: ["name", "phone", "date", "time", "is_online"]
     }
 };
 

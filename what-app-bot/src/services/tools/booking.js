@@ -269,21 +269,12 @@ async function bookAppointment(appointmentData) {
         // Converter a data de nascimento do formato brasileiro para o formato americano
         const formattedBirthdate = convertDateFormat(appointmentData.birthdate);
         
-        // Determinar se a consulta é online ou presencial com logs detalhados
+        // Determinar se a consulta é online ou presencial - agora simplificado
         console.log(`[DEBUG] appointmentData.is_online recebido:`, appointmentData.is_online);
         console.log(`[DEBUG] Tipo de appointmentData.is_online:`, typeof appointmentData.is_online);
         
-        let isOnline = false; // Valor padrão
-        
-        // Verificar diferentes formas de definir se é online
-        if (appointmentData.is_online === true || appointmentData.is_online === 'true') {
-            isOnline = true;
-        } else if (appointmentData.is_online === false || appointmentData.is_online === 'false') {
-            isOnline = false;
-        } else if (appointmentData.is_online !== undefined && appointmentData.is_online !== null) {
-            // Se foi definido mas não é boolean, tenta converter
-            isOnline = Boolean(appointmentData.is_online);
-        }
+        // Usar diretamente o valor recebido, com fallback para false (presencial)
+        const isOnline = appointmentData.is_online === true;
         
         console.log(`[DEBUG] isOnline determinado:`, isOnline);
         console.log(`[DEBUG] Link que será usado:`, isOnline ? "https://mpago.li/2cc49wX (ONLINE)" : "https://mpago.li/2Nz1i2h (PRESENCIAL)");
@@ -360,11 +351,22 @@ async function bookAppointment(appointmentData) {
         console.log(`[DEBUG] Fazendo requisição para a API...`);
         const response = await axios.post(apiUrl, apiData, { params });
         
-        // Verificar a resposta da API
-        console.log(`[DEBUG] Resposta da API:`, response.data);
+        // Verificar a resposta da API com logs detalhados
+        console.log(`[DEBUG] ========== RESPOSTA DA API ==========`);
+        console.log(`[DEBUG] Status HTTP:`, response.status);
+        console.log(`[DEBUG] Resposta completa:`, JSON.stringify(response.data, null, 2));
+        console.log(`[DEBUG] response.data.success:`, response.data.success);
+        console.log(`[DEBUG] response.data.message:`, response.data.message);
+        console.log(`[DEBUG] ==========================================`);
         
-        // Se a mensagem contém "sucesso", considera como sucesso mesmo se o status não for 200
-        if (response.data && response.data.message && response.data.message.toLowerCase().includes('sucesso')) {
+        // Verificar se o agendamento foi bem-sucedido
+        // Priorizar response.data.success se existir
+        if (response.data.success === true) {
+            console.log(`[DEBUG] ✅ Agendamento bem-sucedido via response.data.success`);
+            
+            // Enviar mensagem para a Dra. Karin
+            await sendDoctorNotification(appointmentData, appointmentDate, appointmentTime, isOnline, paymentMethod);
+            
             // Retornar resultado do agendamento com link correto
             const consultationLink = isOnline ? "https://mpago.li/2cc49wX" : "https://mpago.li/2Nz1i2h";
             const successMessage = `Consulta agendada com sucesso! ✅\n\nPara confirmar sua consulta, clique no link de pagamento: ${consultationLink}\n\nVocê pode pagar com cartão de crédito, débito ou PIX. 💳`;
@@ -380,94 +382,34 @@ async function bookAppointment(appointmentData) {
             };
         }
         
-        // Verificar se o agendamento foi bem-sucedido
-        if (!response.data.success) {
-            console.log(`[DEBUG] Erro ao agendar consulta:`, JSON.stringify(response.data, null, 2));
+        // Se response.data.success não for true, verificar se a mensagem contém "sucesso"
+        if (response.data && response.data.message && response.data.message.toLowerCase().includes('sucesso')) {
+            console.log(`[DEBUG] ✅ Agendamento bem-sucedido via mensagem de sucesso`);
+            
+            // Enviar mensagem para a Dra. Karin
+            await sendDoctorNotification(appointmentData, appointmentDate, appointmentTime, isOnline, paymentMethod);
+            
+            // Retornar resultado do agendamento com link correto
+            const consultationLink = isOnline ? "https://mpago.li/2cc49wX" : "https://mpago.li/2Nz1i2h";
+            const successMessage = `Consulta agendada com sucesso! ✅\n\nPara confirmar sua consulta, clique no link de pagamento: ${consultationLink}\n\nVocê pode pagar com cartão de crédito, débito ou PIX. 💳`;
+            
             return {
-                success: false,
-                message: response.data.message || "Erro ao agendar consulta.",
-                errors: response.data.errors || {}
+                success: true,
+                message: successMessage,
+                appointment: response.data.appointment,
+                is_online: isOnline,
+                payment_link: consultationLink,
+                payment_message: successMessage,
+                errors: {}
             };
         }
         
-        console.log(`[DEBUG] Agendamento realizado com sucesso:`, JSON.stringify(response.data, null, 2));
-        
-        // Obter informações do plano para retornar o link de pagamento
-        let paymentLink = null;
-        let planName = null;
-        try {
-            const { getPlans } = require('./plans');
-            const plans = await getPlans();
-            const selectedPlan = plans.find(plan => plan.id === planId);
-            if (selectedPlan) {
-                if (selectedPlan.link) {
-                    paymentLink = selectedPlan.link;
-                }
-                planName = selectedPlan.name;
-            }
-        } catch (error) {
-            console.error(`[ERROR] Erro ao buscar informações do plano:`, error);
-        }
-
-        // Montar mensagem de pagamento
-        let payment_message = '';
-        if (paymentLink) {
-            payment_message = `Para confirmar sua consulta, por favor realize o pagamento através deste link: ${paymentLink}`;
-        }
-
-        // Enviar mensagem para a Dra. Karin
-        try {
-            // Importar o serviço de WhatsApp
-            const { sendWhatsAppMessage } = require('../whatsappService');
-            
-            // Obter o cliente WhatsApp
-            const whatsappClient = require('../../whatsapp/client').getClient();
-            
-            // Formatar a data e hora para exibição
-            const appointmentDateObj = new Date(appointmentDate);
-            const formattedDate = appointmentDateObj.toLocaleDateString('pt-BR');
-            const dayOfWeek = new Intl.DateTimeFormat('pt-BR', { weekday: 'long' }).format(appointmentDateObj);
-            const capitalizedDayOfWeek = dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1);
-            
-            // Determinar o tipo de consulta e link correto
-            const consultationType = isOnline ? "online" : "presencial";
-            const consultationLink = isOnline ? "https://mpago.li/2cc49wX" : "https://mpago.li/2Nz1i2h";
-            
-            // Criar a mensagem para a Dra. Karin
-            const doctorMessage = `Nova consulta agendada! ✅\n\n` +
-                `📋 *Detalhes da consulta*:\n` +
-                `👤 Paciente: ${appointmentData.name}\n` +
-                `📱 Telefone: ${appointmentData.phone}\n` +
-                `📅 Data: ${formattedDate} (${capitalizedDayOfWeek})\n` +
-                `⏰ Horário: ${appointmentTime}\n` +
-                `🏥 Modalidade: ${consultationType}\n` +
-                `💰 Método de pagamento: ${paymentMethod}\n` +
-                `💳 Link de pagamento: ${consultationLink}\n\n` +
-                `✏️ Observações: ${appointmentData.observations || 'Primeira consulta.'}`;
-            
-            // Enviar a mensagem para a Dra. Karin
-            if (whatsappClient) {
-                await sendWhatsAppMessage(whatsappClient, "554796947825", doctorMessage, 2);
-                console.log(`[DEBUG] Mensagem de confirmação enviada para a Dra. Karin`);
-            } else {
-                console.error(`[ERROR] Cliente WhatsApp não disponível para enviar mensagem para a Dra. Karin`);
-            }
-        } catch (error) {
-            console.error(`[ERROR] Erro ao enviar mensagem para a Dra. Karin:`, error);
-        }
-        
-        // Retornar resultado do agendamento
-        const finalConsultationLink = isOnline ? "https://mpago.li/2cc49wX" : "https://mpago.li/2Nz1i2h";
-        const finalSuccessMessage = `Consulta agendada com sucesso! ✅\n\nPara confirmar sua consulta, clique no link de pagamento: ${finalConsultationLink}\n\nVocê pode pagar com cartão de crédito, débito ou PIX. 💳`;
-        
+        // Se chegou até aqui, houve erro no agendamento
+        console.log(`[DEBUG] ❌ Erro ao agendar consulta - nenhuma condição de sucesso atendida`);
         return {
-            success: true,
-            message: finalSuccessMessage,
-            appointment: response.data.appointment,
-            is_online: isOnline,
-            payment_link: finalConsultationLink,
-            payment_message: finalSuccessMessage,
-            errors: {}
+            success: false,
+            message: response.data.message || "Erro ao agendar consulta.",
+            errors: response.data.errors || {}
         };
     } catch (error) {
         console.error(`[ERROR] Erro ao agendar consulta:`, error);
@@ -486,6 +428,56 @@ async function bookAppointment(appointmentData) {
             success: false,
             message: error.message || "Erro desconhecido ao agendar consulta."
         };
+    }
+}
+
+/**
+ * Envia notificação para a Dra. Karin sobre novo agendamento
+ * @param {Object} appointmentData - Dados do agendamento
+ * @param {string} appointmentDate - Data da consulta
+ * @param {string} appointmentTime - Hora da consulta
+ * @param {boolean} isOnline - Se é consulta online
+ * @param {string} paymentMethod - Método de pagamento
+ */
+async function sendDoctorNotification(appointmentData, appointmentDate, appointmentTime, isOnline, paymentMethod) {
+    try {
+        // Importar o serviço de WhatsApp
+        const { sendWhatsAppMessage } = require('../whatsappService');
+        
+        // Obter o cliente WhatsApp
+        const whatsappClient = require('../../whatsapp/client').getClient();
+        
+        // Formatar a data e hora para exibição
+        const appointmentDateObj = new Date(appointmentDate);
+        const formattedDate = appointmentDateObj.toLocaleDateString('pt-BR');
+        const dayOfWeek = new Intl.DateTimeFormat('pt-BR', { weekday: 'long' }).format(appointmentDateObj);
+        const capitalizedDayOfWeek = dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1);
+        
+        // Determinar o tipo de consulta e link correto
+        const consultationType = isOnline ? "online" : "presencial";
+        const consultationLink = isOnline ? "https://mpago.li/2cc49wX" : "https://mpago.li/2Nz1i2h";
+        
+        // Criar a mensagem para a Dra. Karin
+        const doctorMessage = `Nova consulta agendada! ✅\n\n` +
+            `📋 *Detalhes da consulta*:\n` +
+            `👤 Paciente: ${appointmentData.name}\n` +
+            `📱 Telefone: ${appointmentData.phone}\n` +
+            `📅 Data: ${formattedDate} (${capitalizedDayOfWeek})\n` +
+            `⏰ Horário: ${appointmentTime}\n` +
+            `🏥 Modalidade: ${consultationType}\n` +
+            `💰 Método de pagamento: ${paymentMethod}\n` +
+            `💳 Link de pagamento: ${consultationLink}\n\n` +
+            `✏️ Observações: ${appointmentData.observations || 'Primeira consulta.'}`;
+        
+        // Enviar a mensagem para a Dra. Karin
+        if (whatsappClient) {
+            await sendWhatsAppMessage(whatsappClient, "554796947825", doctorMessage, 2);
+            console.log(`[DEBUG] Mensagem de confirmação enviada para a Dra. Karin`);
+        } else {
+            console.error(`[ERROR] Cliente WhatsApp não disponível para enviar mensagem para a Dra. Karin`);
+        }
+    } catch (error) {
+        console.error(`[ERROR] Erro ao enviar mensagem para a Dra. Karin:`, error);
     }
 }
 

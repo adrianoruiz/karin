@@ -128,7 +128,7 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                             patient_phone: parsedArgs.phone,
                             appointment_date: parsedArgs.date,
                             appointment_time: parsedArgs.time,
-                            is_online: parsedArgs.modality && parsedArgs.modality.toLowerCase().includes('online'),
+                            is_online: parsedArgs.is_online === true,
                             payment_method: parsedArgs.payment_method || 'Não informado',
                             observations: parsedArgs.observations || 'Primeira consulta'
                         };
