@@ -1,20 +1,17 @@
 const caches = require('../cache/cacheFactory');
-const { createMessageTypeService } = require('./messageTypeService'); // Agora importamos o serviço de tipos de mensagem
 
 /**
  * Creates a service to handle greeting-related functionality.
  * 
  * @param {object} dependencies - Dependencies.
  * @param {object} dependencies.logger - Logger instance.
- * @param {object} [dependencies.getMessageType] - Function to get message type (deprecated, use messageTypeService).
  * @param {object} [dependencies.waClient] - WhatsApp client wrapper (optional for some operations).
  * @param {function} [dependencies.createCacheKey] - Function to create cache keys.
  * @returns {object} Greeting service instance.
  */
-function createGreetingService({ logger, getMessageType, waClient, createCacheKey }) {
+function createGreetingService({ logger, waClient, createCacheKey }) {
     // Use the greeting cache from cacheFactory
     const { greeting: greetingCache } = caches;
-    const messageTypeService = !getMessageType ? createMessageTypeService({ logger, waClient }) : null;
     
     /**
      * Creates a cache key for greeting status.
@@ -70,46 +67,11 @@ function createGreetingService({ logger, getMessageType, waClient, createCacheKe
                 return 'ALREADY_SENT';
             }
             
-            // Get message type
-            const nome = contact.name || contact.pushname || "Cliente";
-            const avatar = null; // We could fetch this if needed
+            // Como o GPT agora responde diretamente, não precisamos mais enviar saudações automáticas
+            // Esta função é mantida apenas para compatibilidade e controle de estado
+            logger.log('Greeting service is deprecated - GPT handles greetings directly now');
+            return 'DEPRECATED';
             
-            let greetingMessage;
-            if (messageTypeService) {
-                // Use the new messageTypeService
-                greetingMessage = await messageTypeService.getMessage('greeting', nome, avatar, number, clinicaId);
-            } else if (getMessageType) {
-                // Fallback to deprecated function if provided
-                greetingMessage = await getMessageType('greeting', nome, avatar, number, clinicaId);
-            } else {
-                // No way to get greeting message
-                logger.error('No method available to get greeting message');
-                return 'FAILED';
-            }
-            
-            if (greetingMessage && greetingMessage !== 'Mensagem personalizada obtida com sucesso') {
-                // Send greeting message
-                if (waClient) {
-                    // Marcar como enviado ANTES para evitar mensagens duplicadas
-                    markGreetingAsSent(clinicaId, number);
-                    logger.log(`Greeting marked as sent for ${number} (${clinicaId})`);
-                    
-                    // Enviar mensagem única
-                    await waClient.sendMessage(number, greetingMessage, clinicaId);
-                    logger.log(`Greeting sent to ${number}`);
-                } else {
-                    // Fallback for when waClient not provided
-                    await message.reply(greetingMessage);
-                    
-                    // Mark as sent
-                    markGreetingAsSent(clinicaId, number);
-                    logger.log(`Greeting sent to ${number} (via message.reply)`);
-                }
-                return 'SENT';
-            } else {
-                logger.log('No greeting message returned from API');
-                return 'NO_MESSAGE';
-            }
         } catch (error) {
             logger.error('Error in checkAndSendGreetingIfNeeded:', error);
             return 'FAILED';

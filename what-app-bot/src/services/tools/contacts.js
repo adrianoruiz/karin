@@ -3,6 +3,7 @@
  */
 const { sendVCardMessage } = require('../whatsappService');
 const { clientManager } = require('../qr/qrcode'); // Para acessar o cliente do WhatsApp
+const { UNWANTED_PATIENT_NAME_WORDS } = require('../../constants/patient'); // Para limpeza de nomes
 
 /**
  * Compartilha o contato da Manicure
@@ -166,20 +167,36 @@ async function getUserName({ clinicaId, chatId }) {
             
             if (contact) {
                 // Obter o nome do contato (prioridade: name > pushname > "Cliente")
-                const realName = contact.name || contact.pushname || "Cliente";
+                const rawName = contact.name || contact.pushname || "Cliente";
                 
-                console.log(`✅ [getUserName] Nome encontrado: "${realName}" para ${phoneNumber}`);
+                console.log(`✅ [getUserName] Nome bruto encontrado: "${rawName}" para ${phoneNumber}`);
                 console.log(`🔍 [getUserName] Detalhes do contato:`, {
                     name: contact.name,
                     pushname: contact.pushname,
                     number: contact.number
                 });
                 
+                // Aplicar a mesma lógica de limpeza de nomes usada no sistema
+                let nomeLimpo = rawName ? rawName.replace(/[\u{1F600}-\u{1F6FF}]/gu, '') : 'Cliente'; // Remove emojis
+                
+                if (nomeLimpo !== 'Cliente') {
+                    let regexUnwanted = new RegExp(`^(${UNWANTED_PATIENT_NAME_WORDS.join('|')})\s+`, 'i');
+                    while (regexUnwanted.test(nomeLimpo)) {
+                        nomeLimpo = nomeLimpo.replace(regexUnwanted, '');
+                    }
+                    nomeLimpo = nomeLimpo.trim();
+                    if (nomeLimpo.includes(' ') && !nomeLimpo.match(/^[A-Za-z]\.$/)) {
+                        nomeLimpo = nomeLimpo.split(' ')[0];
+                    }
+                }
+                
+                console.log(`🧹 [getUserName] Nome após limpeza: "${nomeLimpo}" (original: "${rawName}")`);
+                
                 return {
                     success: true,
                     message: "Nome obtido com sucesso do WhatsApp",
-                    userName: realName,
-                    instruction: `Use o nome "${realName}" para personalizar as respostas. Se for "Cliente", use 'querida' ou 'querido' de forma carinhosa.`
+                    userName: nomeLimpo,
+                    instruction: `Use o nome "${nomeLimpo}" para personalizar as respostas. Se for "Cliente", use 'querida' ou 'querido' de forma carinhosa.`
                 };
             } else {
                 console.log(`⚠️ [getUserName] Contato não encontrado para ${formattedNumber}`);

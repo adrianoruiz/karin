@@ -75,7 +75,7 @@ npm start
     - `whatsappService.js`: Funções para enviar mensagens, vCards, etc., via WhatsApp.
     - `tools/`: Implementações concretas das funções que o GPT pode chamar (ex: `booking.js`, `availability.js`).
     - `qr/`: Gerenciamento da geração de QR Code e inicialização de clientes WhatsApp.
-    - `greetingService.js`, `messageTypeService.js`, etc.: Serviços específicos.
+    - `greetingService.js`, etc.: Serviços específicos.
   - `store/`:
     - `clinicStore.js`: Armazena em memória os dados das clínicas (incluindo `id` e `segment_types`) carregados da API na inicialização. Usado para adaptar o comportamento do bot.
     - `sessionStore.js`: Gerencia o estado da conversa e o histórico com o Redis (se configurado).

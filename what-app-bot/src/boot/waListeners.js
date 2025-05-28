@@ -15,9 +15,7 @@ const { createAudioHandler } = require('../handlers/audioHandler');
 // Importar a função para buscar o status da IA via API
 const { fetchAiStatusForClinica, processIncomingMessageWithDebounce } = require('../services/gpt'); // Adicionado processIncomingMessageWithDebounce
 
-// Need getMessageType from whatsappService temporarily
-// Ideally, these should be moved to more appropriate modules later.
-// For now, we'll require the (now very small) whatsappService file.
+// WhatsApp service for utility functions
 const whatsAppService = require('../services/whatsappService');
 
 const logger = new Logger(process.env.NODE_ENV !== 'production');
@@ -43,7 +41,6 @@ async function bootstrapListeners(client, clinicaId) {
     // Pass createCacheKey from its new location
     const greetingService = createGreetingService({ 
         logger, 
-        getMessageType: whatsAppService.getMessageType, // Still from temp import
         waClient, 
         createCacheKey // Pass the imported function
     });

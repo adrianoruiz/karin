@@ -114,8 +114,6 @@ app.use('/', routes);
 // TODO: Improve this - maybe expose reset functions via an API endpoint or a dedicated script?
 const tempGreetingService = createGreetingService({ 
     logger,
-    // Não precisamos passar getMessageType ou waClient para usar apenas resetAllGreetings
-    // Mas precisamos garantir que o createMessageTypeService funcione sem erro
     waClient: { markMessageAsSentByBot: () => {} } // Mock do waClient
 });
 
