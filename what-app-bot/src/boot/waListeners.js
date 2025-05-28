@@ -18,8 +18,8 @@ const { fetchAiStatusForClinica, processIncomingMessageWithDebounce } = require(
 // WhatsApp service for utility functions
 const whatsAppService = require('../services/whatsappService');
 
-// Importar o chatStatusService para marcar como não lida
-const { markChatAsUnreadBackground } = require('../services/chatStatusService');
+// Importar o MessageInterceptor para marcar como não lida
+const MessageInterceptor = require('../middleware/messageInterceptor');
 
 const logger = new Logger(process.env.NODE_ENV !== 'production');
 
@@ -213,9 +213,7 @@ async function bootstrapListeners(client, clinicaId) {
                 logger.log(`Response sent to ${number}`);
                 
                 // **NOVO**: Marcar como não lida
-                markChatAsUnreadBackground(client, number, null, (err) => {
-                    logger.warn(`Falha ao marcar chat como não lida para ${number}:`, err);
-                });
+                await MessageInterceptor.markUnreadAfterSend(client, number);
             } catch (error) {
                  logger.error('Error processing message with gptRouter:', error);
                  try {

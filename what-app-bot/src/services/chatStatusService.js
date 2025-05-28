@@ -5,10 +5,34 @@ const config = require('../../config');
 const logger = new Logger(process.env.NODE_ENV !== 'production');
 
 /**
- * Marca uma conversa como não lida no WhatsApp
+ * Verificar se cliente está pronto para uso
+ * @param {object} client - Cliente WhatsApp
+ * @returns {boolean} True se cliente está pronto
+ */
+function isClientReady(client) {
+    if (!client) {
+        logger.warn('Cliente WhatsApp é null/undefined');
+        return false;
+    }
+
+    if (!client.info) {
+        logger.warn('Cliente WhatsApp sem informações de conexão');
+        return false;
+    }
+
+    if (!client.info.wid) {
+        logger.warn('Cliente WhatsApp sem WID (não autenticado)');
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Marca uma conversa como não lida no WhatsApp com verificações básicas
  * @param {object} client - Cliente whatsapp-web.js
  * @param {string} phoneNumber - Número do usuário
- * @param {number} delayMs - Delay antes de marcar (padrão: 4000ms)
+ * @param {number} delayMs - Delay antes de marcar (padrão: config)
  * @returns {Promise<boolean>} Sucesso da operação
  */
 async function markChatAsUnread(client, phoneNumber, delayMs = null) {
@@ -16,6 +40,12 @@ async function markChatAsUnread(client, phoneNumber, delayMs = null) {
         // Verificar se a funcionalidade está habilitada
         if (config.enableMarkUnread === false) {
             logger.log(`Marcação como não lida desabilitada via configuração para ${phoneNumber}`);
+            return false;
+        }
+
+        // Verificar estado do cliente
+        if (!isClientReady(client)) {
+            logger.warn(`Cliente WhatsApp não está pronto para marcar ${phoneNumber} como não lido`);
             return false;
         }
 
@@ -27,13 +57,13 @@ async function markChatAsUnread(client, phoneNumber, delayMs = null) {
         // Aguarda para garantir que a mensagem foi processada
         await new Promise(resolve => setTimeout(resolve, finalDelay));
         
-        // Verificar se o cliente ainda está ativo e autenticado
-        if (!client || !client.info || !client.info.wid) {
-            logger.warn(`Cliente WhatsApp não está disponível para marcar ${phoneNumber} como não lido`);
+        // Verificar novamente o cliente após o delay (pode ter desconectado)
+        if (!isClientReady(client)) {
+            logger.warn(`Cliente WhatsApp desconectou durante delay para ${phoneNumber}`);
             return false;
         }
         
-        // Formatar número para chatId
+        // Formatar número usando utilitário existente
         const formattedNumber = formatPhoneNumber(phoneNumber);
         
         logger.log(`Tentando obter chat para ${formattedNumber}`);
@@ -54,7 +84,7 @@ async function markChatAsUnread(client, phoneNumber, delayMs = null) {
 }
 
 /**
- * Marca uma conversa como não lida com retry em caso de falha
+ * Marca uma conversa como não lida com retry básico
  * @param {object} client - Cliente whatsapp-web.js
  * @param {string} phoneNumber - Número do usuário
  * @param {number} delayMs - Delay antes de marcar (padrão: config)
@@ -66,6 +96,7 @@ async function markChatAsUnreadWithRetry(client, phoneNumber, delayMs = null, ma
         try {
             const success = await markChatAsUnread(client, phoneNumber, delayMs);
             if (success) {
+                logger.info(`Chat marcado como não lido na tentativa ${attempt} para ${phoneNumber}`);
                 return true;
             }
             
@@ -111,5 +142,6 @@ function markChatAsUnreadBackground(client, phoneNumber, delayMs = null, errorCa
 module.exports = {
     markChatAsUnread,
     markChatAsUnreadWithRetry,
-    markChatAsUnreadBackground
+    markChatAsUnreadBackground,
+    isClientReady
 }; 

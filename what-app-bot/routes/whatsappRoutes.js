@@ -3,8 +3,8 @@ const express = require('express');
 const router = express.Router();
 const { sendWhatsAppMessage, resetManualResponseState, resetGreetingState } = require('../src/services/whatsappService');
 const { clientManager } = require('../src/services/qr/qrcode');
-// Importar o chatStatusService para marcar como não lida
-const { markChatAsUnreadBackground } = require('../src/services/chatStatusService');
+// Importar o MessageInterceptor para marcar como não lida
+const MessageInterceptor = require('../src/middleware/messageInterceptor');
 
 router.post('/send-message', async (req, res) => {
     console.log('Corpo da Requisição:', req.body);
@@ -35,9 +35,7 @@ router.post('/send-message', async (req, res) => {
         
         // **NOVO**: Marcar como não lida após envio bem-sucedido
         if (result.status === 'success') {
-            markChatAsUnreadBackground(client, number, null, (err) => {
-                console.warn('Falha ao marcar chat como não lida:', err);
-            });
+            await MessageInterceptor.markUnreadAfterSend(client, number);
         }
         
         res.status(200).send(result);

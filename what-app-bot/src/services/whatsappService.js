@@ -7,8 +7,8 @@ const { formatPhoneNumber } = require('../utils/formattedNumber');
 const { Logger } = require('../utils/index');
 const { markMessageAsSentByBot, isMessageSentByBot } = require('../clients/waClient');
 const { clientManager } = require('./qr/qrcode'); // Correção: importando de qrcode.js
-// Importar o chatStatusService para marcar como não lida
-const { markChatAsUnreadBackground } = require('./chatStatusService');
+// Importar o MessageInterceptor para marcar como não lida
+const MessageInterceptor = require('../middleware/messageInterceptor');
 
 const logger = new Logger(process.env.NODE_ENV !== 'production');
 
@@ -158,9 +158,7 @@ END:VCARD`;
         markMessageAsSentByBot(clinicaId, confirmMsg);
         
         // **NOVO**: Marcar como não lida após envio bem-sucedido do vCard
-        markChatAsUnreadBackground(client, recipientNumber, null, (err) => {
-            logger.warn('Falha ao marcar chat como não lida após vCard:', err);
-        });
+        await MessageInterceptor.markUnreadAfterSend(client, recipientNumber);
         
         return {
             status: 'success',

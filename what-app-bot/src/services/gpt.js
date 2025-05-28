@@ -22,8 +22,8 @@ const { processImage } = require('./ai/imageProcessor');
 // Importar implementações das tools (para exportação, se necessário pelo gptRouter)
 const toolImplementations = require('./tools');
 
-// Importar o chatStatusService para marcar como não lida
-const { markChatAsUnreadBackground } = require('./chatStatusService');
+// Importar o MessageInterceptor para marcar como não lida
+const MessageInterceptor = require('../middleware/messageInterceptor');
 
 // Placeholder: Função para obter o segment_type da clínica.
 // No futuro, isso deve vir de uma API, banco de dados ou cache.
@@ -429,18 +429,7 @@ async function onFlushCallback(chatId, bufferedMessages, userName, clinicaId, co
             await sendMessageCallback(chatId, gptResponse.content);
             
             // **NOVO**: Marcar como não lida
-            const [clinicaIdExtracted, userNumber] = chatId.split(':');
-            if (clinicaIdExtracted && userNumber) {
-                const { clientManager } = require('./qr/qrcode');
-                const client = clientManager.getClient(clinicaIdExtracted);
-                
-                if (client) {
-                    // Executar em background
-                    markChatAsUnreadBackground(client, userNumber, null, (err) => {
-                        logger.warn(`Falha ao marcar chat como não lido para ${chatId}:`, err);
-                    });
-                }
-            }
+            await MessageInterceptor.afterMessageSent(chatId, true);
             
             // CRÍTICO: Adicionar a resposta da IA ao histórico para manter memória da conversa
             // Extrair clinicaId e number do chatId para salvar no sessionStore
