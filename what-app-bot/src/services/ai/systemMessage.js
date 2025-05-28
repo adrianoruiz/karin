@@ -42,6 +42,9 @@ Você está falando com ${nome}.
  */
 async function getSystemMessage(nome, clinicaId = null) {
     try {
+        // Log para verificar se o nome está chegando corretamente
+        console.log(`🔍 [SystemMessage] Nome recebido: "${nome}" | Clínica ID: ${clinicaId}`);
+        
         // Usar ID da clínica do ambiente ou o passado como parâmetro, ou 1 como padrão
         const userId = clinicaId || process.env.CLINICA_ID || 1;
         console.log(`Obtendo system prompt para clínica ID: ${userId}`);
@@ -55,16 +58,30 @@ async function getSystemMessage(nome, clinicaId = null) {
 
         if (response && response.success && response.system_prompt) {
             console.log(`System prompt obtido com sucesso para clínica ${userId}`);
+            
+            // Log para verificar se o prompt contém instruções sobre personalização
+            const hasPersonalizationInstructions = response.system_prompt.includes('PERSONALIZAÇÃO') || 
+                                                  response.system_prompt.includes('[NOME]') ||
+                                                  response.system_prompt.includes('nome da pessoa');
+            console.log(`🔍 [SystemMessage] Prompt contém instruções de personalização: ${hasPersonalizationInstructions}`);
+            
+            // Log para verificar se o nome será substituído no prompt
+            if (response.system_prompt.includes('[NOME]')) {
+                console.log(`🔍 [SystemMessage] Prompt contém placeholder [NOME] - será substituído por: "${nome}"`);
+            }
+            
             return {
                 role: "system",
                 content: response.system_prompt
             };
         } else {
             console.error("Erro ao obter system_prompt da API:", response ? response.message : "Resposta inválida");
+            console.log(`🔍 [SystemMessage] Usando fallback com nome: "${nome}"`);
             return getFallbackSystemMessage(nome);
         }
     } catch (error) {
         console.error("Erro na chamada da API para getSystemMessage:", error.message);
+        console.log(`🔍 [SystemMessage] Usando fallback com nome: "${nome}"`);
         return getFallbackSystemMessage(nome);
     }
 }

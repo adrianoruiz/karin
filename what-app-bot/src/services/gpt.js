@@ -94,8 +94,23 @@ async function fetchAiStatusForClinica(clinicaId) {
 async function getChatGPTResponse(messages, nome, clinicaId = null) {
     const apiKey = process.env.OPENAI_API_KEY;
     
+    // Log para verificar se o nome está chegando corretamente
+    console.log(`🔍 [GPT] getChatGPTResponse chamado com nome: "${nome}" | Clínica ID: ${clinicaId}`);
+    
     // Adicionar mensagem de sistema com as instruções - agora é assíncrono
     const systemMessage = await getSystemMessage(nome, clinicaId);
+    
+    // Log para verificar se o system message contém o nome
+    if (systemMessage && systemMessage.content) {
+        const containsNome = systemMessage.content.includes(nome) || systemMessage.content.includes('[NOME]');
+        console.log(`🔍 [GPT] System message contém o nome "${nome}": ${containsNome}`);
+        
+        // Se contém [NOME], mostrar um trecho do prompt
+        if (systemMessage.content.includes('[NOME]')) {
+            const snippet = systemMessage.content.substring(0, 200) + '...';
+            console.log(`🔍 [GPT] Trecho do system message: ${snippet}`);
+        }
+    }
     
     // Garantir que temos mensagens válidas
     if (!Array.isArray(messages)) {

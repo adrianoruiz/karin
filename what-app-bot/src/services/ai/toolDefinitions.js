@@ -158,7 +158,7 @@ const finishAppointmentFunction = {
 
 const shareManicureContactFunction = {
     name: "shareManicureContact",
-    description: "Compartilha o contato da Manicure quando solicitado. Aplicável a salões de beleza.",
+    description: "APENAS para serviços de MANICURE, PEDICURE, UNHAS, ESMALTAÇÃO, ALONGAMENTO ou quando cliente mencionar 'Larissa'. NÃO usar para cabelo, corte, penteado, mechas, coloração ou outros serviços.",
     parameters: {
         type: "object",
         properties: {},
@@ -168,7 +168,7 @@ const shareManicureContactFunction = {
 
 const shareSobrancelhasContactFunction = {
     name: "shareSobrancelhasContact",
-    description: "Compartilha o contato de Sobrancelhas quando solicitado. Aplicável a salões de beleza.",
+    description: "APENAS para serviços de SOBRANCELHAS, LASH LIFTING, BROW LAMINATION, DERMAPLANING ou quando cliente mencionar 'Duda'. NÃO usar para cabelo, corte, penteado, mechas, coloração ou outros serviços.",
     parameters: {
         type: "object",
         properties: {},
@@ -178,7 +178,17 @@ const shareSobrancelhasContactFunction = {
 
 const shareDepilacaoContactFunction = {
     name: "shareDepilacaoContact",
-    description: "Compartilha o contato de Depilação quando solicitado. Aplicável a salões de beleza.",
+    description: "APENAS para serviços de DEPILAÇÃO, LIMPEZA DE PELE, MICROAGULHAMENTO ou quando cliente mencionar 'Alice'. NÃO usar para cabelo, corte, penteado, mechas, coloração ou outros serviços.",
+    parameters: {
+        type: "object",
+        properties: {},
+        required: []
+    }
+};
+
+const getUserNameFunction = {
+    name: "getUserName",
+    description: "Obtém o nome do usuário atual para personalizar as respostas. Use sempre no início da conversa para saber como se dirigir à pessoa.",
     parameters: {
         type: "object",
         properties: {},
@@ -198,4 +208,5 @@ module.exports = {
     shareManicureContactFunction,
     shareSobrancelhasContactFunction,
     shareDepilacaoContactFunction,
+    getUserNameFunction
 }; 

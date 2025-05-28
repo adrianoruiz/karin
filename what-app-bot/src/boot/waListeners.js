@@ -98,6 +98,13 @@ async function bootstrapListeners(client, clinicaId) {
             const messageBody = message.body; 
             const messageBodyNormalized = normalizeText(messageBody.trim());
 
+            // Log detalhado sobre o contato
+            console.log(`🔍 [WA] Informações do contato:`);
+            console.log(`  - contact.name: "${contact.name}"`);
+            console.log(`  - contact.pushname: "${contact.pushname}"`);
+            console.log(`  - nome final: "${nome}"`);
+            console.log(`  - number: ${number}`);
+
             logger.log(`Processing individual message from: ${nome} (${number})`);
 
             // --- Processing Pipeline --- 

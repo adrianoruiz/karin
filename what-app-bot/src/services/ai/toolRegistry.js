@@ -8,6 +8,7 @@ const {
     shareManicureContactFunction,
     shareSobrancelhasContactFunction,
     shareDepilacaoContactFunction,
+    getUserNameFunction
 } = require('./toolDefinitions');
 
 // Mapeamento de tools por tipo de segmento
@@ -28,6 +29,7 @@ const segmentToolsConfig = {
         shareManicureContactFunction,
         shareSobrancelhasContactFunction,
         shareDepilacaoContactFunction,
+        getUserNameFunction,
         // Adicionar aqui uma "listServicesFunction" específica para salão, por exemplo
     ],
     'clinica-odonto': [
