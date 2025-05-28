@@ -20,6 +20,7 @@ const segmentToolsConfig = {
         bookingFunction,
         updateBookingFunction,
         finishAppointmentFunction,
+        getUserNameFunction,
     ],
     'salao-beleza': [
         // Idealmente, salões de beleza também podem ter agendamento, mas simplificando por agora
@@ -39,10 +40,12 @@ const segmentToolsConfig = {
         bookingFunction,
         updateBookingFunction,
         finishAppointmentFunction,
+        getUserNameFunction,
         // Adicionar tools específicas para odonto, se houver
     ],
     'default': [ // Ferramentas padrão se o segmento não for reconhecido
         paymentMethodsFunction,
+        getUserNameFunction,
         // Poderíamos adicionar aqui uma tool genérica de "GeneralInquiry" ou "TransferToHuman"
     ]
 };

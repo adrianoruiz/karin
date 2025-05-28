@@ -217,8 +217,15 @@ async function determinePaymentMethodId(paymentMethod = null) {
  */
 async function bookAppointment(appointmentData) {
     try {
-        console.log(`[DEBUG] Iniciando agendamento de consulta`);
-        console.log(`[DEBUG] Dados recebidos:`, JSON.stringify(appointmentData, null, 2));
+        console.log(`[DEBUG] ========== INÍCIO BOOKING APPOINTMENT ==========`);
+        console.log(`[DEBUG] Dados COMPLETOS recebidos:`, JSON.stringify(appointmentData, null, 2));
+        console.log(`[DEBUG] appointmentData.is_online ORIGINAL:`, appointmentData.is_online);
+        console.log(`[DEBUG] Tipo de appointmentData.is_online:`, typeof appointmentData.is_online);
+        console.log(`[DEBUG] appointmentData.is_online === true:`, appointmentData.is_online === true);
+        console.log(`[DEBUG] appointmentData.is_online === false:`, appointmentData.is_online === false);
+        console.log(`[DEBUG] appointmentData.is_online === 'true':`, appointmentData.is_online === 'true');
+        console.log(`[DEBUG] appointmentData.is_online === 'false':`, appointmentData.is_online === 'false');
+        console.log(`[DEBUG] ================================================`);
         
         // Verificar se todos os campos obrigatórios estão presentes
         const requiredFields = ["name", "cpf", "phone", "birthdate", "date", "time"];
@@ -262,8 +269,24 @@ async function bookAppointment(appointmentData) {
         // Converter a data de nascimento do formato brasileiro para o formato americano
         const formattedBirthdate = convertDateFormat(appointmentData.birthdate);
         
-        // Determinar se a consulta é online ou presencial
-        const isOnline = appointmentData.is_online !== undefined ? appointmentData.is_online : false;
+        // Determinar se a consulta é online ou presencial com logs detalhados
+        console.log(`[DEBUG] appointmentData.is_online recebido:`, appointmentData.is_online);
+        console.log(`[DEBUG] Tipo de appointmentData.is_online:`, typeof appointmentData.is_online);
+        
+        let isOnline = false; // Valor padrão
+        
+        // Verificar diferentes formas de definir se é online
+        if (appointmentData.is_online === true || appointmentData.is_online === 'true') {
+            isOnline = true;
+        } else if (appointmentData.is_online === false || appointmentData.is_online === 'false') {
+            isOnline = false;
+        } else if (appointmentData.is_online !== undefined && appointmentData.is_online !== null) {
+            // Se foi definido mas não é boolean, tenta converter
+            isOnline = Boolean(appointmentData.is_online);
+        }
+        
+        console.log(`[DEBUG] isOnline determinado:`, isOnline);
+        console.log(`[DEBUG] Link que será usado:`, isOnline ? "https://mpago.li/2cc49wX (ONLINE)" : "https://mpago.li/2Nz1i2h (PRESENCIAL)");
         
         // Determinar o ID do plano com base na modalidade
         const planId = await determinePlanId(isOnline, appointmentData.plan_id);
