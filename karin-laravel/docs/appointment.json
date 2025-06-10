@@ -1,0 +1,103 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Appointment API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Coleção de endpoints da API de agendamento."
+  },
+  "item": [
+    {
+      "name": "Listar Agendamentos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseurl}}/api/appointments",
+          "host": ["{{baseurl}}"],
+          "path": ["api", "appointments"]
+        }
+      }
+    },
+    {
+      "name": "Criar Agendamento",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"doctor_id\": 1,\n  \"appointment_datetime\": \"2025-06-10 14:00:00\",\n  \"status\": \"agendada\",\n  \"observations\": \"Consulta de rotina\",\n  \"is_online\": false,\n  \"plan_id\": null,\n  \"payment_method_id\": null,\n  \"user_id\": null,\n  \"cpf\": \"12345678900\",\n  \"phone\": \"11999999999\",\n  \"name\": \"Paciente Teste\",\n  \"email\": \"paciente@teste.com\",\n  \"birthday\": \"1990-01-01\"\n}"
+        },
+        "url": {
+          "raw": "{{baseurl}}/api/appointments",
+          "host": ["{{baseurl}}"],
+          "path": ["api", "appointments"]
+        }
+      }
+    },
+    {
+      "name": "Visualizar Agendamento",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseurl}}/api/appointments/:id",
+          "host": ["{{baseurl}}"],
+          "path": ["api", "appointments", ":id"]
+        }
+      }
+    },
+    {
+      "name": "Atualizar Agendamento",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"remarcada\",\n  \"appointment_datetime\": \"2025-06-15 10:00:00\"\n}"
+        },
+        "url": {
+          "raw": "{{baseurl}}/api/appointments/:id",
+          "host": ["{{baseurl}}"],
+          "path": ["api", "appointments", ":id"]
+        }
+      }
+    },
+    {
+      "name": "Excluir Agendamento",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseurl}}/api/appointments/:id",
+          "host": ["{{baseurl}}"],
+          "path": ["api", "appointments", ":id"]
+        }
+      }
+    },
+    {
+      "name": "Minhas Consultas (Paciente)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseurl}}/api/patient/my-appointments?cpf={{cpf}}",
+          "host": ["{{baseurl}}"],
+          "path": ["api", "patient", "my-appointments"],
+          "query": [
+            { "key": "cpf", "value": "{{cpf}}", "description": "CPF do paciente sem pontuação" },
+            { "key": "phone", "value": "", "disabled": true, "description": "Telefone do paciente (opcional se cpf informado)" },
+            { "key": "doctor_id", "value": "", "disabled": true, "description": "Filtra por médico específico (opcional)" }
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseurl", "value": "http://localhost:8000" },
+    { "key": "cpf", "value": "12345678900" }
+  ]
+}

@@ -53,11 +53,11 @@ class PatientAppointmentController extends Controller
         foreach ($availabilities as $availability) {
             $date = $availability->date->format('Y-m-d');
             $time = $availability->time->format('H:i');
-            
+
             if (!isset($formattedAvailabilities[$date])) {
                 $formattedAvailabilities[$date] = [];
             }
-            
+
             $formattedAvailabilities[$date][] = [
                 'id' => $availability->id,
                 'time' => $time,
@@ -118,22 +118,22 @@ class PatientAppointmentController extends Controller
         // Limpa CPF e telefone para conter apenas números
         $cpf = preg_replace('/[^0-9]/', '', $request->cpf);
         $phone = preg_replace('/[^0-9]/', '', $request->phone);
-        
+
         // Procura usuário pelo CPF
         $userData = UserData::where('cpf', $cpf)->first();
         $user = null;
-        
+
         if ($userData) {
             // Encontrou pelo CPF
             $user = User::find($userData->user_id);
-            
+
             // Atualiza dados do usuário se necessário
             $user->update([
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $phone
             ]);
-            
+
             // Atualiza dados adicionais
             $userData->update([
                 'birthday' => $request->birthday
@@ -141,14 +141,14 @@ class PatientAppointmentController extends Controller
         } else {
             // Procura usuário pelo telefone
             $user = User::where('phone', $phone)->first();
-            
+
             if ($user) {
                 // Atualiza dados do usuário
                 $user->update([
                     'name' => $request->name,
                     'email' => $request->email
                 ]);
-                
+
                 // Cria dados adicionais se não existirem
                 if (!$user->userData) {
                     $user->userData()->create([
@@ -166,7 +166,7 @@ class PatientAppointmentController extends Controller
                     'status' => true,
                     'password' => bcrypt(substr($cpf, -4)) // Usa os 4 últimos dígitos do CPF como senha inicial
                 ]);
-                
+
                 // Cria os dados adicionais do usuário
                 $userData = [
                     'user_id' => $user->id,
@@ -198,7 +198,7 @@ class PatientAppointmentController extends Controller
 
         // Busca o plano selecionado para retornar informações de preço
         $plan = Plan::findOrFail($request->plan_id);
-        
+
         // Busca a forma de pagamento, se informada
         $paymentMethod = null;
         if ($request->payment_method_id) {
@@ -263,14 +263,14 @@ class PatientAppointmentController extends Controller
     {
         // Verifica se o médico existe
         $doctor = User::findOrFail($doctorId);
-        
+
         // Busca os planos ativos do médico
         $plans = Plan::where('user_id', $doctorId)
             ->where('is_active', true)
             ->orderBy('type')
             ->orderBy('price')
             ->get();
-            
+
         // Formata os planos para o frontend
         $formattedPlans = $plans->map(function ($plan) {
             return [
@@ -285,7 +285,7 @@ class PatientAppointmentController extends Controller
                 'installments' => $plan->installments
             ];
         });
-        
+
         return response()->json([
             'doctor' => [
                 'id' => $doctor->id,
@@ -305,17 +305,17 @@ class PatientAppointmentController extends Controller
     {
         // Verifica se o médico existe
         $doctor = User::findOrFail($doctorId);
-        
+
         // Busca as formas de pagamento ativas aceitas pelo médico
         $paymentMethods = $doctor->paymentMethods()
             ->where('is_active', true)
             ->get();
-            
+
         // Se o médico não tiver formas de pagamento específicas, retorna todas as formas ativas
         if ($paymentMethods->isEmpty()) {
             $paymentMethods = PaymentMethod::where('is_active', true)->get();
         }
-            
+
         // Formata as formas de pagamento para o frontend
         $formattedPaymentMethods = $paymentMethods->map(function ($method) {
             return [
@@ -326,13 +326,78 @@ class PatientAppointmentController extends Controller
                 'description' => $method->description
             ];
         });
-        
+
         return response()->json([
             'doctor' => [
                 'id' => $doctor->id,
                 'name' => $doctor->name
             ],
             'payment_methods' => $formattedPaymentMethods
+        ]);
+    }
+
+    /**
+     * Retorna as consultas em aberto (status = agendada) de um paciente
+     * Filtrando por CPF ou telefone.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function myAppointments(Request $request)
+    {
+        // Necessita ao menos cpf ou phone
+        $validator = Validator::make($request->all(), [
+            'cpf'   => 'required_without:phone|string',
+            'phone' => 'required_without:cpf|string',
+            'doctor_id' => 'sometimes|exists:users,id' // opcional filtrar médico
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $cpf   = $request->cpf ? preg_replace('/[^0-9]/', '', $request->cpf) : null;
+        $phone = $request->phone ? preg_replace('/[^0-9]/', '', $request->phone) : null;
+
+        // Tenta localizar o usuário
+        $user = null;
+        if ($cpf) {
+            $userData = UserData::where('cpf', $cpf)->first();
+            $user = $userData ? $userData->user : null;
+        }
+
+        if (!$user && $phone) {
+            $user = User::where('phone', $phone)->first();
+        }
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Paciente não encontrado.'
+            ], 404);
+        }
+
+        // Consulta agendamentos abertos
+        $appointmentsQuery = Appointment::with(['doctor', 'plan', 'paymentMethod'])
+            ->where('user_id', $user->id)
+            ->where('status', 'agendada')
+            ->orderBy('appointment_datetime', 'desc');
+
+        if ($request->filled('doctor_id')) {
+            $appointmentsQuery->where('doctor_id', $request->doctor_id);
+        }
+
+        $appointments = $appointmentsQuery->get();
+
+        return response()->json([
+            'success' => true,
+            'patient' => [
+                'id'    => $user->id,
+                'name'  => $user->name,
+                'phone' => $user->phone,
+                'cpf'   => $cpf ?? ($user->userData->cpf ?? null),
+            ],
+            'appointments' => $appointments
         ]);
     }
 }

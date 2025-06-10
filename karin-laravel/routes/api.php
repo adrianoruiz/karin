@@ -106,6 +106,8 @@ Route::prefix('patient')->group(function () {
     Route::post('check-availability', [PatientAppointmentController::class, 'checkAvailability']);
     Route::get('available-plans/{doctor_id}', [PatientAppointmentController::class, 'getAvailablePlans']);
     Route::get('payment-methods/{doctor_id}', [PatientAppointmentController::class, 'getDoctorPaymentMethods']);
+    // Consultas em aberto de um paciente por CPF ou telefone
+    Route::get('my-appointments', [PatientAppointmentController::class, 'myAppointments']);
 });
 
 
