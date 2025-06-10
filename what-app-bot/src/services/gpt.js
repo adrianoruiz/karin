@@ -482,7 +482,7 @@ async function processIncomingMessageWithDebounce(
     conversationHistory, 
     sendMessageCallback,
     sendTypingCallback = null,
-    debounceWaitMs = 7000 // Padrão de 7 segundos
+    debounceWaitMs = 4000 // Padrão de 4 segundos
 ) {
     logger.info(`[gptService.processIncomingMessageWithDebounce] Recebida mensagem para chatId: ${chatId}, clinicaId: ${clinicaId}`);
     logger.debug(`[gptService.processIncomingMessageWithDebounce] Message Object:`, messageObj);

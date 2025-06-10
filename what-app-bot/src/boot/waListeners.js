@@ -213,7 +213,7 @@ async function bootstrapListeners(client, clinicaId) {
                 logger.log(`Response sent to ${number}`);
                 
                 // **NOVO**: Marcar como não lida
-                await MessageInterceptor.markUnreadAfterSend(client, number);
+                await MessageInterceptor.afterMessageSent(`${clinicaId}:${number}`, true);
             } catch (error) {
                  logger.error('Error processing message with gptRouter:', error);
                  try {

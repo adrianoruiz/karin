@@ -8,7 +8,8 @@ const {
     shareManicureContactFunction,
     shareSobrancelhasContactFunction,
     shareDepilacaoContactFunction,
-    getUserNameFunction
+    getUserNameFunction,
+    patientAppointmentsFunction
 } = require('./toolDefinitions');
 
 // Mapeamento de tools por tipo de segmento
@@ -21,6 +22,7 @@ const segmentToolsConfig = {
         updateBookingFunction,
         finishAppointmentFunction,
         getUserNameFunction,
+        patientAppointmentsFunction,
     ],
     'salao-beleza': [
         // Idealmente, salões de beleza também podem ter agendamento, mas simplificando por agora
@@ -41,6 +43,7 @@ const segmentToolsConfig = {
         updateBookingFunction,
         finishAppointmentFunction,
         getUserNameFunction,
+        patientAppointmentsFunction,
         // Adicionar tools específicas para odonto, se houver
     ],
     'default': [ // Ferramentas padrão se o segmento não for reconhecido

@@ -23,7 +23,8 @@ function createGptRouter({ logger, conversationStore, waClient }) {
         finishAppointment,
         shareManicureContact,
         shareSobrancelhasContact,
-        shareDepilacaoContact
+        shareDepilacaoContact,
+        getPatientAppointments
     } = require('../services/tools');
     
     /**
@@ -195,6 +196,21 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                         : "Desculpe, houve um problema ao enviar o contato de depilação. Tente novamente.";
                     break;
                 }
+                
+                case 'getPatientAppointments': {
+                    logger.log(`Solicitação para consultar agendamentos do paciente (Clínica ${clinicaId})`);
+                    
+                    // Se temos o contexto da mensagem, tentar extrair o telefone do remetente
+                    if (context && context.from && !parsedArgs.phone) {
+                        const phoneNumber = context.from.split('@')[0];
+                        parsedArgs.phone = phoneNumber;
+                        logger.log(`Usando número do WhatsApp: ${phoneNumber}`);
+                    }
+                    
+                    const result = await getPatientAppointments(parsedArgs);
+                    functionResultContent = JSON.stringify(result);
+                    break;
+                }
                 default: {
                     logger.warn(`Função desconhecida: ${name}`);
                     functionResultContent = JSON.stringify({ error: `Função desconhecida: ${name}` });
@@ -308,8 +324,7 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                             // Resolver a Promise com a resposta final
                             resolve(validResponse);
                             
-                            // **NOVO**: Marcar como não lida após resolver
-                            await MessageInterceptor.afterMessageSent(chatId, true);
+                            // NOTA: Marcação como não lida é feita no gpt.js onFlushCallback
                         } catch (callbackError) {
                             logger.error('Erro no callback de processIncomingMessageWithDebounce:', callbackError);
                             reject(callbackError);
@@ -335,7 +350,7 @@ function createGptRouter({ logger, conversationStore, waClient }) {
                             // Não falhar a operação principal por erro de status de digitação
                         }
                     },
-                    10000  // debounceWaitMs: 10 segundos para buffer
+                    4000  // debounceWaitMs: 4 segundos para buffer
                 ).catch(debounceError => {
                     logger.error('Erro em processIncomingMessageWithDebounce:', debounceError);
                     reject(debounceError);

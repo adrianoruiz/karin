@@ -196,6 +196,25 @@ const getUserNameFunction = {
     }
 };
 
+const patientAppointmentsFunction = {
+    name: "getPatientAppointments",
+    description: "Consulta os agendamentos existentes de um paciente usando CPF ou telefone. Use quando o paciente perguntar sobre seus agendamentos, consultas marcadas, ou quiser verificar/cancelar seus horários.",
+    parameters: {
+        type: "object",
+        properties: {
+            cpf: {
+                type: "string",
+                description: "CPF do paciente (apenas números ou formatado). Use se disponível."
+            },
+            phone: {
+                type: "string",
+                description: "Telefone do paciente (apenas números ou formatado). Use se CPF não estiver disponível."
+            }
+        },
+        required: []
+    }
+};
+
 // Adicione aqui outras definições de tools que possam ser específicas ou comuns
 
 module.exports = {
@@ -208,5 +227,6 @@ module.exports = {
     shareManicureContactFunction,
     shareSobrancelhasContactFunction,
     shareDepilacaoContactFunction,
-    getUserNameFunction
+    getUserNameFunction,
+    patientAppointmentsFunction
 }; 
