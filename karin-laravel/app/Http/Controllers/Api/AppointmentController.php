@@ -11,7 +11,8 @@ use App\Models\{
     Appointment,
     DoctorAvailability,
     User,
-    UserData
+    UserData,
+    CompanyCliente
 };
 use App\Services\{
     AppointmentQueryService,
@@ -42,7 +43,7 @@ class AppointmentController extends Controller
 
         // Aplicar filtros
         $this->appointmentQueryService->applyFilters($query, $indicatorsQuery);
-        
+
         // Calcular indicadores
         $indicators = $this->appointmentQueryService->calculateIndicators($indicatorsQuery);
 
@@ -57,7 +58,7 @@ class AppointmentController extends Controller
             ]
         ]);
     }
-    
+
     /**
      * Criar um novo agendamento
      */
@@ -68,13 +69,13 @@ class AppointmentController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
-        
+
         // Complementa o email quando não informado
         $this->setDefaultEmail($request);
 
         // Verifica disponibilidade do horário
         $availability = $this->checkAppointmentAvailability($request);
-        
+
         if (!$availability) {
             return response()->json([
                 'message' => 'Horário indisponível para agendamento',
@@ -84,7 +85,10 @@ class AppointmentController extends Controller
 
         // Busca ou cria usuário
         $userId = $this->findOrCreateUser($request);
-        
+
+        // Vincula paciente às empresas do médico
+        $this->linkPatientToDoctorCompanies($request->doctor_id, $userId);
+
         // Cria o agendamento
         $appointment = $this->createAppointment($request, $userId);
 
@@ -96,7 +100,7 @@ class AppointmentController extends Controller
             'appointment' => $appointment->load(['user', 'doctor'])
         ], 201);
     }
-    
+
     /**
      * Retorna o validador para criação de agendamento
      */
@@ -120,17 +124,17 @@ class AppointmentController extends Controller
             'birthday' => 'nullable|date'
         ]);
     }
-    
+
     /**
      * Define email padrão quando não fornecido
      */
     private function setDefaultEmail(Request $request)
     {
         $hasEmail = $request->filled('email');
-        
+
         !$hasEmail && $request->merge(['email' => $request->phone]);
     }
-    
+
     /**
      * Verifica disponibilidade do horário
      */
@@ -145,7 +149,7 @@ class AppointmentController extends Controller
             ->where('status', 'available')
             ->first();
     }
-    
+
     /**
      * Busca ou cria um usuário
      */
@@ -153,40 +157,40 @@ class AppointmentController extends Controller
     {
         // Se já tem ID do usuário, retorna
         $userId = $request->user_id;
-        
+
         if ($userId) {
             return $userId;
         }
-        
+
         // Limpa CPF e telefone
         $cpf = preg_replace('/[^0-9]/', '', $request->cpf);
         $phone = preg_replace('/[^0-9]/', '', $request->phone);
-        
+
         // Busca por CPF
         $userData = UserData::where('cpf', $cpf)->first();
-        
+
         if ($userData) {
             return $userData->user_id;
         }
-        
+
         // Busca por telefone
         $user = User::where('phone', $phone)->first();
-        
+
         if ($user) {
             return $user->id;
         }
-        
+
         // Cria novo usuário
         return $this->createNewUser($request, $cpf, $phone);
     }
-    
+
     /**
      * Cria um novo usuário
      */
     private function createNewUser(Request $request, $cpf, $phone)
     {
         $role = RoleService::findSlug(ValidRoles::PATIENT);
-        
+
         // Cria usuário
         $user = User::create([
             'name' => $request->name,
@@ -196,23 +200,46 @@ class AppointmentController extends Controller
             'status' => true,
             'password' => bcrypt(substr($cpf, -4))
         ]);
-        
+
         // Cria dados do usuário
         $userData = [
             'user_id' => $user->id,
             'cpf' => $cpf,
             'birthday' => $request->birthday,
         ];
-        
+
         $user->userData()->create($userData);
         $user->roles()->sync([$role]);
-        
+
         return $user->id;
     }
-    
+
     /**
      * Cria o agendamento
      */
+    /**
+     * Vincula paciente às empresas do médico
+     */
+    private function linkPatientToDoctorCompanies(int $doctorId, int $clientId): void
+    {
+        $doctor = User::with('employeeCompanies')->find($doctorId);
+        if (!$doctor) {
+            return;
+        }
+
+        // Empresas onde o médico trabalha + o próprio médico caso seja empresa
+        $companyIds = $doctor->employeeCompanies->pluck('id')->toArray();
+        $companyIds[] = $doctor->id;
+        $companyIds = array_unique($companyIds);
+
+        foreach ($companyIds as $companyId) {
+            CompanyCliente::firstOrCreate([
+                'company_id' => $companyId,
+                'client_id' => $clientId,
+            ]);
+        }
+    }
+
     private function createAppointment(Request $request, $userId)
     {
         return Appointment::create([
@@ -233,12 +260,12 @@ class AppointmentController extends Controller
     public function show($id)
     {
         $appointment = Appointment::with(['user.userData', 'doctor'])->findOrFail($id);
-        
+
         return response()->json([
             'appointment' => $appointment
         ]);
     }
-    
+
     /**
      * Atualizar um agendamento
      */
@@ -262,19 +289,22 @@ class AppointmentController extends Controller
         $appointment = Appointment::findOrFail($id);
         $appointment->update($request->all());
 
+        // Garante vínculo paciente -> empresa
+        $this->linkPatientToDoctorCompanies($appointment->doctor_id, $appointment->user_id);
+
         return response()->json([
             'message' => 'Consulta atualizada com sucesso',
             'appointment' => $appointment
         ]);
     }
-    
+
     /**
      * Excluir um agendamento
      */
     public function destroy($id)
     {
         $appointment = Appointment::findOrFail($id);
-        
+
         // Libera o horário na tabela de disponibilidades
         $availability = $this->findAppointmentAvailability($appointment);
 
@@ -286,7 +316,7 @@ class AppointmentController extends Controller
             'message' => 'Consulta excluída com sucesso'
         ]);
     }
-    
+
     /**
      * Encontra a disponibilidade relacionada ao agendamento
      */
