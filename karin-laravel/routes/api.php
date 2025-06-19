@@ -11,6 +11,7 @@ use App\Http\Controllers\{
     Api\CityController,
     Api\CompanyEmployeeController,
     Api\DoctorAvailabilityController,
+    Api\MedicalRecordController,
     Api\PatientAppointmentController,
     Api\PlanController,
     Api\ProvinceController,
@@ -208,4 +209,21 @@ Route::group([
     Route::get('/cities', [CityController::class, 'index']);
     Route::get('/cities/{id}', [CityController::class, 'show']);
     Route::get('/provinces/{provinceId}/cities', [CityController::class, 'byProvince']);
+});
+
+// Rotas para Prontuários Médicos
+Route::group([
+    'prefix' => 'medical-records',
+    'middleware' => 'auth:api'
+], function () {
+    // Rota específica para estatísticas (deve vir antes das rotas com parâmetros)
+    Route::get('/stats', [MedicalRecordController::class, 'stats']);
+    
+    // Rotas CRUD padrão
+    Route::get('/', [MedicalRecordController::class, 'index']);
+    Route::post('/', [MedicalRecordController::class, 'store']);
+    Route::get('/{id}', [MedicalRecordController::class, 'show']);
+    Route::put('/{id}', [MedicalRecordController::class, 'update']);
+    Route::patch('/{id}', [MedicalRecordController::class, 'update']);
+    Route::delete('/{id}', [MedicalRecordController::class, 'destroy']);
 });

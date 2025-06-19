@@ -267,4 +267,34 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasOne(AiConfig::class);
     }
+
+    /**
+     * Prontuários médicos onde este usuário é o paciente.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function patientMedicalRecords(): HasMany
+    {
+        return $this->hasMany(MedicalRecord::class, 'patient_id');
+    }
+
+    /**
+     * Prontuários médicos onde este usuário é o médico responsável.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function doctorMedicalRecords(): HasMany
+    {
+        return $this->hasMany(MedicalRecord::class, 'doctor_id');
+    }
+
+    /**
+     * Prontuários médicos da empresa (quando este usuário é uma empresa/clínica).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function companyMedicalRecords(): HasMany
+    {
+        return $this->hasMany(MedicalRecord::class, 'company_id');
+    }
 }
