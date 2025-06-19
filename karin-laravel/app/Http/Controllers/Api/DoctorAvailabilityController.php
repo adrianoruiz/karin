@@ -27,8 +27,11 @@ class DoctorAvailabilityController extends Controller
         $query = DoctorAvailability::where('doctor_id', $request->doctor_id)
             ->where('status', 'available');
 
-        if ($request->has('date')) {
+        if ($request->has('date') && $request->date) {
             $query->whereDate('date', $request->date);
+        } else {
+            // Se a data não foi informada ou está vazia, filtra por datas >= hoje
+            $query->whereDate('date', '>=', now()->toDateString());
         }
 
         $availabilities = $query->orderBy('date')
