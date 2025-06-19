@@ -1,0 +1,496 @@
+{
+  "info": {
+    "name": "Triage API - Karin Laravel",
+    "description": "Collection completa para testar a API de Triagem Médica do sistema Karin Laravel. Inclui todos os endpoints CRUD com exemplos de requisições e validações.",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@exemplo.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Triage Records",
+      "item": [
+        {
+          "name": "Listar Triagens",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/triage-records?company_id={{company_id}}&patient_id={{patient_id}}&page=1&per_page=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "triage-records"],
+              "query": [
+                {
+                  "key": "company_id",
+                  "value": "{{company_id}}",
+                  "description": "ID da empresa/clínica (obrigatório)"
+                },
+                {
+                  "key": "patient_id",
+                  "value": "{{patient_id}}",
+                  "description": "ID do paciente (obrigatório)"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Página da paginação (opcional)"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20",
+                  "description": "Itens por página (opcional, máx: 100)"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Sucesso - Lista de Triagens",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{jwt_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/triage-records?company_id=456&patient_id=123",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "triage-records"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"data\": [\n    {\n      \"id\": 1,\n      \"company_id\": 456,\n      \"patient_id\": 123,\n      \"professional_id\": 789,\n      \"triage_date\": \"2025-06-19\",\n      \"triage_time\": \"14:30:00\",\n      \"vital_signs\": {\n        \"blood_pressure\": \"120/80\",\n        \"heart_rate\": \"72\",\n        \"temperature\": \"36.5\",\n        \"oxygen_saturation\": \"98\"\n      },\n      \"weight\": \"70.50\",\n      \"height\": \"170.00\",\n      \"bmi\": \"24.2\",\n      \"notes\": \"Paciente ansioso, sem queixas adicionais\",\n      \"created_at\": \"2025-06-19T21:30:00.000000Z\",\n      \"updated_at\": \"2025-06-19T21:30:00.000000Z\",\n      \"patient\": {\n        \"id\": 123,\n        \"name\": \"João Silva\",\n        \"email\": \"joao@exemplo.com\"\n      },\n      \"professional\": {\n        \"id\": 789,\n        \"name\": \"Enfermeira Maria\",\n        \"email\": \"maria@clinica.com\"\n      }\n    }\n  ],\n  \"meta\": {\n    \"current_page\": 1,\n    \"last_page\": 1,\n    \"per_page\": 20,\n    \"total\": 1\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Criar Triagem",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": {{company_id}},\n  \"patient_id\": {{patient_id}},\n  \"professional_id\": {{professional_id}},\n  \"triage_date\": \"2025-06-19\",\n  \"triage_time\": \"14:30\",\n  \"vital_signs\": {\n    \"blood_pressure\": \"120/80\",\n    \"heart_rate\": \"72\",\n    \"temperature\": \"36.5\",\n    \"oxygen_saturation\": \"98\"\n  },\n  \"weight\": 70.5,\n  \"height\": 170,\n  \"notes\": \"Paciente ansioso, sem queixas adicionais\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/triage-records",
+              "host": ["{{base_url}}"],
+              "path": ["api", "triage-records"]
+            }
+          },
+          "response": [
+            {
+              "name": "Sucesso - Triagem Criada",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{jwt_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": 456,\n  \"patient_id\": 123,\n  \"triage_date\": \"2025-06-19\",\n  \"triage_time\": \"14:30\",\n  \"vital_signs\": {\n    \"blood_pressure\": \"120/80\",\n    \"heart_rate\": \"72\",\n    \"temperature\": \"36.5\",\n    \"oxygen_saturation\": \"98\"\n  },\n  \"weight\": 70.5,\n  \"height\": 170,\n  \"notes\": \"Paciente ansioso, sem queixas adicionais\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/triage-records",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "triage-records"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"id\": 1,\n  \"company_id\": 456,\n  \"patient_id\": 123,\n  \"professional_id\": null,\n  \"triage_date\": \"2025-06-19\",\n  \"triage_time\": \"14:30:00\",\n  \"vital_signs\": {\n    \"blood_pressure\": \"120/80\",\n    \"heart_rate\": \"72\",\n    \"temperature\": \"36.5\",\n    \"oxygen_saturation\": \"98\"\n  },\n  \"weight\": \"70.50\",\n  \"height\": \"170.00\",\n  \"bmi\": \"24.2\",\n  \"notes\": \"Paciente ansioso, sem queixas adicionais\",\n  \"created_at\": \"2025-06-19T21:30:00.000000Z\",\n  \"updated_at\": \"2025-06-19T21:30:00.000000Z\",\n  \"patient\": null,\n  \"professional\": null\n}"
+            },
+            {
+              "name": "Erro de Validação",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{jwt_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"company_id\": 456,\n  \"patient_id\": 123,\n  \"triage_date\": \"2025-12-31\",\n  \"triage_time\": \"25:70\",\n  \"weight\": 500,\n  \"height\": 10\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/triage-records",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "triage-records"]
+                }
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "body": "{\n  \"message\": \"Os dados fornecidos são inválidos\",\n  \"errors\": {\n    \"triage_date\": [\"A data da triagem não pode ser futura\"],\n    \"triage_time\": [\"O formato do horário da triagem é inválido\"],\n    \"weight\": [\"O peso não pode ser maior que 400\"],\n    \"height\": [\"A altura deve ser pelo menos 30\"]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Visualizar Triagem",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/triage-records/{{triage_id}}?company_id={{company_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "triage-records", "{{triage_id}}"],
+              "query": [
+                {
+                  "key": "company_id",
+                  "value": "{{company_id}}",
+                  "description": "ID da empresa para validação de acesso (obrigatório)"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Sucesso - Triagem Encontrada",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{jwt_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/triage-records/1?company_id=456",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "triage-records", "1"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"id\": 1,\n  \"company_id\": 456,\n  \"patient_id\": 123,\n  \"professional_id\": 789,\n  \"triage_date\": \"2025-06-19\",\n  \"triage_time\": \"14:30:00\",\n  \"vital_signs\": {\n    \"blood_pressure\": \"120/80\",\n    \"heart_rate\": \"72\",\n    \"temperature\": \"36.5\",\n    \"oxygen_saturation\": \"98\"\n  },\n  \"weight\": \"70.50\",\n  \"height\": \"170.00\",\n  \"bmi\": \"24.2\",\n  \"notes\": \"Paciente ansioso, sem queixas adicionais\",\n  \"created_at\": \"2025-06-19T21:30:00.000000Z\",\n  \"updated_at\": \"2025-06-19T21:30:00.000000Z\",\n  \"patient\": {\n    \"id\": 123,\n    \"name\": \"João Silva\",\n    \"email\": \"joao@exemplo.com\"\n  },\n  \"professional\": {\n    \"id\": 789,\n    \"name\": \"Enfermeira Maria\",\n    \"email\": \"maria@clinica.com\"\n  }\n}"
+            },
+            {
+              "name": "Acesso Negado",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{jwt_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/triage-records/1?company_id=999",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "triage-records", "1"]
+                }
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "body": "{\n  \"message\": \"Acesso negado\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Atualizar Triagem",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vital_signs\": {\n    \"blood_pressure\": \"130/85\",\n    \"heart_rate\": \"78\",\n    \"temperature\": \"36.8\",\n    \"oxygen_saturation\": \"97\"\n  },\n  \"notes\": \"Paciente mais calmo na segunda medição\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/triage-records/{{triage_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "triage-records", "{{triage_id}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "Sucesso - Triagem Atualizada",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{jwt_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"vital_signs\": {\n    \"blood_pressure\": \"130/85\",\n    \"heart_rate\": \"78\",\n    \"temperature\": \"36.8\",\n    \"oxygen_saturation\": \"97\"\n  },\n  \"notes\": \"Paciente mais calmo na segunda medição\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/triage-records/1",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "triage-records", "1"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"id\": 1,\n  \"company_id\": 456,\n  \"patient_id\": 123,\n  \"professional_id\": 789,\n  \"triage_date\": \"2025-06-19\",\n  \"triage_time\": \"14:30:00\",\n  \"vital_signs\": {\n    \"blood_pressure\": \"130/85\",\n    \"heart_rate\": \"78\",\n    \"temperature\": \"36.8\",\n    \"oxygen_saturation\": \"97\"\n  },\n  \"weight\": \"70.50\",\n  \"height\": \"170.00\",\n  \"bmi\": \"24.2\",\n  \"notes\": \"Paciente mais calmo na segunda medição\",\n  \"created_at\": \"2025-06-19T21:30:00.000000Z\",\n  \"updated_at\": \"2025-06-19T21:35:00.000000Z\",\n  \"patient\": {\n    \"id\": 123,\n    \"name\": \"João Silva\",\n    \"email\": \"joao@exemplo.com\"\n  },\n  \"professional\": {\n    \"id\": 789,\n    \"name\": \"Enfermeira Maria\",\n    \"email\": \"maria@clinica.com\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Excluir Triagem",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/triage-records/{{triage_id}}?company_id={{company_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "triage-records", "{{triage_id}}"],
+              "query": [
+                {
+                  "key": "company_id",
+                  "value": "{{company_id}}",
+                  "description": "ID da empresa para validação de acesso (obrigatório)"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Sucesso - Triagem Excluída",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{jwt_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/triage-records/1?company_id=456",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "triage-records", "1"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"message\": \"Triagem excluída com sucesso\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Criar Triagem - Dados Mínimos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": {{company_id}},\n  \"patient_id\": {{patient_id}},\n  \"triage_date\": \"2025-06-19\",\n  \"triage_time\": \"15:00\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/triage-records",
+              "host": ["{{base_url}}"],
+              "path": ["api", "triage-records"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Triagem - Somente Sinais Vitais",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": {{company_id}},\n  \"patient_id\": {{patient_id}},\n  \"triage_date\": \"2025-06-19\",\n  \"triage_time\": \"16:00\",\n  \"vital_signs\": {\n    \"blood_pressure\": \"110/70\",\n    \"heart_rate\": \"65\",\n    \"temperature\": \"36.2\",\n    \"oxygen_saturation\": \"99\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/triage-records",
+              "host": ["{{base_url}}"],
+              "path": ["api", "triage-records"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Triagem - Somente Antropometria",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": {{company_id}},\n  \"patient_id\": {{patient_id}},\n  \"triage_date\": \"2025-06-19\",\n  \"triage_time\": \"17:00\",\n  \"weight\": 65.0,\n  \"height\": 165,\n  \"notes\": \"Controle de peso mensal\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/triage-records",
+              "host": ["{{base_url}}"],
+              "path": ["api", "triage-records"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "description": "URL base da API Laravel"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "description": "Token JWT obtido após login (será preenchido automaticamente após autenticação)"
+    },
+    {
+      "key": "company_id",
+      "value": "1",
+      "description": "ID da empresa/clínica para testes"
+    },
+    {
+      "key": "patient_id",
+      "value": "2",
+      "description": "ID do paciente para testes"
+    },
+    {
+      "key": "professional_id",
+      "value": "3",
+      "description": "ID do profissional que realiza a triagem"
+    },
+    {
+      "key": "triage_id",
+      "value": "1",
+      "description": "ID da triagem para operações específicas"
+    }
+  ],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Armazenar token JWT automaticamente após login",
+          "if (pm.response.json() && pm.response.json().access_token) {",
+          "    pm.collectionVariables.set('jwt_token', pm.response.json().access_token);",
+          "    console.log('Token JWT armazenado automaticamente!');",
+          "}",
+          "",
+          "// Armazenar ID da triagem criada para usar em outros requests",
+          "if (pm.response.json() && pm.response.json().id && pm.request.method === 'POST' && pm.request.url.path.includes('triage-records')) {",
+          "    pm.collectionVariables.set('triage_id', pm.response.json().id);",
+          "    console.log('ID da triagem armazenado: ' + pm.response.json().id);",
+          "}"
+        ]
+      }
+    }
+  ]
+}
