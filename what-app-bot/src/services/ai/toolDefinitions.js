@@ -2,13 +2,17 @@
 
 const availabilityFunction = {
     name: "getAvailableAppointments",
-    description: "Busca os horários disponíveis para agendamento de consultas",
+    description: "Busca os horários disponíveis para agendamento de consultas. Por padrão mostra apenas a semana atual.",
     parameters: {
         type: "object",
         properties: {
             date: {
                 type: "string",
-                description: "Data para verificar a disponibilidade (formato: YYYY-MM-DD, ou expressões como 'hoje', 'amanhã', 'próxima segunda', etc)"
+                description: "Data específica para verificar a disponibilidade (formato: YYYY-MM-DD, ou expressões como 'hoje', 'amanhã', 'próxima segunda', etc). Se não fornecida, busca a semana atual."
+            },
+            extendedSearch: {
+                type: "boolean",
+                description: "Se true, busca horários das próximas 2 semanas. Use apenas quando o paciente pedir explicitamente por mais opções ou horários de outras semanas. Padrão: false (apenas semana atual)."
             }
         },
         required: []

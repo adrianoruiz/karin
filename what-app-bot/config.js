@@ -1,11 +1,11 @@
 // config.js
-const desenv = false;
+const desenv = true;
 
 module.exports = {
     desenv,    
     port: 3001,
-    // apiUrl: desenv ? 'http://127.0.0.1:8000/api/' : 'https://api.drakarin.com.br/api/',
-    apiUrl: 'https://api.drakarin.com.br/api/',
+    apiUrl: desenv ? 'http://127.0.0.1:8000/api/' : 'https://api.drakarin.com.br/api/',
+    // apiUrl: 'https://api.drakarin.com.br/api/',
 
     disableGreeting: false,
     useVoiceResponse: false, // Alterado para true por padrão, será controlado dinamicamente

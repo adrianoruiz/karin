@@ -19,72 +19,58 @@ class AvailabilityService {
    * @param {Object} options - Opções para a consulta
    * @param {string} options.date - Data para verificar disponibilidade (formato: string que possa ser interpretada)
    * @param {number} options.doctorId - ID do médico (padrão: 2)
+   * @param {boolean} options.extendedSearch - Se deve buscar próximas 2 semanas (padrão: false - só semana atual)
    * @returns {Promise<Array>} - Lista de horários disponíveis
    * @throws {Error} - Erro durante a consulta à API
    */
-  async getAvailableAppointments({ date = null, doctorId = 2 } = {}) {
+  async getAvailableAppointments({ date = null, doctorId = 2, extendedSearch = false } = {}) {
     try {
       // Valida o ID do médico
       if (doctorId !== null && (!Number.isInteger(doctorId) || doctorId <= 0)) {
         throw new Error(`ID do médico inválido: ${doctorId}`);
       }
       
-      // Processa a entrada de data, se fornecida
-      const parsedDate = date ? DateUtils.parseDate(date) : null;
-      const dateToQuery = parsedDate || DateUtils.getToday(); // Se não houver data, consulta hoje
-      
-      logger.log(`Consultando horários disponíveis para a data: ${dateToQuery}`);
-      
-      // Consulta a API de disponibilidades
-      const response = await axios.get(`${this.apiUrl}availabilities`, {
-        params: {
-          doctor_id: doctorId,
-          date: dateToQuery
-        },
-        timeout: 5000 // Timeout de 5 segundos
-      });
-      
-      logger.log(`Resposta da API recebida para ${dateToQuery}`, response.data);
-      
-      // Verificar se a resposta é válida
-      if (!response.data || !response.data.availabilities) {
-        logger.error('Resposta da API inválida ou vazia');
-        // Mesmo com resposta inválida, tentar buscar nos próximos dias se nenhuma data específica foi pedida
+      // Se uma data específica foi fornecida, busca apenas para essa data
+      if (date) {
+        const parsedDate = DateUtils.parseDate(date);
         if (!parsedDate) {
-            logger.log('Resposta inválida para data atual, buscando próximos dias...');
-            return await this._findNextAvailableDates(doctorId);
+          throw new Error(`Data inválida: ${date}`);
         }
-        return [];
+        
+        logger.log(`Consultando horários disponíveis para a data específica: ${parsedDate}`);
+        
+        const response = await axios.get(`${this.apiUrl}availabilities`, {
+          params: {
+            doctor_id: doctorId,
+            date: parsedDate
+          },
+          timeout: 5000
+        });
+        
+        if (!response.data || !response.data.availabilities) {
+          return [];
+        }
+        
+        return this._processAvailabilities(response.data.availabilities, parsedDate);
       }
       
-      // Processa e filtra as disponibilidades para a data consultada
-      const availableTimes = this._processAvailabilities(response.data.availabilities, dateToQuery);
+      // Se não foi fornecida data específica, busca para a semana atual
+      // ou próximas 2 semanas se extendedSearch for true
+      const daysToSearch = extendedSearch ? 14 : 7; // 2 semanas ou 1 semana
       
-      // Se não houver horários disponíveis para a data solicitada (seja específica ou hoje),
-      // busca horários para os próximos 10 dias
-      if (availableTimes.length === 0) {
-        logger.log(`Nenhum horário disponível para ${dateToQuery}, buscando para os próximos dias`);
-        return await this._findNextAvailableDates(doctorId);
-      }
+      logger.log(`Buscando horários disponíveis para os próximos ${daysToSearch} dias (extendedSearch: ${extendedSearch})`);
       
-      return availableTimes;
+      return await this._findAvailableDatesInRange(doctorId, daysToSearch);
+      
     } catch (error) {
       // Tratamento de erros específicos
       if (error.response) {
-        // Erro de resposta da API (status diferente de 2xx)
         logger.error(`Erro na resposta da API (${error.response.status}):`, error.response.data);
-        // Tentar buscar nos próximos dias mesmo em erro, se nenhuma data específica foi pedida
-        if (!parsedDate) {
-             logger.log('Erro na API para data atual, buscando próximos dias...');
-            return await this._findNextAvailableDates(doctorId);
-        }
         throw new Error(`Erro ao consultar disponibilidade: ${error.response.status}`);
       } else if (error.request) {
-        // Erro na requisição (sem resposta)
         logger.error('Erro na requisição (sem resposta):', error.request);
         throw new Error('Não foi possível conectar ao servidor de agendamentos');
       } else {
-        // Outro tipo de erro
         logger.error('Erro ao consultar horários disponíveis:', error);
         throw new Error(`Erro ao buscar horários: ${error.message}`);
       }
@@ -127,7 +113,58 @@ class AvailabilityService {
   }
   
   /**
-   * Busca horários disponíveis para os próximos dias
+   * Busca horários disponíveis em um range de dias específico
+   * @private
+   * @param {number} doctorId - ID do médico
+   * @param {number} daysToCheck - Número de dias a verificar (7 para semana atual, 14 para próximas 2 semanas)
+   * @returns {Promise<Array>} - Lista de horários disponíveis
+   */
+  async _findAvailableDatesInRange(doctorId, daysToCheck = 7) {
+    let allAvailableTimes = [];
+    
+    // Tenta buscar todas as disponibilidades de uma vez (sem filtro de data)
+    try {
+      logger.log(`Buscando todas as disponibilidades para filtragem local`);
+      
+      const response = await axios.get(`${this.apiUrl}availabilities`, {
+        params: {
+          doctor_id: doctorId
+          // Sem parâmetro date para pegar todas as disponibilidades
+        },
+        timeout: 8000 // Timeout maior para busca completa
+      });
+      
+      if (response.data && response.data.availabilities) {
+        // Processa todas as disponibilidades sem filtro de data
+        const allTimes = this._processAvailabilities(response.data.availabilities, null);
+        
+        logger.log(`Total de horários encontrados na API: ${allTimes.length}`);
+        
+        if (daysToCheck === 7) {
+          // Para semana atual: pega os primeiros horários disponíveis (máximo 20)
+          allAvailableTimes = allTimes.slice(0, 20);
+          logger.log(`Mostrando primeiros ${allAvailableTimes.length} horários disponíveis (semana atual)`);
+        } else {
+          // Para busca estendida: pega mais horários (máximo 40)
+          allAvailableTimes = allTimes.slice(0, 40);
+          logger.log(`Mostrando primeiros ${allAvailableTimes.length} horários disponíveis (busca estendida)`);
+        }
+        
+        if (allAvailableTimes.length > 0) {
+          return allAvailableTimes;
+        }
+      }
+    } catch (error) {
+      logger.error(`Erro na busca geral de disponibilidades:`, error);
+    }
+    
+    // Fallback: busca individual por dia
+    logger.log(`Fazendo fallback para busca individual por dia`);
+    return await this._findNextAvailableDates(doctorId, daysToCheck * 4); // Busca mais dias no fallback
+  }
+
+  /**
+   * Busca horários disponíveis para os próximos dias (método de fallback)
    * @private
    * @param {number} doctorId - ID do médico
    * @param {number} daysToCheck - Número de dias a verificar
@@ -136,9 +173,12 @@ class AvailabilityService {
   async _findNextAvailableDates(doctorId, daysToCheck = 7) {
     const today = new Date();
     let allAvailableTimes = [];
+    let foundCount = 0;
+    const maxResults = daysToCheck <= 7 ? 20 : 40; // Limita resultados
     
-    // Verifica cada dia, um por um
-    for (let i = 1; i <= daysToCheck; i++) {
+    // Verifica cada dia, um por um (método original como fallback)
+    // Busca em um range maior para encontrar disponibilidades futuras
+    for (let i = 0; i < 60 && foundCount < maxResults; i++) { // Busca até 60 dias no futuro
       const nextDate = DateUtils.addDays(today, i);
       
       try {
@@ -158,9 +198,10 @@ class AvailabilityService {
           if (availableTimes.length > 0) {
             logger.log(`Encontrados ${availableTimes.length} horários para ${nextDate}`);
             allAvailableTimes = allAvailableTimes.concat(availableTimes);
+            foundCount += availableTimes.length;
             
-            // Se encontrou pelo menos 3 dias com horários disponíveis, interrompe a busca
-            if (Object.keys(this._groupByDate(allAvailableTimes)).length >= 3) {
+            // Para semana atual, para depois de encontrar horários suficientes
+            if (daysToCheck <= 7 && foundCount >= 10) {
               break;
             }
           }
@@ -213,6 +254,10 @@ const availabilityFunction = {
       doctorId: {
         type: "number",
         description: "ID do médico para verificar disponibilidade (padrão: 2 - Dra. Karin)"
+      },
+      extendedSearch: {
+        type: "boolean",
+        description: "Se deve buscar próximas 2 semanas (padrão: false - só semana atual)"
       }
     },
     required: []
@@ -223,11 +268,12 @@ const availabilityFunction = {
  * Função de compatibilidade com a interface anterior
  * @param {string} date - Data para verificar disponibilidade
  * @param {number} doctorId - ID do médico (padrão: 2)
+ * @param {boolean} extendedSearch - Se deve buscar próximas 2 semanas (padrão: false)
  * @returns {Promise<Array>} - Lista de horários disponíveis
  */
-async function getAvailableAppointments(date = null, doctorId = 2) {
+async function getAvailableAppointments(date = null, doctorId = 2, extendedSearch = false) {
   try {
-    return await availabilityService.getAvailableAppointments({ date, doctorId });
+    return await availabilityService.getAvailableAppointments({ date, doctorId, extendedSearch });
   } catch (error) {
     logger.error('Erro ao obter horários disponíveis:', error);
     return [];
