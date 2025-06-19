@@ -14,7 +14,7 @@ class CompanyCliente extends Model
 
     protected $fillable = [
         'company_id',
-        'client_id'
+        'client_id',
     ];
 
     public function company()
@@ -26,4 +26,4 @@ class CompanyCliente extends Model
     {
         return $this->belongsTo(User::class, 'client_id');
     }
-} 
+}

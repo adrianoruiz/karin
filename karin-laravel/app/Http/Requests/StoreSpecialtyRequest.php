@@ -30,9 +30,9 @@ class StoreSpecialtyRequest extends FormRequest
             'name' => 'required|string|max:120|unique:specialties',
             'segment_type' => [
                 'required',
-                Rule::in(Specialty::$allowedSegments)
+                Rule::in(Specialty::$allowedSegments),
             ],
-            'status' => 'sometimes|boolean'
+            'status' => 'sometimes|boolean',
         ];
     }
 
@@ -49,7 +49,7 @@ class StoreSpecialtyRequest extends FormRequest
             'name.max' => 'O nome da especialidade não pode ter mais de 120 caracteres.',
             'segment_type.required' => 'O tipo de segmento é obrigatório.',
             'segment_type.in' => 'O tipo de segmento deve ser clínica-médica, salão de beleza ou clínica-odonto.',
-            'status.boolean' => 'O status deve ser verdadeiro ou falso.'
+            'status.boolean' => 'O status deve ser verdadeiro ou falso.',
         ];
     }
 }

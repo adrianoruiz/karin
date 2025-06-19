@@ -4,22 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Enum\ValidRoles;
 use App\Http\Controllers\Controller;
+use App\Models\Appointment;
+use App\Models\CompanyCliente;
+use App\Models\DoctorAvailability;
+use App\Models\User;
+use App\Models\UserData;
+use App\Services\AppointmentQueryService;
+use App\Services\RoleService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-
-use App\Models\{
-    Appointment,
-    DoctorAvailability,
-    User,
-    UserData,
-    CompanyCliente
-};
-use App\Services\{
-    AppointmentQueryService,
-    RoleService
-};
-
-
 
 class AppointmentController extends Controller
 {
@@ -54,8 +47,8 @@ class AppointmentController extends Controller
             'success' => true,
             'data' => [
                 'indicators' => $indicators,
-                'appointments' => $appointments
-            ]
+                'appointments' => $appointments,
+            ],
         ]);
     }
 
@@ -76,10 +69,10 @@ class AppointmentController extends Controller
         // Verifica disponibilidade do horário
         $availability = $this->checkAppointmentAvailability($request);
 
-        if (!$availability) {
+        if (! $availability) {
             return response()->json([
                 'message' => 'Horário indisponível para agendamento',
-                'errors' => ['appointment_datetime' => ['O horário selecionado não está disponível']]
+                'errors' => ['appointment_datetime' => ['O horário selecionado não está disponível']],
             ], 422);
         }
 
@@ -97,7 +90,7 @@ class AppointmentController extends Controller
 
         return response()->json([
             'message' => 'Consulta agendada com sucesso',
-            'appointment' => $appointment->load(['user', 'doctor'])
+            'appointment' => $appointment->load(['user', 'doctor']),
         ], 201);
     }
 
@@ -121,7 +114,7 @@ class AppointmentController extends Controller
             // Campos adicionais para caso seja necessário criar um novo usuário
             'name' => 'required_without:user_id|string|max:255',
             'email' => 'nullable|email|max:255|unique:users,email',
-            'birthday' => 'nullable|date'
+            'birthday' => 'nullable|date',
         ]);
     }
 
@@ -132,7 +125,7 @@ class AppointmentController extends Controller
     {
         $hasEmail = $request->filled('email');
 
-        !$hasEmail && $request->merge(['email' => $request->phone]);
+        ! $hasEmail && $request->merge(['email' => $request->phone]);
     }
 
     /**
@@ -198,7 +191,7 @@ class AppointmentController extends Controller
             'phone' => $phone,
             'is_whatsapp_user' => $request->is_whatsapp_user ?? false,
             'status' => true,
-            'password' => bcrypt(substr($cpf, -4))
+            'password' => bcrypt(substr($cpf, -4)),
         ]);
 
         // Cria dados do usuário
@@ -223,7 +216,7 @@ class AppointmentController extends Controller
     private function linkPatientToDoctorCompanies(int $doctorId, int $clientId): void
     {
         $doctor = User::with('employeeCompanies')->find($doctorId);
-        if (!$doctor) {
+        if (! $doctor) {
             return;
         }
 
@@ -250,7 +243,7 @@ class AppointmentController extends Controller
             'observations' => $request->observations,
             'is_online' => $request->is_online ?? false,
             'plan_id' => $request->plan_id,
-            'payment_method_id' => $request->payment_method_id
+            'payment_method_id' => $request->payment_method_id,
         ]);
     }
 
@@ -262,7 +255,7 @@ class AppointmentController extends Controller
         $appointment = Appointment::with(['user.userData', 'doctor'])->findOrFail($id);
 
         return response()->json([
-            'appointment' => $appointment
+            'appointment' => $appointment,
         ]);
     }
 
@@ -279,7 +272,7 @@ class AppointmentController extends Controller
             'observations' => 'nullable|string',
             'is_online' => 'nullable|boolean',
             'plan_id' => 'nullable|exists:plans,id',
-            'payment_method_id' => 'nullable|exists:payment_methods,id'
+            'payment_method_id' => 'nullable|exists:payment_methods,id',
         ]);
 
         if ($validator->fails()) {
@@ -294,7 +287,7 @@ class AppointmentController extends Controller
 
         return response()->json([
             'message' => 'Consulta atualizada com sucesso',
-            'appointment' => $appointment
+            'appointment' => $appointment,
         ]);
     }
 
@@ -313,7 +306,7 @@ class AppointmentController extends Controller
         $appointment->delete();
 
         return response()->json([
-            'message' => 'Consulta excluída com sucesso'
+            'message' => 'Consulta excluída com sucesso',
         ]);
     }
 

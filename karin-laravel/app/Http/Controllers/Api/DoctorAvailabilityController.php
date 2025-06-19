@@ -4,22 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\DoctorAvailability;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-
-use Illuminate\Http\{
-    JsonResponse,
-    Request
-};
-
-
 
 class DoctorAvailabilityController extends Controller
 {
     /**
      * Lista os horários disponíveis de um médico
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
@@ -48,9 +40,6 @@ class DoctorAvailabilityController extends Controller
 
     /**
      * Cadastra novos horários disponíveis e remove os que não estão mais na lista
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function store(Request $request): JsonResponse
     {
@@ -74,13 +63,13 @@ class DoctorAvailabilityController extends Controller
         // Horários que serão removidos (não estão na lista enviada)
         $timesToRemove = [];
         foreach ($existingAvailabilities as $existing) {
-            if (!in_array($existing->time, $request->times)) {
+            if (! in_array($existing->time, $request->times)) {
                 $timesToRemove[] = $existing->id;
             }
         }
 
         // Remove os horários que não estão mais na lista
-        if (!empty($timesToRemove)) {
+        if (! empty($timesToRemove)) {
             DoctorAvailability::whereIn('id', $timesToRemove)->delete();
         }
 
@@ -93,12 +82,12 @@ class DoctorAvailabilityController extends Controller
                 ->whereTime('time', $time)
                 ->exists();
 
-            if (!$exists) {
+            if (! $exists) {
                 $availabilities[] = DoctorAvailability::create([
                     'doctor_id' => $request->doctor_id,
                     'date' => $request->date,
                     'time' => $time,
-                    'status' => 'available'
+                    'status' => 'available',
                 ]);
             }
         }
@@ -109,16 +98,12 @@ class DoctorAvailabilityController extends Controller
                 ->whereDate('date', $request->date)
                 ->where('status', 'available')
                 ->orderBy('time')
-                ->get()
+                ->get(),
         ], 200);
     }
 
     /**
      * Atualiza o status de um horário
-     *
-     * @param Request $request
-     * @param DoctorAvailability $availability
-     * @return JsonResponse
      */
     public function update(Request $request, DoctorAvailability $availability): JsonResponse
     {
@@ -134,30 +119,24 @@ class DoctorAvailabilityController extends Controller
 
         return response()->json([
             'message' => 'Status atualizado com sucesso!',
-            'availability' => $availability
+            'availability' => $availability,
         ]);
     }
 
     /**
      * Remove um horário disponível
-     *
-     * @param DoctorAvailability $availability
-     * @return JsonResponse
      */
     public function destroy(DoctorAvailability $availability): JsonResponse
     {
         $availability->delete();
 
         return response()->json([
-            'message' => 'Horário removido com sucesso!'
+            'message' => 'Horário removido com sucesso!',
         ]);
     }
 
     /**
      * Cadastra horários recorrentes para um médico
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function storeRecurring(Request $request): JsonResponse
     {
@@ -190,12 +169,12 @@ class DoctorAvailabilityController extends Controller
                         ->whereTime('time', $time)
                         ->exists();
 
-                    if (!$exists) {
+                    if (! $exists) {
                         $availabilities[] = DoctorAvailability::create([
                             'doctor_id' => $request->doctor_id,
                             'date' => date('Y-m-d', $date),
                             'time' => $time,
-                            'status' => 'available'
+                            'status' => 'available',
                         ]);
                     }
                 }
@@ -204,7 +183,7 @@ class DoctorAvailabilityController extends Controller
 
         return response()->json([
             'message' => 'Horários recorrentes cadastrados com sucesso!',
-            'availabilities' => $availabilities
+            'availabilities' => $availabilities,
         ], 201);
     }
 }

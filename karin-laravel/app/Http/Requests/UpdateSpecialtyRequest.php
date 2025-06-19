@@ -31,13 +31,13 @@ class UpdateSpecialtyRequest extends FormRequest
                 'sometimes',
                 'string',
                 'max:120',
-                Rule::unique('specialties')->ignore($this->specialty)
+                Rule::unique('specialties')->ignore($this->specialty),
             ],
             'segment_type' => [
                 'sometimes',
-                Rule::in(Specialty::$allowedSegments)
+                Rule::in(Specialty::$allowedSegments),
             ],
-            'status' => 'sometimes|boolean'
+            'status' => 'sometimes|boolean',
         ];
     }
 
@@ -52,7 +52,7 @@ class UpdateSpecialtyRequest extends FormRequest
             'name.unique' => 'Esta especialidade já existe.',
             'name.max' => 'O nome da especialidade não pode ter mais de 120 caracteres.',
             'segment_type.in' => 'O tipo de segmento deve ser clínica-médica, salão de beleza ou clínica-odonto.',
-            'status.boolean' => 'O status deve ser verdadeiro ou falso.'
+            'status.boolean' => 'O status deve ser verdadeiro ou falso.',
         ];
     }
 }

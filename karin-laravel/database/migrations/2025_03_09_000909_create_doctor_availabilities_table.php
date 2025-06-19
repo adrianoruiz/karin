@@ -18,7 +18,7 @@ return new class extends Migration
             $table->time('time');
             $table->enum('status', ['available', 'booked'])->default('available');
             $table->timestamps();
-            
+
             // Índice composto para otimizar buscas por data/hora
             $table->index(['date', 'time', 'status']);
         });

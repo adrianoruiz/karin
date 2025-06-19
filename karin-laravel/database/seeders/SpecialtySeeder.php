@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Specialty;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class SpecialtySeeder extends Seeder
@@ -60,14 +59,14 @@ class SpecialtySeeder extends Seeder
             'Radioterapia',
             'Reumatologia',
             'Saúde Mental',
-            'Urologia'
+            'Urologia',
         ];
 
         foreach ($clinicaMedicaSpecialties as $specialty) {
             Specialty::create([
                 'name' => $specialty,
                 'segment_type' => 'clinica-medica',
-                'status' => true
+                'status' => true,
             ]);
         }
 
@@ -82,14 +81,14 @@ class SpecialtySeeder extends Seeder
             'Prótese Dentária',
             'Cirurgia Bucomaxilofacial',
             'Estética Dental',
-            'Radiologia Odontológica'
+            'Radiologia Odontológica',
         ];
 
         foreach ($clinicaOdontoSpecialties as $specialty) {
             Specialty::create([
                 'name' => $specialty,
                 'segment_type' => 'clinica-odonto',
-                'status' => true
+                'status' => true,
             ]);
         }
 
@@ -108,14 +107,14 @@ class SpecialtySeeder extends Seeder
             'Coloração',
             'Tratamentos Capilares',
             'Spa das Mãos e Pés',
-            'Podologia'
+            'Podologia',
         ];
 
         foreach ($salaoBelezaSpecialties as $specialty) {
             Specialty::create([
                 'name' => $specialty,
                 'segment_type' => 'salao-beleza',
-                'status' => true
+                'status' => true,
             ]);
         }
     }

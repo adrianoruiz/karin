@@ -5,14 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
-
-use Illuminate\Support\Facades\{
-    Auth,
-    Validator
-};
-
-
 
 class AuthController extends Controller
 {
@@ -29,7 +24,6 @@ class AuthController extends Controller
     /**
      * Obter um token JWT via credenciais fornecidas.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function login(Request $request)
@@ -55,7 +49,6 @@ class AuthController extends Controller
     /**
      * Registrar um novo usuário.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function register(Request $request)
@@ -79,7 +72,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Usuário registrado com sucesso',
-            'user' => $user
+            'user' => $user,
         ], 201);
     }
 
@@ -91,13 +84,13 @@ class AuthController extends Controller
     public function me()
     {
         $user = Auth::guard('api')->user();
-        if (!$user) {
+        if (! $user) {
             return response()->json(['error' => 'Não autenticado'], 401);
         }
-        
+
         // Carrega o usuário com seus roles e userData
         $userWithRoles = User::with(['roles', 'userData'])->find($user->id);
-        
+
         // Cria a resposta
         return response()->json([
             'id' => $userWithRoles->id,
@@ -112,7 +105,7 @@ class AuthController extends Controller
             'updated_at' => $userWithRoles->updated_at,
             'deleted_at' => $userWithRoles->deleted_at,
             'roles' => $userWithRoles->roles,
-            'segment_types' => $userWithRoles->userData ? $userWithRoles->userData->segment_types : null
+            'segment_types' => $userWithRoles->userData ? $userWithRoles->userData->segment_types : null,
         ]);
     }
 
@@ -137,6 +130,7 @@ class AuthController extends Controller
     {
         try {
             $newToken = JWTAuth::parseToken()->refresh();
+
             return $this->respondWithToken($newToken);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Não foi possível atualizar o token'], 401);
@@ -146,7 +140,7 @@ class AuthController extends Controller
     /**
      * Obter a estrutura do array do token.
      *
-     * @param  string $token
+     * @param  string  $token
      * @return \Illuminate\Http\JsonResponse
      */
     protected function respondWithToken($token)
@@ -155,7 +149,7 @@ class AuthController extends Controller
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => config('jwt.ttl') * 60, // TTL em minutos convertido para segundos
-            'user' => Auth::guard('api')->user()
+            'user' => Auth::guard('api')->user(),
         ]);
     }
 }

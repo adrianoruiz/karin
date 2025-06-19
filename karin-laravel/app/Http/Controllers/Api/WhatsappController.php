@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\AiConfig;
 
 class WhatsappController extends Controller
 {
@@ -29,7 +28,7 @@ class WhatsappController extends Controller
                 $user->toArray(),
                 [
                     'segment_types' => $user->userData->segment_types ?? null,
-                    'is_ai_active' => $isAiActive
+                    'is_ai_active' => $isAiActive,
                 ]
             );
         });
@@ -37,7 +36,7 @@ class WhatsappController extends Controller
         return response()->json([
             'success' => true,
             'data' => $usersData,
-            'message' => 'Lista de usuários do WhatsApp obtida com sucesso'
+            'message' => 'Lista de usuários do WhatsApp obtida com sucesso',
         ]);
     }
 }

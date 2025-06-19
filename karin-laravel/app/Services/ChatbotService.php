@@ -15,9 +15,8 @@ class ChatbotService
      * Obtém uma mensagem de chatbot para um usuário e tipo específicos.
      * Se não encontrar uma mensagem personalizada para o usuário, retorna a mensagem padrão.
      *
-     * @param int $userId ID do usuário
-     * @param string $messageType Tipo da mensagem
-     * @return Chatbot|null
+     * @param  int  $userId  ID do usuário
+     * @param  string  $messageType  Tipo da mensagem
      */
     public function getChatbotMessage(int $userId, string $messageType): ?Chatbot
     {
@@ -31,7 +30,7 @@ class ChatbotService
                 ->first();
 
             // Se não encontrar, busca a mensagem padrão (is_default = true)
-            if (!$chatbotMessage) {
+            if (! $chatbotMessage) {
                 $chatbotMessage = Chatbot::where('user_id', $userId)
                     ->where('message_type', $messageType)
                     ->where('is_active', true)
@@ -40,7 +39,7 @@ class ChatbotService
             }
 
             // Se ainda não encontrar, busca a mensagem do usuário administrador (ID 1)
-            if (!$chatbotMessage) {
+            if (! $chatbotMessage) {
                 $chatbotMessage = Chatbot::where('user_id', 1)
                     ->where('message_type', $messageType)
                     ->where('is_active', true)
@@ -54,14 +53,13 @@ class ChatbotService
     /**
      * Prepara os dados de personalização para substituição nas mensagens.
      *
-     * @param User $user Usuário
-     * @param array $data Dados adicionais
-     * @return array
+     * @param  User  $user  Usuário
+     * @param  array  $data  Dados adicionais
      */
     public function preparePersonalizationData(User $user, array $data): array
     {
-        $primeiroNome = isset($data['name']) && $data['name'] 
-            ? explode(' ', $data['name'])[0] 
+        $primeiroNome = isset($data['name']) && $data['name']
+            ? explode(' ', $data['name'])[0]
             : 'Cliente';
 
         $personalizationData = [
@@ -86,12 +84,11 @@ class ChatbotService
     /**
      * Atualiza ou cria uma mensagem de chatbot para um usuário.
      *
-     * @param int $userId ID do usuário
-     * @param string $messageType Tipo da mensagem
-     * @param string $message Conteúdo da mensagem
-     * @param string|null $name Nome da mensagem (opcional)
-     * @param bool $isDefault Define se é a mensagem padrão
-     * @return Chatbot
+     * @param  int  $userId  ID do usuário
+     * @param  string  $messageType  Tipo da mensagem
+     * @param  string  $message  Conteúdo da mensagem
+     * @param  string|null  $name  Nome da mensagem (opcional)
+     * @param  bool  $isDefault  Define se é a mensagem padrão
      */
     public function updateOrCreateMessage(int $userId, string $messageType, string $message, ?string $name = null, bool $isDefault = false): Chatbot
     {
@@ -125,9 +122,6 @@ class ChatbotService
 
     /**
      * Retorna um nome padrão para um tipo de mensagem.
-     *
-     * @param string $messageType
-     * @return string
      */
     private function getDefaultNameForType(string $messageType): string
     {
@@ -148,10 +142,6 @@ class ChatbotService
 
     /**
      * Limpa o cache para uma mensagem específica.
-     *
-     * @param int $userId
-     * @param string $messageType
-     * @return void
      */
     private function clearMessageCache(int $userId, string $messageType): void
     {

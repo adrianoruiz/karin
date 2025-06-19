@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignId('specialty_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();
-            
+
             // Índice composto para garantir unicidade do par specialty_id, user_id
             $table->unique(['user_id', 'specialty_id']);
         });

@@ -1,29 +1,25 @@
 <?php
 
+use App\Http\Controllers\AiConfigController;
+use App\Http\Controllers\AiPromptController;
+use App\Http\Controllers\Api\AppointmentController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ChatLogController;
+use App\Http\Controllers\Api\CityController;
+use App\Http\Controllers\Api\CompanyEmployeeController;
+use App\Http\Controllers\Api\DoctorAvailabilityController;
+use App\Http\Controllers\Api\MedicalRecordController;
+use App\Http\Controllers\Api\PatientAppointmentController;
+use App\Http\Controllers\Api\PlanController;
+use App\Http\Controllers\Api\ProvinceController;
+use App\Http\Controllers\Api\SpecialtyController;
+use App\Http\Controllers\Api\TriageRecordController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\UserWorkingHourController;
+use App\Http\Controllers\Api\WhatsappController;
+use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\ChatbotCrudController;
 use Illuminate\Support\Facades\Route;
-
-use App\Http\Controllers\{
-    AiConfigController,
-    AiPromptController,
-    Api\AppointmentController,
-    Api\AuthController,
-    Api\ChatLogController,
-    Api\CityController,
-    Api\CompanyEmployeeController,
-    Api\DoctorAvailabilityController,
-    Api\MedicalRecordController,
-    Api\PatientAppointmentController,
-    Api\PlanController,
-    Api\ProvinceController,
-    Api\SpecialtyController,
-    Api\UserController,
-    Api\UserWorkingHourController,
-    Api\WhatsappController,
-    ChatbotController,
-    ChatbotCrudController
-};
-
-
 
 /*
 |--------------------------------------------------------------------------
@@ -38,7 +34,7 @@ use App\Http\Controllers\{
 
 // Rotas de autenticação
 Route::group([
-    'prefix' => 'auth'
+    'prefix' => 'auth',
 ], function () {
     Route::post('login', [AuthController::class, 'login']);
     Route::post('register', [AuthController::class, 'register']);
@@ -53,7 +49,7 @@ Route::get('bot/status/{companyId}', [AiConfigController::class, 'checkBotStatus
 // Rotas de WhatsApp
 Route::group([
     'prefix' => 'whatsapp',
-    'middleware' => 'auth:api'
+    'middleware' => 'auth:api',
 ], function () {
     // Route::get('list-whats-users', [WhatsappController::class, 'listWhatsappUsers']);
 });
@@ -99,7 +95,6 @@ Route::middleware('auth:api')->prefix('users/{user}')->group(function () {
 // Rotas de agendamentos
 Route::apiResource('appointments', AppointmentController::class);
 
-
 // Rotas para pacientes agendarem consultas
 Route::prefix('patient')->group(function () {
     Route::get('available-times', [PatientAppointmentController::class, 'getAvailableTimes']);
@@ -111,11 +106,10 @@ Route::prefix('patient')->group(function () {
     Route::get('my-appointments', [PatientAppointmentController::class, 'myAppointments']);
 });
 
-
 // Rotas de Chatbot - CRUD
 Route::group([
     'prefix' => 'chatbots-crud',
-    'middleware' => 'auth:api'
+    'middleware' => 'auth:api',
 ], function () {
     // Rotas específicas primeiro
     Route::get('/type/{type}', [ChatbotCrudController::class, 'getByType']);
@@ -132,7 +126,7 @@ Route::group([
 // Rotas de Chatbot - Mensagens personalizadas
 Route::group([
     'prefix' => 'chatbots',
-    'middleware' => 'auth:api'
+    'middleware' => 'auth:api',
 ], function () {
     Route::post('/message-type', [ChatbotController::class, 'getPersonalizedMessageByType']);
     Route::post('/update-message', [ChatbotController::class, 'updateMessage']);
@@ -155,10 +149,8 @@ Route::middleware('auth:api')->group(function () {
     });
 });
 
-
-
 // Rotas para gerenciamento de logs de chat
-//Todo voltar a testar com rota autenticada
+// Todo voltar a testar com rota autenticada
 Route::apiResource('chat-log', ChatLogController::class);
 Route::prefix('chat-logs')->group(function () {
     Route::get('/unread/messages', [ChatLogController::class, 'getUnreadMessages']);
@@ -183,7 +175,7 @@ Route::get('plans/{plan}', [PlanController::class, 'publicShow']);
 // Rotas para configuração da IA
 Route::group([
     'prefix' => 'ai-config',
-    'middleware' => 'auth:api'
+    'middleware' => 'auth:api',
 ], function () {
     Route::get('/', [AiConfigController::class, 'show']);
     Route::post('/', [AiConfigController::class, 'store']);
@@ -198,7 +190,7 @@ Route::group([
 
 // Rotas para Províncias e Cidades
 Route::group([
-    'prefix' => 'locations'
+    'prefix' => 'locations',
 ], function () {
     // Rotas de Províncias
     Route::get('/provinces', [ProvinceController::class, 'index']);
@@ -214,11 +206,11 @@ Route::group([
 // Rotas para Prontuários Médicos
 Route::group([
     'prefix' => 'medical-records',
-    'middleware' => 'auth:api'
+    'middleware' => 'auth:api',
 ], function () {
     // Rota específica para estatísticas (deve vir antes das rotas com parâmetros)
     Route::get('/stats', [MedicalRecordController::class, 'stats']);
-    
+
     // Rotas CRUD padrão
     Route::get('/', [MedicalRecordController::class, 'index']);
     Route::post('/', [MedicalRecordController::class, 'store']);
@@ -226,4 +218,16 @@ Route::group([
     Route::put('/{id}', [MedicalRecordController::class, 'update']);
     Route::patch('/{id}', [MedicalRecordController::class, 'update']);
     Route::delete('/{id}', [MedicalRecordController::class, 'destroy']);
+});
+
+// Rotas para Triagem Médica
+Route::group([
+    'prefix' => 'triage-records',
+    'middleware' => 'auth:api',
+], function () {
+    Route::get('/', [TriageRecordController::class, 'index']);
+    Route::post('/', [TriageRecordController::class, 'store']);
+    Route::get('/{triageRecord}', [TriageRecordController::class, 'show']);
+    Route::put('/{triageRecord}', [TriageRecordController::class, 'update']);
+    Route::delete('/{triageRecord}', [TriageRecordController::class, 'destroy']);
 });

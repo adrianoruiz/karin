@@ -36,7 +36,7 @@ class MedicalRecord extends Model
         'notes',
         'remember_notes',
         'surgical_prescription',
-        'remember_surgical'
+        'remember_surgical',
     ];
 
     /**
@@ -51,13 +51,11 @@ class MedicalRecord extends Model
         'remember_surgical' => 'boolean',
         'vital_signs' => 'array',
         'created_at' => 'datetime',
-        'updated_at' => 'datetime'
+        'updated_at' => 'datetime',
     ];
 
     /**
      * Relacionamento com a empresa/clínica (company).
-     *
-     * @return BelongsTo
      */
     public function company(): BelongsTo
     {
@@ -66,8 +64,6 @@ class MedicalRecord extends Model
 
     /**
      * Relacionamento com o paciente.
-     *
-     * @return BelongsTo
      */
     public function patient(): BelongsTo
     {
@@ -76,8 +72,6 @@ class MedicalRecord extends Model
 
     /**
      * Relacionamento com o médico responsável.
-     *
-     * @return BelongsTo
      */
     public function doctor(): BelongsTo
     {
@@ -87,8 +81,8 @@ class MedicalRecord extends Model
     /**
      * Scope para filtrar por empresa.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param int $companyId
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  int  $companyId
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeForCompany($query, $companyId)
@@ -99,8 +93,8 @@ class MedicalRecord extends Model
     /**
      * Scope para filtrar por paciente.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param int $patientId
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  int  $patientId
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeForPatient($query, $patientId)
@@ -111,8 +105,8 @@ class MedicalRecord extends Model
     /**
      * Scope para filtrar por médico.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param int $doctorId
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  int  $doctorId
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeForDoctor($query, $doctorId)
@@ -123,7 +117,7 @@ class MedicalRecord extends Model
     /**
      * Scope para ordenar por data de consulta (mais recente primeiro).
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeLatestConsultation($query)
@@ -134,9 +128,9 @@ class MedicalRecord extends Model
     /**
      * Scope para filtrar por período de consultas.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param string $startDate
-     * @param string $endDate
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string  $startDate
+     * @param  string  $endDate
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeConsultationPeriod($query, $startDate, $endDate)
@@ -147,8 +141,8 @@ class MedicalRecord extends Model
     /**
      * Scope para filtrar por tipo de consulta.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param string $consultationType
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string  $consultationType
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeByConsultationType($query, $consultationType)

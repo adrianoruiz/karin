@@ -3,39 +3,30 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-
-use App\Models\{
-    ChatLog,
-    User
-};
-use Illuminate\Http\{
-    JsonResponse,
-    Request
-};
-use Illuminate\Support\{
-    Facades\Auth,
-    Facades\DB,
-    Facades\Hash,
-    Facades\Log,
-    Facades\Storage,
-    Facades\Validator,
-    Str
-};
-
-
+use App\Models\ChatLog;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class ChatLogController extends Controller
 {
-        /**
+    /**
      * Ativa ou desativa o bot GPT para uma conversa específica
      *
-     * @param Request $request
      * @return JsonResponse
      */
-    public function activeBot(Request $request){
+    public function activeBot(Request $request)
+    {
         return response()->json([
             'is_bot_active' => true,
-            'message' => 'GPT ativado com sucesso'
+            'message' => 'GPT ativado com sucesso',
         ]);
 
         // is_bot_active implementar depois
@@ -44,18 +35,18 @@ class ChatLogController extends Controller
         //     'phone_user' => 'required|string',
         //     'is_active' => 'required|boolean'
         // ]);
-        
+
         // // Busca todas as mensagens entre este médico e paciente
         // $chatLogs = ChatLog::where('doctor_id', $validated['doctor_id'])
         //                    ->where('phone_user', $validated['phone_user'])
         //                    ->get();
-        
+
         // // Atualiza o status do bot para todas as mensagens desta conversa
         // foreach ($chatLogs as $chatLog) {
         //     $chatLog->is_bot_active = $validated['is_active'];
         //     $chatLog->save();
         // }
-        
+
         // return response()->json([
         //     'status' => true,
         //     'message' => $validated['is_active'] ? 'GPT ativado com sucesso' : 'GPT desativado com sucesso',
@@ -69,7 +60,7 @@ class ChatLogController extends Controller
 
     /**
      * Display a listing of the resource.
-     * 
+     *
      * Retorna as mensagens trocadas entre um paciente e um médico.
      */
     public function index(Request $request): JsonResponse
@@ -98,13 +89,13 @@ class ChatLogController extends Controller
 
         // Busca as mensagens (usando phone_user como identificador principal)
         $query = ChatLog::where('doctor_id', $doctorId)
-                ->where('phone_user', $phoneUser);
-        
+            ->where('phone_user', $phoneUser);
+
         // Se um user_id foi fornecido, também filtra por ele
         if ($userId) {
-            $query->where(function($q) use ($userId, $phoneUser) {
+            $query->where(function ($q) use ($userId) {
                 $q->where('user_id', $userId)
-                  ->orWhereNull('user_id');
+                    ->orWhereNull('user_id');
             });
         }
 
@@ -124,7 +115,7 @@ class ChatLogController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     * 
+     *
      * Armazena uma nova mensagem no log de chat.
      */
     public function store(Request $request): JsonResponse
@@ -152,49 +143,49 @@ class ChatLogController extends Controller
         $senderType = $request->input('sender_type');
 
         // Verifica permissões apenas se não for a rota de teste e o usuário estiver autenticado
-        if (!$isTestRoute && $currentUser && $senderType === 'doctor' && $currentUser->id != $doctorId) {
+        if (! $isTestRoute && $currentUser && $senderType === 'doctor' && $currentUser->id != $doctorId) {
             return response()->json(['error' => 'Não autorizado a enviar mensagens como médico'], 403);
         }
 
         // Verifica se já existe um usuário com este número de telefone
         // Se não existir e for uma mensagem do usuário, cria um novo
-        if (!$userId && $senderType === 'user') {
+        if (! $userId && $senderType === 'user') {
             try {
                 // Inicia uma transação para garantir consistência
                 DB::beginTransaction();
-                
+
                 // Verifica se já existe um usuário com este telefone
                 $existingUser = User::where('phone', $phoneUser)->first();
-                
+
                 if ($existingUser) {
                     // Se já existe, usa o ID deste usuário
                     $userId = $existingUser->id;
                 } else {
                     // Cria um novo usuário com o número de telefone
-                    $newUser = new User();
+                    $newUser = new User;
                     $newUser->name = 'Paciente WhatsApp';
-                    $newUser->email = 'whatsapp_' . str_replace(['+', ' ', '-', '(', ')'], '', $phoneUser) . '@whatsapp.temp';
+                    $newUser->email = 'whatsapp_'.str_replace(['+', ' ', '-', '(', ')'], '', $phoneUser).'@whatsapp.temp';
                     $newUser->password = Hash::make(Str::random(16)); // Senha aleatória
                     $newUser->phone = $phoneUser;
                     $newUser->is_whatsapp_user = false;
                     $newUser->status = true;
                     $newUser->save();
-                    
+
                     // Atribui o ID do novo usuário
                     $userId = $newUser->id;
                 }
-                
+
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollBack();
                 // Se houver erro, continua sem criar o usuário
                 // Apenas registra o erro no log
-                Log::error('Erro ao criar usuário do WhatsApp: ' . $e->getMessage());
+                Log::error('Erro ao criar usuário do WhatsApp: '.$e->getMessage());
             }
         }
 
         // Cria o registro da mensagem
-        $chatLog = new ChatLog();
+        $chatLog = new ChatLog;
         $chatLog->doctor_id = $doctorId;
         $chatLog->phone_user = $phoneUser;
         $chatLog->user_id = $userId; // Pode ser null
@@ -208,7 +199,7 @@ class ChatLogController extends Controller
             // Processa o upload do arquivo
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
-                $fileName = time() . '_' . $file->getClientOriginalName();
+                $fileName = time().'_'.$file->getClientOriginalName();
                 $filePath = $file->storeAs(
                     "chat_logs/{$phoneUser}_{$doctorId}",
                     $fileName,
@@ -229,7 +220,7 @@ class ChatLogController extends Controller
 
     /**
      * Display the specified resource.
-     * 
+     *
      * Retorna uma mensagem específica.
      */
     public function show(string $id): JsonResponse
@@ -252,7 +243,7 @@ class ChatLogController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * 
+     *
      * Atualiza o status de leitura de uma mensagem.
      */
     public function update(Request $request, string $id): JsonResponse
@@ -263,7 +254,7 @@ class ChatLogController extends Controller
         $currentUser = Auth::user();
         $isRecipient = $chatLog->sender_type === 'user' && $currentUser->id === $chatLog->doctor_id;
 
-        if (!$isRecipient) {
+        if (! $isRecipient) {
             return response()->json(['error' => 'Apenas o médico pode marcar a mensagem como lida'], 403);
         }
 
@@ -289,7 +280,7 @@ class ChatLogController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     * 
+     *
      * Remove uma mensagem específica.
      */
     public function destroy(string $id): JsonResponse
@@ -298,10 +289,10 @@ class ChatLogController extends Controller
 
         // Verifica permissões (apenas o remetente pode excluir a mensagem)
         $currentUser = Auth::user();
-        $isSender = 
+        $isSender =
             ($chatLog->sender_type === 'doctor' && $currentUser->id === $chatLog->doctor_id);
 
-        if (!$isSender) {
+        if (! $isSender) {
             return response()->json(['error' => 'Apenas o remetente pode excluir a mensagem'], 403);
         }
 
@@ -317,9 +308,6 @@ class ChatLogController extends Controller
 
     /**
      * Marca todas as mensagens de uma conversa como lidas.
-     * 
-     * @param Request $request
-     * @return JsonResponse
      */
     public function markAllAsRead(Request $request): JsonResponse
     {
@@ -353,15 +341,12 @@ class ChatLogController extends Controller
 
         return response()->json([
             'message' => "{$count} mensagens marcadas como lidas",
-            'count' => $count
+            'count' => $count,
         ]);
     }
 
     /**
      * Retorna as mensagens não lidas para um usuário.
-     * 
-     * @param Request $request
-     * @return JsonResponse
      */
     public function getUnreadMessages(Request $request): JsonResponse
     {
@@ -390,13 +375,13 @@ class ChatLogController extends Controller
 
         // Agrupa as mensagens por phone_user (já que é o identificador principal)
         $groupedMessages = $unreadMessages->groupBy('phone_user');
-        
+
         // Formata a resposta
         $result = [];
         foreach ($groupedMessages as $phoneUser => $messages) {
             // Pega o user_id se existir
             $userId = $messages->first()->user_id;
-            
+
             $result[] = [
                 'phone_user' => $phoneUser,
                 'user_id' => $userId,

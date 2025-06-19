@@ -23,7 +23,7 @@ class UpdateCompleteUserRequest extends FormRequest
     {
         return [
             'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|string|email|max:255|unique:users,email,' . $this->route('id'),
+            'email' => 'sometimes|string|email|max:255|unique:users,email,'.$this->route('id'),
             'password' => 'sometimes|string|min:4',
             'phone' => 'nullable|string|max:20',
             'is_whatsapp_user' => 'nullable|boolean',
@@ -54,7 +54,7 @@ class UpdateCompleteUserRequest extends FormRequest
 
             // Validação de especialidades
             'specialty_ids' => 'nullable|array',
-            'specialty_ids.*' => 'exists:specialties,id'
+            'specialty_ids.*' => 'exists:specialties,id',
         ];
     }
 
@@ -77,7 +77,7 @@ class UpdateCompleteUserRequest extends FormRequest
             'address.zip.required_with' => 'O campo CEP é obrigatório quando um endereço é fornecido.',
             'address.city_id.required_with' => 'O campo cidade é obrigatório quando um endereço é fornecido.',
             'address.city_id.exists' => 'A cidade selecionada não existe.',
-            'specialty_ids.*.exists' => 'Uma ou mais especialidades selecionadas não existem.'
+            'specialty_ids.*.exists' => 'Uma ou mais especialidades selecionadas não existem.',
         ];
     }
 }

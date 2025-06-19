@@ -29,21 +29,24 @@ class SetPromptFixed extends Command
         $userId = $this->argument('user_id');
         $file = $this->argument('file');
 
-        if (!file_exists($file)) {
+        if (! file_exists($file)) {
             $this->error('Arquivo não encontrado!');
+
             return 1;
         }
 
         $prompt = file_get_contents($file);
 
         $aiConfig = AiConfig::where('user_id', $userId)->first();
-        if (!$aiConfig) {
-            $this->error('Configuração não encontrada para o usuário ' . $userId);
+        if (! $aiConfig) {
+            $this->error('Configuração não encontrada para o usuário '.$userId);
+
             return 1;
         }
         $aiConfig->prompt_fixed = $prompt;
         $aiConfig->save();
         $this->info('Prompt fixed salvo com sucesso!');
+
         return 0;
     }
 }

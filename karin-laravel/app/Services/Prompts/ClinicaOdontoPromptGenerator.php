@@ -6,9 +6,6 @@ class ClinicaOdontoPromptGenerator extends AbstractPromptGenerator
 {
     /**
      * Gera o prompt específico para clínica odontológica
-     *
-     * @param array $dados
-     * @return string
      */
     public function gerarPrompt(array $dados): string
     {
@@ -31,7 +28,6 @@ class ClinicaOdontoPromptGenerator extends AbstractPromptGenerator
         $genero = $this->obterGenero($nome);
         $tratamento = $this->obterTratamento($nome);
 
-
         // Formatar atendimentos
         $atendimentosFormatados = $this->formatarAtendimentos($atendimentos);
 
@@ -39,12 +35,12 @@ class ClinicaOdontoPromptGenerator extends AbstractPromptGenerator
         $pagamentosFormatados = $this->formatarFormasPagamento($formasPagamento);
 
         // Emoji de prefixo (se habilitado)
-        $emojiPrefixo = $emojis ? "🦷😁 " : "";
+        $emojiPrefixo = $emojis ? '🦷😁 ' : '';
 
         // Informação sobre reembolso
         $infoReembolso = $reembolso
-            ? "Fornecemos recibo para reembolso junto ao plano odontológico."
-            : "Não fornecemos recibo para reembolso junto ao plano odontológico.";
+            ? 'Fornecemos recibo para reembolso junto ao plano odontológico.'
+            : 'Não fornecemos recibo para reembolso junto ao plano odontológico.';
 
         // Construir o prompt base
         $prompt = <<<EOT

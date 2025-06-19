@@ -5,21 +5,16 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use App\Enum\ValidRoles;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
-
-use Illuminate\Database\Eloquent\{
-    Factories\HasFactory,
-    Relations\BelongsToMany,
-    Relations\HasMany,
-    Relations\HasOne,
-    Relations\MorphMany,
-    Relations\MorphOne,
-    SoftDeletes
-};
-
-
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -89,8 +84,9 @@ class User extends Authenticatable implements JWTSubject
     /**
      * Verifica se o usuário possui um determinado papel.
      *
-     * @param string|ValidRoles $role
+     * @param  string|ValidRoles  $role
      * @return bool
+     *
      * @throws \InvalidArgumentException
      */
     public function hasRole($role)
@@ -100,10 +96,11 @@ class User extends Authenticatable implements JWTSubject
         } elseif (is_string($role)) {
             $roleSlug = $role;
         } else {
-            throw new \InvalidArgumentException("Invalid role type");
+            throw new \InvalidArgumentException('Invalid role type');
         }
 
         $roles = $this->roles->pluck('slug');
+
         return $roles->contains($roleSlug);
     }
 
@@ -117,7 +114,7 @@ class User extends Authenticatable implements JWTSubject
         $defaultAddress = $this->addresses()->where('default', true)->first();
 
         // Se não houver endereço marcado como padrão
-        if (!$defaultAddress) {
+        if (! $defaultAddress) {
             // Pega o primeiro endereço da lista
             $defaultAddress = $this->addresses()->first();
 
@@ -179,8 +176,6 @@ class User extends Authenticatable implements JWTSubject
 
     /**
      * Empresas onde o usuário é funcionário
-     * 
-     * @return BelongsToMany
      */
     public function employeeCompanies(): BelongsToMany
     {
@@ -189,8 +184,6 @@ class User extends Authenticatable implements JWTSubject
 
     /**
      * Funcionários da empresa (quando este usuário é uma empresa)
-     * 
-     * @return BelongsToMany
      */
     public function employees(): BelongsToMany
     {

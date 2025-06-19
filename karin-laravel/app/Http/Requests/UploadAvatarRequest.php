@@ -40,4 +40,4 @@ class UploadAvatarRequest extends FormRequest
             'avatar.max' => 'A imagem não pode ter mais de 2MB.',
         ];
     }
-} 
+}

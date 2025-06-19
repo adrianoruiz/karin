@@ -16,11 +16,11 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id'); // ID do médico
             $table->unsignedBigInteger('payment_method_id');
             $table->timestamps();
-            
+
             // Definindo chaves estrangeiras
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('payment_method_id')->references('id')->on('payment_methods')->onDelete('cascade');
-            
+
             // Garantindo que não haja duplicidade
             $table->unique(['user_id', 'payment_method_id']);
         });

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\City;
-use Illuminate\Http\Request;
 
 class CityController extends Controller
 {
@@ -16,10 +15,10 @@ class CityController extends Controller
     public function index()
     {
         $cities = City::all();
-        
+
         return response()->json([
             'success' => true,
-            'data' => $cities
+            'data' => $cities,
         ]);
     }
 
@@ -33,16 +32,16 @@ class CityController extends Controller
     {
         $city = City::with('province')->find($id);
 
-        if (!$city) {
+        if (! $city) {
             return response()->json([
                 'success' => false,
-                'message' => 'Cidade não encontrada'
+                'message' => 'Cidade não encontrada',
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'data' => $city
+            'data' => $city,
         ]);
     }
 
@@ -58,7 +57,7 @@ class CityController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $cities
+            'data' => $cities,
         ]);
     }
-} 
+}

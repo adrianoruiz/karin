@@ -32,6 +32,5 @@ function getProvinces()
         ['id' => 27, 'name' => 'Tocantins', 'initials' => 'TO'],
     ];
 
-
     return $provinces;
 }

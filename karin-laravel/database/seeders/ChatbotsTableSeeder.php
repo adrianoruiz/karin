@@ -2,14 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Chatbot;
+use App\Models\User;
 use Illuminate\Database\Seeder;
-
-use App\Models\{
-    Chatbot,
-    User
-};
-
-
 
 class ChatbotsTableSeeder extends Seeder
 {
@@ -20,7 +15,7 @@ class ChatbotsTableSeeder extends Seeder
     {
         // Busca os usuários para associar aos chatbots
         $adminUser = User::where('email', 'karin@drakarin.com.br')->first();
-        
+
         if ($adminUser) {
 
             Chatbot::create([
@@ -32,7 +27,7 @@ class ChatbotsTableSeeder extends Seeder
                 'is_active' => true,
                 'is_default' => true,
             ]);
-        
+
             Chatbot::create([
                 'user_id' => $adminUser->id,
                 'message_type' => 'greeting',
@@ -84,7 +79,7 @@ class ChatbotsTableSeeder extends Seeder
                 'is_active' => true,
                 'is_default' => true,
             ]);
-            
+
             // Mensagens de catálogo
             Chatbot::create([
                 'user_id' => $adminUser->id,
@@ -95,7 +90,7 @@ class ChatbotsTableSeeder extends Seeder
                 'is_active' => true,
                 'is_default' => true,
             ]);
-            
+
             // Mensagens de catálogo com promoção
             Chatbot::create([
                 'user_id' => $adminUser->id,
@@ -106,7 +101,7 @@ class ChatbotsTableSeeder extends Seeder
                 'is_active' => true,
                 'is_default' => true,
             ]);
-            
+
             // Mensagens de loja fechada
             Chatbot::create([
                 'user_id' => $adminUser->id,
@@ -117,7 +112,7 @@ class ChatbotsTableSeeder extends Seeder
                 'is_active' => true,
                 'is_default' => true,
             ]);
-            
+
             // Mensagens de loja fechada com promoção
             Chatbot::create([
                 'user_id' => $adminUser->id,
@@ -128,7 +123,7 @@ class ChatbotsTableSeeder extends Seeder
                 'is_active' => true,
                 'is_default' => true,
             ]);
-            
+
             // Mensagens de feriado
             Chatbot::create([
                 'user_id' => $adminUser->id,

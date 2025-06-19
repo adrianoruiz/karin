@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Province;
-use Illuminate\Http\Request;
 
 class ProvinceController extends Controller
 {
@@ -16,10 +15,10 @@ class ProvinceController extends Controller
     public function index()
     {
         $provinces = Province::all();
-        
+
         return response()->json([
             'success' => true,
-            'data' => $provinces
+            'data' => $provinces,
         ]);
     }
 
@@ -33,16 +32,16 @@ class ProvinceController extends Controller
     {
         $province = Province::with('cities')->find($id);
 
-        if (!$province) {
+        if (! $province) {
             return response()->json([
                 'success' => false,
-                'message' => 'Província não encontrada'
+                'message' => 'Província não encontrada',
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'data' => $province
+            'data' => $province,
         ]);
     }
 
@@ -57,7 +56,7 @@ class ProvinceController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $provinces
+            'data' => $provinces,
         ]);
     }
-} 
+}

@@ -6,9 +6,6 @@ class SalaoBelezaPromptGenerator extends AbstractPromptGenerator
 {
     /**
      * Gera o prompt específico para salão de beleza
-     *
-     * @param array $dados
-     * @return string
      */
     public function gerarPrompt(array $dados): string
     {
@@ -36,7 +33,7 @@ class SalaoBelezaPromptGenerator extends AbstractPromptGenerator
         $pagamentosFormatados = $this->formatarFormasPagamento($formasPagamento);
 
         // Emoji de prefixo (se habilitado)
-        $emojiPrefixo = $emojis ? "💇‍♀️💅 " : "";
+        $emojiPrefixo = $emojis ? '💇‍♀️💅 ' : '';
 
         // Tempo médio de serviço
         $tempoMedioServico = $duracaoConsulta ?? 60;

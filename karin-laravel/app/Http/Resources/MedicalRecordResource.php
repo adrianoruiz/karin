@@ -21,7 +21,7 @@ class MedicalRecordResource extends JsonResource
             'doctor_id' => $this->doctor_id,
             'consultation_date' => $this->consultation_date?->format('Y-m-d'),
             'consultation_type' => $this->consultation_type,
-            
+
             // Anamnese
             'chief_complaint' => $this->chief_complaint,
             'remember_complaint' => $this->remember_complaint,
@@ -29,29 +29,29 @@ class MedicalRecordResource extends JsonResource
             'past_pathological_history' => $this->past_pathological_history,
             'family_history' => $this->family_history,
             'social_history' => $this->social_history,
-            
+
             // Exame físico e complementares
             'physical_exam' => $this->physical_exam,
             'complementary_exams' => $this->complementary_exams,
-            
+
             // Sinais vitais
             'vital_signs' => $this->vital_signs,
-            
+
             // Diagnóstico e conduta
             'diagnosis' => $this->diagnosis,
             'cid10_code' => $this->cid10_code,
             'treatment' => $this->treatment,
-            
+
             // Observações
             'notes' => $this->notes,
             'remember_notes' => $this->remember_notes,
             'surgical_prescription' => $this->surgical_prescription,
             'remember_surgical' => $this->remember_surgical,
-            
+
             // Timestamps
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
-            
+
             // Relacionamentos (quando carregados)
             'patient' => $this->whenLoaded('patient', function () {
                 return [
@@ -61,7 +61,7 @@ class MedicalRecordResource extends JsonResource
                     'phone' => $this->patient->phone,
                 ];
             }),
-            
+
             'doctor' => $this->whenLoaded('doctor', function () {
                 return [
                     'id' => $this->doctor->id,
@@ -70,7 +70,7 @@ class MedicalRecordResource extends JsonResource
                     'phone' => $this->doctor->phone,
                 ];
             }),
-            
+
             'company' => $this->whenLoaded('company', function () {
                 return [
                     'id' => $this->company->id,

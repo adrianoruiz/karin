@@ -2,23 +2,20 @@
 
 namespace App\Repositories;
 
-use App\Models\User;
-use App\Models\UserData;
 use App\Models\Address;
 use App\Models\Role;
 use App\Models\Specialty;
+use App\Models\User;
+use App\Models\UserData;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class UserRepository
 {
     /**
      * Busca um usuário pelo ID carregando relacionamentos comuns.
-     *
-     * @param int $id
-     * @return User|null
      */
     public function findById(int $id): ?User
     {
@@ -28,9 +25,6 @@ class UserRepository
 
     /**
      * Busca um usuário completo pelo ID carregando todos os relacionamentos.
-     *
-     * @param int $id
-     * @return User|null
      */
     public function findCompleteById(int $id): ?User
     {
@@ -39,10 +33,6 @@ class UserRepository
 
     /**
      * Lista usuários com paginação aplicando filtros.
-     *
-     * @param array $filters
-     * @param int $perPage
-     * @return LengthAwarePaginator
      */
     public function listWithFilters(array $filters, int $perPage = 15): LengthAwarePaginator
     {
@@ -64,7 +54,7 @@ class UserRepository
         }
 
         // Se não for admin, filtra por empresas relacionadas ao usuário autenticado
-        if (!$isAdmin && $authenticatedUser) {
+        if (! $isAdmin && $authenticatedUser) {
             // Obtém as empresas em que o usuário autenticado está vinculado como funcionário
             $employeeCompanyIds = DB::table('company_user')
                 ->where('user_id', $authenticatedUser->id)
@@ -93,12 +83,12 @@ class UserRepository
         }
 
         // Aplica filtro de busca por nome se fornecido
-        if (isset($filters['search']) && !empty($filters['search'])) {
+        if (isset($filters['search']) && ! empty($filters['search'])) {
             $query->where('name', 'ILIKE', "%{$filters['search']}%");
         }
 
         // Aplica filtro por role se fornecido
-        if (isset($filters['role']) && !empty($filters['role'])) {
+        if (isset($filters['role']) && ! empty($filters['role'])) {
             $roleModel = Role::where('slug', $filters['role'])->first();
 
             if ($roleModel) {
@@ -108,7 +98,7 @@ class UserRepository
         }
 
         // Filtra por company_id específico se fornecido
-        if (isset($filters['company_id']) && !empty($filters['company_id'])) {
+        if (isset($filters['company_id']) && ! empty($filters['company_id'])) {
             $query->where(function ($q) use ($filters) {
                 // Inclui usuários que são funcionários dessa empresa específica
                 $q->whereHas('employeeCompanies', function ($subQ) use ($filters) {
@@ -128,13 +118,10 @@ class UserRepository
 
     /**
      * Cria um novo usuário básico.
-     *
-     * @param array $userData
-     * @return User
      */
     public function create(array $userData): User
     {
-        $user = new User();
+        $user = new User;
         $user->name = $userData['name'];
         $user->email = $userData['email'];
         $user->password = Hash::make($userData['password']);
@@ -152,10 +139,6 @@ class UserRepository
 
     /**
      * Atualiza um usuário existente.
-     *
-     * @param User $user
-     * @param array $userData
-     * @return User
      */
     public function update(User $user, array $userData): User
     {
@@ -194,9 +177,6 @@ class UserRepository
 
     /**
      * Exclui (soft delete) um usuário.
-     *
-     * @param User $user
-     * @return bool
      */
     public function delete(User $user): bool
     {
@@ -205,9 +185,6 @@ class UserRepository
 
     /**
      * Cria um usuário completo com todos os relacionamentos.
-     *
-     * @param array $userData
-     * @return User
      */
     public function createComplete(array $userData): User
     {
@@ -243,10 +220,6 @@ class UserRepository
 
     /**
      * Atualiza um usuário completo com todos os relacionamentos.
-     *
-     * @param User $user
-     * @param array $userData
-     * @return User
      */
     public function updateComplete(User $user, array $userData): User
     {
@@ -286,10 +259,6 @@ class UserRepository
 
     /**
      * Sincroniza as roles de um usuário.
-     *
-     * @param User $user
-     * @param array $rolesSlugs
-     * @return void
      */
     protected function syncRoles(User $user, array $rolesSlugs): void
     {
@@ -299,14 +268,10 @@ class UserRepository
 
     /**
      * Cria os dados adicionais de um usuário.
-     *
-     * @param User $user
-     * @param array $userDataArray
-     * @return UserData
      */
     protected function createUserData(User $user, array $userDataArray): UserData
     {
-        $userData = new UserData();
+        $userData = new UserData;
         $userData->user_id = $user->id;
         $userData->birthday = $userDataArray['birthday'] ?? null;
         $userData->rg = $userDataArray['rg'] ?? null;
@@ -322,10 +287,6 @@ class UserRepository
 
     /**
      * Atualiza os dados adicionais de um usuário.
-     *
-     * @param User $user
-     * @param array $userDataArray
-     * @return UserData
      */
     protected function updateUserData(User $user, array $userDataArray): UserData
     {
@@ -366,14 +327,10 @@ class UserRepository
 
     /**
      * Cria um endereço para um usuário.
-     *
-     * @param User $user
-     * @param array $addressData
-     * @return Address
      */
     protected function createAddress(User $user, array $addressData): Address
     {
-        $address = new Address();
+        $address = new Address;
         $address->street = $addressData['street'];
         $address->number = $addressData['number'];
         $address->complement = $addressData['complement'] ?? null;
@@ -390,9 +347,6 @@ class UserRepository
     /**
      * Atualiza um endereço existente.
      *
-     * @param User $user
-     * @param array $addressData
-     * @return Address|null
      * @throws \Exception
      */
     protected function updateAddress(User $user, array $addressData): ?Address
@@ -402,7 +356,7 @@ class UserRepository
             ->where('addressable_type', User::class)
             ->first();
 
-        if (!$address) {
+        if (! $address) {
             throw new \Exception('Endereço não encontrado ou não pertence a este usuário');
         }
 
@@ -427,9 +381,6 @@ class UserRepository
     /**
      * Sincroniza as especialidades de um usuário.
      *
-     * @param User $user
-     * @param array $specialtyIds
-     * @return void
      * @throws \Exception
      */
     protected function syncSpecialties(User $user, array $specialtyIds): void

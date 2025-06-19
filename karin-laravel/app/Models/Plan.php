@@ -4,13 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
-use App\Models\Appointment;
 
 class Plan extends Model
 {
     use HasFactory;
-    
+
     protected $fillable = [
         'user_id',
         'name',
@@ -22,9 +20,9 @@ class Plan extends Model
         'consultations',
         'modality',
         'installments',
-        'link'
+        'link',
     ];
-    
+
     /**
      * Relacionamento com o médico (usuário)
      */
@@ -32,7 +30,7 @@ class Plan extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-    
+
     /**
      * Relacionamento com agendamentos
      */

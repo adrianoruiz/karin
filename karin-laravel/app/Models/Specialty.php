@@ -26,23 +26,23 @@ class Specialty extends Model
     protected $casts = [
         'status' => 'boolean',
     ];
-    
+
     /**
      * Lista de segmentos permitidos.
-     * 
+     *
      * @var array<string>
      */
     public static $allowedSegments = [
         'clinica-medica',
         'salao-beleza',
-        'clinica-odonto'
+        'clinica-odonto',
         // É fácil adicionar novos segmentos aqui no futuro
     ];
-    
+
     /**
      * Verifica se um segmento é válido.
-     * 
-     * @param string $segment
+     *
+     * @param  string  $segment
      * @return bool
      */
     public static function isValidSegment($segment)
@@ -52,8 +52,6 @@ class Specialty extends Model
 
     /**
      * Relacionamento com usuários.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function users(): BelongsToMany
     {

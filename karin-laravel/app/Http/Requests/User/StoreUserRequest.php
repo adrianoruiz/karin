@@ -29,7 +29,7 @@ class StoreUserRequest extends FormRequest
             'is_whatsapp_user' => 'nullable|boolean',
             'status' => 'nullable|boolean',
             'roles' => 'nullable|array',
-            'roles.*' => 'string'
+            'roles.*' => 'string',
         ];
     }
 
@@ -46,7 +46,7 @@ class StoreUserRequest extends FormRequest
             'email.email' => 'Formato de e-mail inválido.',
             'email.unique' => 'Este e-mail já está sendo utilizado.',
             'password.required' => 'A senha é obrigatória.',
-            'password.min' => 'A senha deve ter no mínimo 8 caracteres.'
+            'password.min' => 'A senha deve ter no mínimo 8 caracteres.',
         ];
     }
-} 
+}

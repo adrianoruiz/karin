@@ -6,9 +6,6 @@ class ClinicaMedicaPromptGenerator extends AbstractPromptGenerator
 {
     /**
      * Gera o prompt específico para clínica médica
-     *
-     * @param array $dados
-     * @return string
      */
     public function gerarPrompt(array $dados): string
     {
@@ -31,7 +28,6 @@ class ClinicaMedicaPromptGenerator extends AbstractPromptGenerator
         $genero = $this->obterGenero($nome);
         $tratamento = $this->obterTratamento($nome);
 
-
         // Formatar atendimentos
         $atendimentosFormatados = $this->formatarAtendimentos($atendimentos);
 
@@ -39,12 +35,12 @@ class ClinicaMedicaPromptGenerator extends AbstractPromptGenerator
         $pagamentosFormatados = $this->formatarFormasPagamento($formasPagamento);
 
         // Emoji de prefixo (se habilitado)
-        $emojiPrefixo = $emojis ? "👩‍⚕️👨‍⚕️ " : "";
+        $emojiPrefixo = $emojis ? '👩‍⚕️👨‍⚕️ ' : '';
 
         // Informação sobre reembolso
         $infoReembolso = $reembolso
-            ? "Fornecemos recibo para reembolso junto ao plano de saúde."
-            : "Não fornecemos recibo para reembolso junto ao plano de saúde.";
+            ? 'Fornecemos recibo para reembolso junto ao plano de saúde.'
+            : 'Não fornecemos recibo para reembolso junto ao plano de saúde.';
 
         // Construir o prompt base
         $prompt = <<<EOT

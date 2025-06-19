@@ -9,10 +9,13 @@ class RoleModule extends Model
 {
     use HasFactory;
 
-    const ACCESS_LEVEL_LOW  = 'low';
-    const ACCESS_LEVEL_MED  = 'medium';
-    const ACCESS_LEVEL_HIGH  = 'high';
-    const ACCESS_LEVEL_ADMIN  = 'admin';
+    const ACCESS_LEVEL_LOW = 'low';
+
+    const ACCESS_LEVEL_MED = 'medium';
+
+    const ACCESS_LEVEL_HIGH = 'high';
+
+    const ACCESS_LEVEL_ADMIN = 'admin';
 
     protected $fillable = [
         'name',

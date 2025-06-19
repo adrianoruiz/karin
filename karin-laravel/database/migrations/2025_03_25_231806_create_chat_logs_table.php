@@ -4,9 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-
-
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -27,7 +26,7 @@ return new class extends Migration {
             $table->timestamp('read_at')->nullable()->comment('Quando a mensagem foi lida');
             $table->boolean('is_bot_active')->default(false)->comment('Se o bot GPT está ativado para esta conversa');
             $table->timestamps();
-            
+
             // Índices para otimização de consultas
             $table->index(['phone_user', 'doctor_id']);
             $table->index('user_id');

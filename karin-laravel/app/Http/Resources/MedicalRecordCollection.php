@@ -46,8 +46,6 @@ class MedicalRecordCollection extends ResourceCollection
 
     /**
      * Personaliza a paginação de links.
-     *
-     * @return array
      */
     protected function linkCollection(): array
     {

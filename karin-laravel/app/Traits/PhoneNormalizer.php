@@ -13,6 +13,7 @@ trait PhoneNormalizer
         if (strlen($phone) === 10) {
             $phone = substr_replace($phone, '9', 2, 0);
         }
+
         return $phone;
     }
 }

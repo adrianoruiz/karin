@@ -22,14 +22,13 @@ class ChatbotCrudController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Chatbots listados com sucesso',
-            'data' => $chatbots
+            'data' => $chatbots,
         ]);
     }
 
     /**
      * Armazena um novo chatbot.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
@@ -47,12 +46,12 @@ class ChatbotCrudController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Dados inválidos',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         $user = Auth::user();
-        
+
         // Se o novo chatbot for definido como padrão, desmarcar outros do mesmo tipo
         if ($request->is_default) {
             Chatbot::where('user_id', $user->id)
@@ -74,7 +73,7 @@ class ChatbotCrudController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Chatbot criado com sucesso',
-            'data' => $chatbot
+            'data' => $chatbot,
         ], 201);
     }
 
@@ -91,24 +90,23 @@ class ChatbotCrudController extends Controller
             ->where('user_id', $user->id)
             ->first();
 
-        if (!$chatbot) {
+        if (! $chatbot) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Chatbot não encontrado'
+                'message' => 'Chatbot não encontrado',
             ], 404);
         }
 
         return response()->json([
             'status' => 'success',
             'message' => 'Chatbot encontrado com sucesso',
-            'data' => $chatbot
+            'data' => $chatbot,
         ]);
     }
 
     /**
      * Atualiza um chatbot específico.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
@@ -127,7 +125,7 @@ class ChatbotCrudController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Dados inválidos',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -136,10 +134,10 @@ class ChatbotCrudController extends Controller
             ->where('user_id', $user->id)
             ->first();
 
-        if (!$chatbot) {
+        if (! $chatbot) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Chatbot não encontrado'
+                'message' => 'Chatbot não encontrado',
             ], 404);
         }
 
@@ -157,7 +155,7 @@ class ChatbotCrudController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Chatbot atualizado com sucesso',
-            'data' => $chatbot
+            'data' => $chatbot,
         ]);
     }
 
@@ -174,10 +172,10 @@ class ChatbotCrudController extends Controller
             ->where('user_id', $user->id)
             ->first();
 
-        if (!$chatbot) {
+        if (! $chatbot) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Chatbot não encontrado'
+                'message' => 'Chatbot não encontrado',
             ], 404);
         }
 
@@ -185,7 +183,7 @@ class ChatbotCrudController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Chatbot removido com sucesso'
+            'message' => 'Chatbot removido com sucesso',
         ]);
     }
 
@@ -205,7 +203,7 @@ class ChatbotCrudController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Chatbots listados com sucesso',
-            'data' => $chatbots
+            'data' => $chatbots,
         ]);
     }
 
@@ -223,17 +221,17 @@ class ChatbotCrudController extends Controller
             ->where('is_default', true)
             ->first();
 
-        if (!$chatbot) {
+        if (! $chatbot) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Chatbot padrão não encontrado para este tipo'
+                'message' => 'Chatbot padrão não encontrado para este tipo',
             ], 404);
         }
 
         return response()->json([
             'status' => 'success',
             'message' => 'Chatbot padrão encontrado com sucesso',
-            'data' => $chatbot
+            'data' => $chatbot,
         ]);
     }
 }

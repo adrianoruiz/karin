@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services\Prompts;
@@ -9,14 +10,14 @@ use NumberFormatter;
 enum Genero: string
 {
     case Masculino = 'masculino';
-    case Feminino  = 'feminino';
+    case Feminino = 'feminino';
     case Desconhecido = 'desconhecido';
 
     public function artigo(): string
     {
         return match ($this) {
-            self::Masculino  => 'o',
-            self::Feminino   => 'a',
+            self::Masculino => 'o',
+            self::Feminino => 'a',
             self::Desconhecido => 'x',
         };
     }
@@ -24,12 +25,12 @@ enum Genero: string
     public function tratamento(bool $maiusculo = false): string
     {
         $base = match ($this) {
-            self::Masculino   => 'Dr',
-            self::Feminino    => 'Dra',
+            self::Masculino => 'Dr',
+            self::Feminino => 'Dra',
             self::Desconhecido => 'Drx',
         };
 
-        return $maiusculo ? mb_strtoupper($base) . '.' : $base . '.';
+        return $maiusculo ? mb_strtoupper($base).'.' : $base.'.';
     }
 }
 
@@ -54,7 +55,7 @@ final class DefaultGeneroDetector implements GeneroDetectorInterface
         'luciana', 'mariana', 'aline', 'carla', 'vanessa', 'silvia', 'jessica',
         'amanda', 'bruna', 'renata', 'tatiana', 'monica', 'daniela', 'julia',
         'leticia', 'larissa', 'beatriz', 'gabriela', 'carolina', 'natalia',
-        'dra', 'doutora'
+        'dra', 'doutora',
     ];
 
     /**
@@ -63,11 +64,11 @@ final class DefaultGeneroDetector implements GeneroDetectorInterface
      */
     public function detectar(mixed $nome): Genero
     {
-        if (!is_string($nome) || trim($nome) === '' || $nome === false) {
+        if (! is_string($nome) || trim($nome) === '' || $nome === false) {
             return Genero::Desconhecido;
         }
         $primeiro = strtok($nome, ' ');
-        if (!is_string($primeiro) || $primeiro === false || trim($primeiro) === '') {
+        if (! is_string($primeiro) || $primeiro === false || trim($primeiro) === '') {
             return Genero::Desconhecido;
         }
         $primeiro = mb_strtolower($primeiro);
@@ -100,7 +101,7 @@ final class DefaultGeneroDetector implements GeneroDetectorInterface
 abstract class AbstractPromptGenerator implements PromptGeneratorInterface
 {
     public function __construct(
-        private readonly GeneroDetectorInterface $detector = new DefaultGeneroDetector(),
+        private readonly GeneroDetectorInterface $detector = new DefaultGeneroDetector,
         private readonly ?NumberFormatter $fmtMoeda = null, // injete para i18n
     ) {}
 
@@ -130,9 +131,8 @@ abstract class AbstractPromptGenerator implements PromptGeneratorInterface
             NumberFormatter::create('pt_BR', NumberFormatter::CURRENCY);
 
         return implode(', ', array_map(
-            fn ($a) => "{$a['tipo']}: {$fmt->formatCurrency((float)$a['preco'], 'BRL')}",
-            array_filter($atendimentos, fn ($a) =>
-                isset($a['tipo'], $a['preco']) && is_numeric($a['preco'])
+            fn ($a) => "{$a['tipo']}: {$fmt->formatCurrency((float) $a['preco'], 'BRL')}",
+            array_filter($atendimentos, fn ($a) => isset($a['tipo'], $a['preco']) && is_numeric($a['preco'])
             )
         ));
     }
@@ -154,8 +154,9 @@ abstract class AbstractPromptGenerator implements PromptGeneratorInterface
                 array_keys($respostas),
                 $respostas
             );
-            $prompt .= "\n\nRESPOSTAS PERSONALIZADAS:\n" . implode("\n", $blocos);
+            $prompt .= "\n\nRESPOSTAS PERSONALIZADAS:\n".implode("\n", $blocos);
         }
+
         return $prompt;
     }
 
@@ -163,8 +164,9 @@ abstract class AbstractPromptGenerator implements PromptGeneratorInterface
     protected function adicionarRegrasEspeciais(string $prompt, array $regras): string
     {
         if ($regras) {
-            $prompt .= "\n\nREGRAS ESPECIAIS:\n- " . implode("\n- ", $regras);
+            $prompt .= "\n\nREGRAS ESPECIAIS:\n- ".implode("\n- ", $regras);
         }
+
         return $prompt;
     }
 

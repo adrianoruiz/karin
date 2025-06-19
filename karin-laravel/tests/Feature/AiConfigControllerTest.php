@@ -16,8 +16,11 @@ class AiConfigControllerTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     protected $user;
+
     protected $clinicUser;
+
     protected $token;
+
     protected $clinicToken;
 
     protected function setUp(): void
@@ -28,13 +31,13 @@ class AiConfigControllerTest extends TestCase
         $clientRole = Role::create([
             'slug' => ValidRoles::CLIENT,
             'description' => 'Perfil de Cliente',
-            'status' => true
+            'status' => true,
         ]);
 
         $clinicRole = Role::create([
             'slug' => ValidRoles::CLINIC,
             'description' => 'Perfil de Clínica',
-            'status' => true
+            'status' => true,
         ]);
 
         // Criar usuário comum (sem permissão para configurar IA)
@@ -59,21 +62,21 @@ class AiConfigControllerTest extends TestCase
     public function usuario_sem_role_adequado_nao_pode_criar_configuracao_ia()
     {
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $this->token,
+            'Authorization' => 'Bearer '.$this->token,
         ])->postJson('/api/ai-config', [
             'segment_type' => 'clinica_medica',
             'professional_data' => [
                 'nome' => 'Dr. Teste',
-                'especialidade' => 'Teste'
+                'especialidade' => 'Teste',
             ],
             'assistant_name' => 'Assistente Teste',
             'custom_responses' => [
-                'saudacao' => 'Olá, como posso ajudar?'
+                'saudacao' => 'Olá, como posso ajudar?',
             ],
             'consultation_duration' => 30,
             'special_rules' => [
-                'regra1' => 'Regra de teste'
-            ]
+                'regra1' => 'Regra de teste',
+            ],
         ]);
 
         $response->assertStatus(403);
@@ -83,29 +86,29 @@ class AiConfigControllerTest extends TestCase
     public function usuario_com_role_clinica_pode_criar_configuracao_ia()
     {
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $this->clinicToken,
+            'Authorization' => 'Bearer '.$this->clinicToken,
         ])->postJson('/api/ai-config', [
             'segment_type' => 'clinica_medica',
             'professional_data' => [
                 'nome' => 'Dr. Teste',
-                'especialidade' => 'Teste'
+                'especialidade' => 'Teste',
             ],
             'assistant_name' => 'Assistente Teste',
             'custom_responses' => [
-                'saudacao' => 'Olá, como posso ajudar?'
+                'saudacao' => 'Olá, como posso ajudar?',
             ],
             'consultation_duration' => 30,
             'special_rules' => [
-                'regra1' => 'Regra de teste'
-            ]
+                'regra1' => 'Regra de teste',
+            ],
         ]);
 
         $response->assertStatus(200);
-        
+
         $this->assertDatabaseHas('ai_configs', [
             'user_id' => $this->clinicUser->id,
             'segment_type' => 'clinica_medica',
-            'assistant_name' => 'Assistente Teste'
+            'assistant_name' => 'Assistente Teste',
         ]);
     }
 
@@ -122,18 +125,18 @@ class AiConfigControllerTest extends TestCase
             'custom_responses' => json_encode(['saudacao' => 'Olá']),
             'consultation_duration' => 30,
             'special_rules' => json_encode(['regra' => 'Teste']),
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $this->clinicToken,
+            'Authorization' => 'Bearer '.$this->clinicToken,
         ])->getJson('/api/ai-config');
 
         $response->assertStatus(200)
             ->assertJsonFragment([
                 'user_id' => $this->clinicUser->id,
                 'segment_type' => 'clinica_medica',
-                'assistant_name' => 'Assistente Teste'
+                'assistant_name' => 'Assistente Teste',
             ]);
     }
 
@@ -150,17 +153,17 @@ class AiConfigControllerTest extends TestCase
             'custom_responses' => json_encode(['saudacao' => 'Olá']),
             'consultation_duration' => 30,
             'special_rules' => json_encode(['regra' => 'Teste']),
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $this->clinicToken,
+            'Authorization' => 'Bearer '.$this->clinicToken,
         ])->postJson('/api/ai-config/toggle-active');
 
         $response->assertStatus(200)
             ->assertJsonFragment([
                 'is_active' => false,
-                'message' => 'IA desativada com sucesso'
+                'message' => 'IA desativada com sucesso',
             ]);
 
         // Verificar que o status foi alterado no banco de dados
@@ -169,13 +172,13 @@ class AiConfigControllerTest extends TestCase
 
         // Alternar novamente para ativo
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $this->clinicToken,
+            'Authorization' => 'Bearer '.$this->clinicToken,
         ])->postJson('/api/ai-config/toggle-active');
 
         $response->assertStatus(200)
             ->assertJsonFragment([
                 'is_active' => true,
-                'message' => 'IA ativada com sucesso'
+                'message' => 'IA ativada com sucesso',
             ]);
 
         // Verificar que o status foi alterado novamente

@@ -53,7 +53,7 @@ class StoreCompleteUserRequest extends FormRequest
 
             // Validação de especialidades
             'specialty_ids' => 'nullable|array',
-            'specialty_ids.*' => 'exists:specialties,id'
+            'specialty_ids.*' => 'exists:specialties,id',
         ];
     }
 
@@ -77,7 +77,7 @@ class StoreCompleteUserRequest extends FormRequest
             'address.zip.required_with' => 'O campo CEP é obrigatório quando um endereço é fornecido.',
             'address.city_id.required_with' => 'O campo cidade é obrigatório quando um endereço é fornecido.',
             'address.city_id.exists' => 'A cidade selecionada não existe.',
-            'specialty_ids.*.exists' => 'Uma ou mais especialidades selecionadas não existem.'
+            'specialty_ids.*.exists' => 'Uma ou mais especialidades selecionadas não existem.',
         ];
     }
 }

@@ -4,27 +4,21 @@ namespace App\Http\Controllers\Api;
 
 use App\Enum\ValidRoles;
 use App\Http\Controllers\Controller;
+use App\Models\Appointment;
+use App\Models\DoctorAvailability;
+use App\Models\PaymentMethod;
+use App\Models\Plan;
+use App\Models\User;
+use App\Models\UserData;
 use App\Services\RoleService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-
-use App\Models\{
-    Appointment,
-    DoctorAvailability,
-    User,
-    UserData,
-    Plan,
-    PaymentMethod
-};
 
 class PatientAppointmentController extends Controller
 {
     /**
      * Lista os horários disponíveis para agendamento
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function getAvailableTimes(Request $request): JsonResponse
     {
@@ -54,27 +48,24 @@ class PatientAppointmentController extends Controller
             $date = $availability->date->format('Y-m-d');
             $time = $availability->time->format('H:i');
 
-            if (!isset($formattedAvailabilities[$date])) {
+            if (! isset($formattedAvailabilities[$date])) {
                 $formattedAvailabilities[$date] = [];
             }
 
             $formattedAvailabilities[$date][] = [
                 'id' => $availability->id,
                 'time' => $time,
-                'datetime' => $date . ' ' . $time . ':00'
+                'datetime' => $date.' '.$time.':00',
             ];
         }
 
         return response()->json([
-            'availabilities' => $formattedAvailabilities
+            'availabilities' => $formattedAvailabilities,
         ]);
     }
 
     /**
      * Agenda uma consulta para um paciente
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function bookAppointment(Request $request): JsonResponse
     {
@@ -89,7 +80,7 @@ class PatientAppointmentController extends Controller
             'observations' => 'nullable|string',
             'is_online' => 'nullable|boolean',
             'plan_id' => 'required|exists:plans,id',
-            'payment_method_id' => 'nullable|exists:payment_methods,id'
+            'payment_method_id' => 'nullable|exists:payment_methods,id',
         ]);
 
         if ($validator->fails()) {
@@ -106,10 +97,10 @@ class PatientAppointmentController extends Controller
             ->where('status', 'available')
             ->first();
 
-        if (!$availability) {
+        if (! $availability) {
             return response()->json([
                 'message' => 'Horário indisponível para agendamento',
-                'errors' => ['appointment_datetime' => ['O horário selecionado não está disponível']]
+                'errors' => ['appointment_datetime' => ['O horário selecionado não está disponível']],
             ], 422);
         }
 
@@ -131,12 +122,12 @@ class PatientAppointmentController extends Controller
             $user->update([
                 'name' => $request->name,
                 'email' => $request->email,
-                'phone' => $phone
+                'phone' => $phone,
             ]);
 
             // Atualiza dados adicionais
             $userData->update([
-                'birthday' => $request->birthday
+                'birthday' => $request->birthday,
             ]);
         } else {
             // Procura usuário pelo telefone
@@ -146,14 +137,14 @@ class PatientAppointmentController extends Controller
                 // Atualiza dados do usuário
                 $user->update([
                     'name' => $request->name,
-                    'email' => $request->email
+                    'email' => $request->email,
                 ]);
 
                 // Cria dados adicionais se não existirem
-                if (!$user->userData) {
+                if (! $user->userData) {
                     $user->userData()->create([
                         'cpf' => $cpf,
-                        'birthday' => $request->birthday
+                        'birthday' => $request->birthday,
                     ]);
                 }
             } else {
@@ -164,7 +155,7 @@ class PatientAppointmentController extends Controller
                     'phone' => $phone,
                     'is_whatsapp_user' => false,
                     'status' => true,
-                    'password' => bcrypt(substr($cpf, -4)) // Usa os 4 últimos dígitos do CPF como senha inicial
+                    'password' => bcrypt(substr($cpf, -4)), // Usa os 4 últimos dígitos do CPF como senha inicial
                 ]);
 
                 // Cria os dados adicionais do usuário
@@ -188,7 +179,7 @@ class PatientAppointmentController extends Controller
             'appointment_datetime' => $request->appointment_datetime,
             'status' => 'agendada',
             'observations' => $request->observations,
-            'is_online' => $request->is_online ?? false
+            'is_online' => $request->is_online ?? false,
         ];
 
         $appointment = Appointment::create($appointmentData);
@@ -213,20 +204,17 @@ class PatientAppointmentController extends Controller
                 'price' => $plan->price,
                 'modality' => $plan->modality,
                 'type' => $plan->type,
-                'installments' => $plan->installments
+                'installments' => $plan->installments,
             ],
             'payment_method' => $paymentMethod ? [
                 'name' => $paymentMethod->name,
-                'slug' => $paymentMethod->slug
-            ] : null
+                'slug' => $paymentMethod->slug,
+            ] : null,
         ], 201);
     }
 
     /**
      * Verifica a disponibilidade de um horário específico
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function checkAvailability(Request $request): JsonResponse
     {
@@ -249,15 +237,12 @@ class PatientAppointmentController extends Controller
             ->exists();
 
         return response()->json([
-            'is_available' => $isAvailable
+            'is_available' => $isAvailable,
         ]);
     }
 
     /**
      * Retorna os planos disponíveis de um médico específico
-     *
-     * @param int $doctorId
-     * @return JsonResponse
      */
     public function getAvailablePlans(int $doctorId): JsonResponse
     {
@@ -282,24 +267,21 @@ class PatientAppointmentController extends Controller
                 'type' => $plan->type,
                 'consultations' => $plan->consultations,
                 'modality' => $plan->modality,
-                'installments' => $plan->installments
+                'installments' => $plan->installments,
             ];
         });
 
         return response()->json([
             'doctor' => [
                 'id' => $doctor->id,
-                'name' => $doctor->name
+                'name' => $doctor->name,
             ],
-            'plans' => $formattedPlans
+            'plans' => $formattedPlans,
         ]);
     }
 
     /**
      * Retorna as formas de pagamento aceitas por um médico específico
-     *
-     * @param int $doctorId
-     * @return JsonResponse
      */
     public function getDoctorPaymentMethods(int $doctorId): JsonResponse
     {
@@ -323,16 +305,16 @@ class PatientAppointmentController extends Controller
                 'name' => $method->name,
                 'slug' => $method->slug,
                 'icon' => $method->icon,
-                'description' => $method->description
+                'description' => $method->description,
             ];
         });
 
         return response()->json([
             'doctor' => [
                 'id' => $doctor->id,
-                'name' => $doctor->name
+                'name' => $doctor->name,
             ],
-            'payment_methods' => $formattedPaymentMethods
+            'payment_methods' => $formattedPaymentMethods,
         ]);
     }
 
@@ -340,23 +322,22 @@ class PatientAppointmentController extends Controller
      * Retorna as consultas em aberto (status = agendada) de um paciente
      * Filtrando por CPF ou telefone.
      *
-     * @param Request $request
      * @return JsonResponse
      */
     public function myAppointments(Request $request)
     {
         // Necessita ao menos cpf ou phone
         $validator = Validator::make($request->all(), [
-            'cpf'   => 'required_without:phone|string',
+            'cpf' => 'required_without:phone|string',
             'phone' => 'required_without:cpf|string',
-            'doctor_id' => 'sometimes|exists:users,id' // opcional filtrar médico
+            'doctor_id' => 'sometimes|exists:users,id', // opcional filtrar médico
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $cpf   = $request->cpf ? preg_replace('/[^0-9]/', '', $request->cpf) : null;
+        $cpf = $request->cpf ? preg_replace('/[^0-9]/', '', $request->cpf) : null;
         $phone = $request->phone ? preg_replace('/[^0-9]/', '', $request->phone) : null;
 
         // Tenta localizar o usuário
@@ -366,14 +347,14 @@ class PatientAppointmentController extends Controller
             $user = $userData ? $userData->user : null;
         }
 
-        if (!$user && $phone) {
+        if (! $user && $phone) {
             $user = User::where('phone', $phone)->first();
         }
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Paciente não encontrado.'
+                'message' => 'Paciente não encontrado.',
             ], 404);
         }
 
@@ -392,12 +373,12 @@ class PatientAppointmentController extends Controller
         return response()->json([
             'success' => true,
             'patient' => [
-                'id'    => $user->id,
-                'name'  => $user->name,
+                'id' => $user->id,
+                'name' => $user->name,
                 'phone' => $user->phone,
-                'cpf'   => $cpf ?? ($user->userData->cpf ?? null),
+                'cpf' => $cpf ?? ($user->userData->cpf ?? null),
             ],
-            'appointments' => $appointments
+            'appointments' => $appointments,
         ]);
     }
 }

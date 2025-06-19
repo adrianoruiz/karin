@@ -27,7 +27,7 @@ class AiConfig extends Model
         'custom_responses' => 'json',
         'prompt_fixed' => 'string',
         'special_rules' => 'json',
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
     ];
 
     public function user()

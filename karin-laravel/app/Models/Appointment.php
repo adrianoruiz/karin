@@ -2,24 +2,15 @@
 
 namespace App\Models;
 
-use App\Models\{
-    PaymentMethod,
-    Plan,
-    User
-};
-use Illuminate\Database\Eloquent\{
-    Factories\HasFactory,
-    Model
-};
-
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Appointment extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'appointments';
-    
+
     protected $fillable = [
         'user_id',
         'doctor_id',
@@ -28,17 +19,23 @@ class Appointment extends Model
         'appointment_datetime',
         'status',
         'observations',
-        'is_online'
+        'is_online',
     ];
-   
+
     // Status possíveis para o agendamento
-    public const STATUS_SCHEDULED    = 'agendada';
-    public const STATUS_CONFIRMED    = 'confirmada';
-    public const STATUS_CHECKIN      = 'aguardando';
-    public const STATUS_IN_PROGRESS  = 'em_atendimento';
-    public const STATUS_COMPLETED    = 'concluida';
-    public const STATUS_CANCELLED    = 'cancelada';
-    public const STATUS_NO_SHOW      = 'nao_compareceu';
+    public const STATUS_SCHEDULED = 'agendada';
+
+    public const STATUS_CONFIRMED = 'confirmada';
+
+    public const STATUS_CHECKIN = 'aguardando';
+
+    public const STATUS_IN_PROGRESS = 'em_atendimento';
+
+    public const STATUS_COMPLETED = 'concluida';
+
+    public const STATUS_CANCELLED = 'cancelada';
+
+    public const STATUS_NO_SHOW = 'nao_compareceu';
 
     public static array $validStatuses = [
         self::STATUS_SCHEDULED,
@@ -51,13 +48,13 @@ class Appointment extends Model
     ];
 
     public static array $statusLabels = [
-        self::STATUS_SCHEDULED    => 'Agendada',
-        self::STATUS_CONFIRMED    => 'Confirmada',
-        self::STATUS_CHECKIN      => 'Aguardando',
-        self::STATUS_IN_PROGRESS  => 'Em Atendimento',
-        self::STATUS_COMPLETED    => 'Concluída',
-        self::STATUS_CANCELLED    => 'Cancelada',
-        self::STATUS_NO_SHOW      => 'Faltou',
+        self::STATUS_SCHEDULED => 'Agendada',
+        self::STATUS_CONFIRMED => 'Confirmada',
+        self::STATUS_CHECKIN => 'Aguardando',
+        self::STATUS_IN_PROGRESS => 'Em Atendimento',
+        self::STATUS_COMPLETED => 'Concluída',
+        self::STATUS_CANCELLED => 'Cancelada',
+        self::STATUS_NO_SHOW => 'Faltou',
     ];
 
     /**
@@ -67,7 +64,7 @@ class Appointment extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-    
+
     /**
      * Relacionamento com médico (também um usuário)
      */
@@ -75,7 +72,7 @@ class Appointment extends Model
     {
         return $this->belongsTo(User::class, 'doctor_id');
     }
-    
+
     /**
      * Acesso aos dados do paciente
      */

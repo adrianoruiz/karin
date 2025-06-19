@@ -47,4 +47,4 @@ class StoreWorkingHoursRequest extends FormRequest
             'hours.*.closes_at.after' => 'O horário de fechamento deve ser posterior ao horário de abertura.',
         ];
     }
-} 
+}

@@ -16,11 +16,11 @@ class WorkingHour extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'user_id', 
-        'day_of_week', 
-        'opens_at', 
-        'closes_at', 
-        'is_open'
+        'user_id',
+        'day_of_week',
+        'opens_at',
+        'closes_at',
+        'is_open',
     ];
 
     /**
@@ -34,11 +34,9 @@ class WorkingHour extends Model
 
     /**
      * Relacionamento com o usuário proprietário deste horário.
-     *
-     * @return BelongsTo
      */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
-} 
+}
