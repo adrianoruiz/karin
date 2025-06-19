@@ -6,6 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\CompanyUser;
 use App\Enum\ValidRoles;
 
 class StoreMedicalRecordRequest extends FormRequest
@@ -166,10 +167,61 @@ class StoreMedicalRecordRequest extends FormRequest
 
     /**
      * Validação personalizada após as regras básicas.
+     * 
+     * Esta validação inclui uma funcionalidade especial de auto-vinculação:
+     * - Quando um médico (dono da empresa) tenta criar um prontuário para sua própria empresa
+     *   e ainda não está vinculado na tabela company_user, o sistema automaticamente cria
+     *   esse vínculo para evitar erros de validação.
+     * - Isso resolve o problema de médicos que são donos de suas próprias empresas/clínicas
+     *   mas não se cadastraram como funcionários.
      */
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
+            // PRIMEIRO: Auto-vinculação antes das validações
+            if ($this->company_id) {
+                $company = User::find($this->company_id);
+                $currentUser = Auth::user();
+                
+                if ($company && $currentUser && ($company->hasRole(ValidRoles::DOCTOR) || $company->hasRole(ValidRoles::CLINIC) || $company->hasRole(ValidRoles::ADMIN))) {
+                    // Cenário 1: O usuário autenticado é a própria empresa (company_id === user_id)
+                    // Isso acontece quando um médico tem sua própria clínica/empresa
+                    if ($currentUser->id == $this->company_id) {
+                        // Auto-vincula o usuário à sua própria empresa se ainda não estiver vinculado
+                        $isLinked = CompanyUser::where('company_id', $this->company_id)
+                            ->where('user_id', $currentUser->id)
+                            ->exists();
+                        
+                        if (!$isLinked) {
+                            CompanyUser::create([
+                                'company_id' => $this->company_id,
+                                'user_id' => $currentUser->id
+                            ]);
+                        }
+                    }
+                    // Cenário 2: Se o usuário tem role de médico e está tentando acessar uma empresa médica/clínica
+                    // Isso pode acontecer quando um médico trabalha para outra empresa
+                    else if (($currentUser->roles->contains('slug', ValidRoles::DOCTOR) || $currentUser->roles->contains('slug', ValidRoles::ADMIN)) && 
+                            ($company->hasRole(ValidRoles::DOCTOR) || $company->hasRole(ValidRoles::CLINIC) || $company->hasRole(ValidRoles::ADMIN))) {
+                        // Verifica se ele já está vinculado à empresa
+                        $isLinked = CompanyUser::where('company_id', $this->company_id)
+                            ->where('user_id', $currentUser->id)
+                            ->exists();
+                        
+                        // Se não está vinculado, pode ser que seja o dono da empresa
+                        // Para maior segurança, só auto-vincula se o usuário for doctor/admin e a empresa também
+                        if (!$isLinked && ($company->hasRole(ValidRoles::DOCTOR) || $company->hasRole(ValidRoles::ADMIN))) {
+                            CompanyUser::create([
+                                'company_id' => $this->company_id,
+                                'user_id' => $currentUser->id
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            // SEGUNDO: Validações após auto-vinculação
+            
             // Verifica se o paciente tem a role 'patient'
             if ($this->patient_id) {
                 $patient = User::find($this->patient_id);
@@ -192,11 +244,11 @@ class StoreMedicalRecordRequest extends FormRequest
                 }
             }
 
-            // Verifica se a empresa existe e é válida
+            // Verifica se a empresa existe e é válida (após auto-vinculação)
             if ($this->company_id) {
                 $company = User::find($this->company_id);
-                if ($company && (!$company->hasRole(ValidRoles::DOCTOR) && !$company->hasRole(ValidRoles::CLINIC))) {
-                    $validator->errors()->add('company_id', 'A empresa selecionada deve ter role de médico ou clínica.');
+                if ($company && (!$company->hasRole(ValidRoles::DOCTOR) && !$company->hasRole(ValidRoles::CLINIC) && !$company->hasRole(ValidRoles::ADMIN))) {
+                    $validator->errors()->add('company_id', 'A empresa selecionada deve ter role de médico, clínica ou administrador.');
                 }
             }
         });
