@@ -36,6 +36,11 @@ class StoreMedicalRecordRequest extends FormRequest
                 'integer',
                 'exists:users,id'
             ],
+            'doctor_id' => [
+                'sometimes',
+                'integer',
+                'exists:users,id'
+            ],
             'consultation_date' => [
                 'required',
                 'date',

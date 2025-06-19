@@ -54,6 +54,8 @@ class MedicalRecordControllerTest extends TestCase
         $this->token = JWTAuth::fromUser($this->doctor);
     }
 
+
+
     /**
      * Testa a listagem de prontuários médicos.
      */

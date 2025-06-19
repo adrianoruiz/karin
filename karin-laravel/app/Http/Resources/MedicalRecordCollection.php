@@ -51,30 +51,22 @@ class MedicalRecordCollection extends ResourceCollection
      */
     protected function linkCollection(): array
     {
-        return collect($this->elements())->map(function ($item) {
-            if (!is_array($item)) {
-                return [
-                    'url' => null,
-                    'label' => $item,
-                    'active' => false,
-                ];
-            }
-
-            return collect($item)->map(function ($url, $page) {
-                return [
-                    'url' => $url,
-                    'label' => (string) $page,
-                    'active' => $page == $this->currentPage(),
-                ];
-            })->values();
-        })->flatten(1)->prepend([
-            'url' => $this->previousPageUrl(),
-            'label' => '&laquo; Anterior',
-            'active' => false,
-        ])->push([
-            'url' => $this->nextPageUrl(),
-            'label' => 'Próximo &raquo;',
-            'active' => false,
-        ])->toArray();
+        return [
+            [
+                'url' => $this->previousPageUrl(),
+                'label' => '&laquo; Anterior',
+                'active' => false,
+            ],
+            [
+                'url' => $this->url($this->currentPage()),
+                'label' => (string) $this->currentPage(),
+                'active' => true,
+            ],
+            [
+                'url' => $this->nextPageUrl(),
+                'label' => 'Próximo &raquo;',
+                'active' => false,
+            ],
+        ];
     }
 }
