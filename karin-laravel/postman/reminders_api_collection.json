@@ -1,0 +1,494 @@
+{
+	"info": {
+		"_postman_id": "12345678-abcd-efgh-ijkl-mnopqrstuvwx",
+		"name": "Karin - Reminders API",
+		"description": "Collection completa para testar a API de Lembretes do sistema Karin",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Listar Lembretes",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseurl}}/reminders?per_page=15&type=appointment&priority=normal&is_active=true",
+					"host": [
+						"{{baseurl}}"
+					],
+					"path": [
+						"reminders"
+					],
+					"query": [
+						{
+							"key": "per_page",
+							"value": "15",
+							"description": "Itens por página (opcional)"
+						},
+						{
+							"key": "type",
+							"value": "appointment",
+							"description": "appointment, medication, exam, return, billing, general"
+						},
+						{
+							"key": "priority",
+							"value": "normal", 
+							"description": "low, normal, high, urgent"
+						},
+						{
+							"key": "is_active",
+							"value": "true",
+							"description": "true/false"
+						},
+						{
+							"key": "date_from",
+							"value": "",
+							"description": "Y-m-d (opcional)",
+							"disabled": true
+						},
+						{
+							"key": "date_to",
+							"value": "",
+							"description": "Y-m-d (opcional)",
+							"disabled": true
+						}
+					]
+				},
+				"description": "Lista lembretes com filtros opcionais"
+			},
+			"response": []
+		},
+		{
+			"name": "2.1 Criar Lembrete Individual",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"Consulta de retorno\",\n  \"message\": \"Olá! Lembre-se da sua consulta de retorno amanhã às 14:00.\",\n  \"type\": \"appointment\",\n  \"priority\": \"normal\",\n  \"remind_at\": \"2025-06-21 13:00:00\",\n  \"recipient_ids\": [5, 8, 12]\n}"
+				},
+				"url": {
+					"raw": "{{baseurl}}/reminders",
+					"host": [
+						"{{baseurl}}"
+					],
+					"path": [
+						"reminders"
+					]
+				},
+				"description": "Cria um lembrete para usuários específicos"
+			},
+			"response": []
+		},
+		{
+			"name": "2.2 Criar Lembrete para Todos Pacientes",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"Feriado - Clínica Fechada\",\n  \"message\": \"[importante] A clínica estará fechada no dia 15 de novembro devido ao feriado. Reagendaremos suas consultas.\",\n  \"type\": \"general\",\n  \"priority\": \"high\",\n  \"remind_at\": \"2025-11-14 09:00:00\",\n  \"send_to_all_patients\": true\n}"
+				},
+				"url": {
+					"raw": "{{baseurl}}/reminders",
+					"host": [
+						"{{baseurl}}"
+					],
+					"path": [
+						"reminders"
+					]
+				},
+				"description": "Cria um lembrete para todos os pacientes da empresa"
+			},
+			"response": []
+		},
+		{
+			"name": "2.3 Criar Lembrete Recorrente",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"Lembrete de medicação\",\n  \"message\": \"💊 Hora de tomar seu medicamento! Não esqueça da dose de 8h.\",\n  \"type\": \"medication\",\n  \"priority\": \"normal\",\n  \"remind_at\": \"2025-06-21 08:00:00\",\n  \"recipient_ids\": [5],\n  \"recurrence\": {\n    \"type\": \"daily\",\n    \"interval\": 1,\n    \"end_date\": \"2025-07-21\"\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseurl}}/reminders",
+					"host": [
+						"{{baseurl}}"
+					],
+					"path": [
+						"reminders"
+					]
+				},
+				"description": "Cria um lembrete recorrente (daily, weekly, monthly)"
+			},
+			"response": []
+		},
+		{
+			"name": "2.4 Criar Lembrete para Funcionários",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"Reunião de equipe\",\n  \"message\": \"[importante] Reunião de equipe hoje às 16:00 na sala de reuniões.\",\n  \"type\": \"general\",\n  \"priority\": \"high\",\n  \"remind_at\": \"2025-06-21 15:30:00\",\n  \"send_to_employees\": true\n}"
+				},
+				"url": {
+					"raw": "{{baseurl}}/reminders",
+					"host": [
+						"{{baseurl}}"
+					],
+					"path": [
+						"reminders"
+					]
+				},
+				"description": "Cria um lembrete para todos os funcionários da empresa"
+			},
+			"response": []
+		},
+		{
+			"name": "2.5 Criar Lembrete Urgente",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"Resultado de exame crítico\",\n  \"message\": \"[urgente] Por favor, entre em contato com a clínica imediatamente para discutir seu resultado de exame.\",\n  \"type\": \"exam\",\n  \"priority\": \"urgent\",\n  \"remind_at\": \"2025-06-21 09:00:00\",\n  \"recipient_ids\": [5]\n}"
+				},
+				"url": {
+					"raw": "{{baseurl}}/reminders",
+					"host": [
+						"{{baseurl}}"
+					],
+					"path": [
+						"reminders"
+					]
+				},
+				"description": "Cria um lembrete urgente com formatação especial"
+			},
+			"response": []
+		},
+		{
+			"name": "3. Exibir Lembrete",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseurl}}/reminders/1",
+					"host": [
+						"{{baseurl}}"
+					],
+					"path": [
+						"reminders",
+						"1"
+					]
+				},
+				"description": "Exibe detalhes de um lembrete específico"
+			},
+			"response": []
+		},
+		{
+			"name": "4. Atualizar Lembrete (PUT)",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"Consulta de retorno - ATUALIZADA\",\n  \"message\": \"Mensagem atualizada com novas informações\",\n  \"priority\": \"high\",\n  \"remind_at\": \"2025-06-21 14:00:00\"\n}"
+				},
+				"url": {
+					"raw": "{{baseurl}}/reminders/1",
+					"host": [
+						"{{baseurl}}"
+					],
+					"path": [
+						"reminders",
+						"1"
+					]
+				},
+				"description": "Atualiza um lembrete existente (substituição completa)"
+			},
+			"response": []
+		},
+		{
+			"name": "4. Atualizar Lembrete (PATCH)",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"priority\": \"urgent\",\n  \"is_active\": true\n}"
+				},
+				"url": {
+					"raw": "{{baseurl}}/reminders/1",
+					"host": [
+						"{{baseurl}}"
+					],
+					"path": [
+						"reminders",
+						"1"
+					]
+				},
+				"description": "Atualiza campos específicos de um lembrete"
+			},
+			"response": []
+		},
+		{
+			"name": "5. Excluir Lembrete",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseurl}}/reminders/1",
+					"host": [
+						"{{baseurl}}"
+					],
+					"path": [
+						"reminders",
+						"1"
+					]
+				},
+				"description": "Remove um lembrete"
+			},
+			"response": []
+		},
+		{
+			"name": "6. Ativar/Desativar Lembrete",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseurl}}/reminders/1/toggle-active",
+					"host": [
+						"{{baseurl}}"
+					],
+					"path": [
+						"reminders",
+						"1",
+						"toggle-active"
+					]
+				},
+				"description": "Alterna o status ativo/inativo do lembrete"
+			},
+			"response": []
+		},
+		{
+			"name": "7. Estatísticas",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseurl}}/reminders/statistics",
+					"host": [
+						"{{baseurl}}"
+					],
+					"path": [
+						"reminders",
+						"statistics"
+					]
+				},
+				"description": "Obtém estatísticas dos lembretes"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseurl",
+			"value": "http://localhost:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "your_jwt_token_here",
+			"type": "string"
+		}
+	]
+} 
