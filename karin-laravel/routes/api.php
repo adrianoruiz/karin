@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\PatientAppointmentController;
 use App\Http\Controllers\Api\PlanController;
 use App\Http\Controllers\Api\ProvinceController;
 use App\Http\Controllers\Api\SpecialtyController;
+use App\Http\Controllers\Api\ReminderController;
 use App\Http\Controllers\Api\TriageRecordController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\UserWorkingHourController;
@@ -230,4 +231,24 @@ Route::group([
     Route::get('/{triageRecord}', [TriageRecordController::class, 'show']);
     Route::put('/{triageRecord}', [TriageRecordController::class, 'update']);
     Route::delete('/{triageRecord}', [TriageRecordController::class, 'destroy']);
+});
+
+// Rotas para Lembretes
+Route::group([
+    'prefix' => 'reminders',
+    'middleware' => 'auth:api',
+], function () {
+    // Rota específica para estatísticas (deve vir antes das rotas com parâmetros)
+    Route::get('/statistics', [ReminderController::class, 'statistics']);
+    
+    // Rota para ativar/desativar lembretes
+    Route::patch('/{id}/toggle-active', [ReminderController::class, 'toggleActive']);
+    
+    // Rotas CRUD padrão
+    Route::get('/', [ReminderController::class, 'index']);
+    Route::post('/', [ReminderController::class, 'store']);
+    Route::get('/{id}', [ReminderController::class, 'show']);
+    Route::put('/{id}', [ReminderController::class, 'update']);
+    Route::patch('/{id}', [ReminderController::class, 'update']);
+    Route::delete('/{id}', [ReminderController::class, 'destroy']);
 });

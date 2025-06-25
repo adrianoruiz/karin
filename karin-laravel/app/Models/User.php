@@ -290,4 +290,36 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(MedicalRecord::class, 'company_id');
     }
+
+    /**
+     * Lembretes criados por este usuário.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function createdReminders(): HasMany
+    {
+        return $this->hasMany(Reminder::class, 'created_by');
+    }
+
+    /**
+     * Lembretes da empresa (quando este usuário é uma empresa).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function companyReminders(): HasMany
+    {
+        return $this->hasMany(Reminder::class, 'company_id');
+    }
+
+    /**
+     * Lembretes recebidos por este usuário.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function reminders(): BelongsToMany
+    {
+        return $this->belongsToMany(Reminder::class, 'reminder_recipients')
+                    ->withPivot(['sent_at', 'delivered', 'error_message', 'read_at'])
+                    ->withTimestamps();
+    }
 }
