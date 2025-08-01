@@ -185,14 +185,15 @@ function combineMessageParts(messageParts) {
  * @param {Array} bufferedMessages - Array de mensagens bufferizadas
  * @param {string} userName - Nome do usuário
  * @param {string} clinicaId - ID da clínica
+ * @param {string} chatId - ID do chat (opcional)
  * @returns {Promise<Array>} Mensagens processadas para GPT
  */
-async function processMessageBuffer(bufferedMessages, userName, clinicaId) {
+async function processMessageBuffer(bufferedMessages, userName, clinicaId, chatId = 'buffer_processing') {
     const startTime = Date.now();
     
     // Validar parâmetros
     const validation = validateData(MessageBufferSchema, {
-        chatId: 'buffer_processing',
+        chatId,
         bufferedMessages,
         userName,
         clinicaId

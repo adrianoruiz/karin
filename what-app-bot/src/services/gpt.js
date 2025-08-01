@@ -3,7 +3,6 @@
  * Substitui o gpt.js original (583 linhas → ~150 linhas)
  */
 
-const axios = require('axios');
 require('dotenv').config();
 
 // Importar configurações
@@ -14,17 +13,10 @@ const logger = require('./logger');
 const { fetchAiStatusForClinica } = require('./aiStatusManager');
 const { checkRateLimit, markBlockedMessageSent, hasBlockedMessageBeenSent } = require('./rateLimiter');
 const { handleConversationFlow } = require('./conversationHandler');
+const { getChatGPTResponse } = require('./gptCore');
 
 // Importar classes de erro
-const { GPTServiceError, OpenAIApiError, ValidationError, createHttpError } = require('../errors/gptErrors');
-
-// Importar schemas de validação
-const { GPTRequestSchema, validateData } = require('../schemas/gptSchemas');
-
-// Importar dependências do sistema
-const getSystemMessage = require('./ai/systemMessage');
-const { getFunctionsForSegment } = require('./ai/toolRegistry');
-const clinicStore = require('../store/clinicStore');
+const { GPTServiceError, ValidationError } = require('../errors/gptErrors');
 const { pushMessage } = require('./messageDebouncer');
 
 /**
@@ -46,122 +38,6 @@ async function getSegmentTypeForClinica(clinicaId) {
     }
 }
 
-/**
- * Obtém resposta do ChatGPT para uma conversa
- * @param {Array} messages - Histórico de mensagens da conversa
- * @param {string} nome - Nome do usuário
- * @param {string|number} clinicaId - ID da clínica
- * @returns {Promise<Object>} Resposta do modelo GPT
- */
-async function getChatGPTResponse(messages, nome, clinicaId = null) {
-    const startTime = Date.now();
-    
-    // Validar parâmetros
-    const validation = validateData(GPTRequestSchema, {
-        messages,
-        nome,
-        clinicaId
-    }, 'getChatGPTResponse');
-    
-    if (!validation.success) {
-        throw new ValidationError(validation.error, null, validation.details);
-    }
-    
-    // Verificar API key
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-        throw new GPTServiceError('API key da OpenAI não configurada');
-    }
-    
-    logger.info(`[GPTService] Processando ${messages.length} mensagens para usuário ${nome}, clínica ${clinicaId}`);
-    
-    try {
-        // Obter configurações específicas
-        const segmentType = await getSegmentTypeForClinica(clinicaId);
-        const systemMessage = await getSystemMessage(nome, clinicaId);
-        const availableFunctions = getFunctionsForSegment(segmentType);
-        
-        // Preparar mensagens com system message
-        const messagesWithSystem = [
-            { role: 'system', content: systemMessage },
-            ...messages.map(msg => {
-                // Garantir que function content seja string
-                if (msg.role === 'function') {
-                    return {
-                        ...msg,
-                        content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content)
-                    };
-                }
-                return msg;
-            })
-        ];
-        
-        // Log de debug
-        logger.info(`[GPTService] Usando ${availableFunctions.length} tools para segmento "${segmentType}": ${availableFunctions.map(f => f.name).join(', ')}`);
-        logger.debug(`[GPTService] Payload OpenAI preparado com ${messagesWithSystem.length} mensagens`);
-        
-        // Fazer chamada para OpenAI
-        const response = await axios.post(
-            `${config.openai.apiUrl}/chat/completions`,
-            {
-                model: config.openai.model,
-                messages: messagesWithSystem,
-                functions: availableFunctions,
-                function_call: "auto",
-                max_tokens: config.openai.maxTokens,
-                temperature: config.openai.temperature
-            },
-            {
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                timeout: config.openai.timeout
-            }
-        );
-        
-        // Validar resposta
-        if (!response.data || !response.data.choices || !response.data.choices[0]) {
-            throw new GPTServiceError('Resposta inválida da OpenAI API');
-        }
-        
-        const choice = response.data.choices[0];
-        const executionTime = Date.now() - startTime;
-        
-        // Log de sucesso
-        logger.info(`[GPTService] Resposta obtida da OpenAI em ${executionTime}ms`);
-        logger.debug(`[GPTService] Tokens utilizados:`, response.data.usage);
-        
-        // Retornar apenas a mensagem (compatibilidade)
-        return choice.message;
-        
-    } catch (error) {
-        const executionTime = Date.now() - startTime;
-        
-        // Tratar erros HTTP
-        if (error.response) {
-            const httpError = createHttpError(error.response, 'Chamada OpenAI API');
-            logger.error(`[GPTService] Erro HTTP (${executionTime}ms): ${error.response.status} - ${error.response.statusText}`);
-            throw httpError;
-        }
-        
-        // Timeout
-        if (error.code === 'ECONNABORTED') {
-            logger.error(`[GPTService] Timeout na chamada OpenAI (${executionTime}ms)`);
-            throw new GPTServiceError('Timeout na chamada da OpenAI API', {
-                timeout: config.openai.timeout,
-                executionTime
-            });
-        }
-        
-        // Outros erros
-        logger.error(`[GPTService] Erro na chamada OpenAI (${executionTime}ms): ${error.message}`);
-        throw new GPTServiceError('Erro na chamada da OpenAI API', {
-            originalError: error.message,
-            executionTime
-        });
-    }
-}
 
 /**
  * Processa mensagem de entrada com debounce e rate limiting

@@ -9,17 +9,24 @@ const { z } = require('zod');
  * Schema para validação de mensagens
  */
 const MessageSchema = z.object({
-    chatId: z.string().min(1, 'Chat ID é obrigatório'),
+    chatId: z.string().optional(),
     body: z.string().optional(),
     type: z.string().min(1, 'Tipo da mensagem é obrigatório'),
     hasMedia: z.boolean().optional().default(false),
     timestamp: z.number().optional(),
     messageId: z.string().optional(),
     from: z.string().optional(),
+    id: z.string().optional(),  // Allow both messageId and id
     quotedMessage: z.object({
         body: z.string().optional(),
         type: z.string().optional()
-    }).optional()
+    }).optional(),
+    // Media-related fields
+    mediaBase64Data: z.string().nullable().optional(),
+    mimetype: z.string().nullable().optional(),
+    mediaSize: z.number().nullable().optional(),
+    hasMediaDownloaded: z.boolean().nullable().optional(),
+    mediaDownloadError: z.string().nullable().optional()
 });
 
 /**
@@ -100,7 +107,7 @@ const MessageBufferSchema = z.object({
     chatId: z.string().min(1),
     bufferedMessages: z.array(MessageSchema).min(1),
     userName: z.string().min(1),
-    clinicaId: z.string().min(1),
+    clinicaId: z.union([z.string(), z.number()]).transform(String),
     conversationHistory: z.array(z.object({
         role: z.enum(['user', 'assistant']),
         content: z.string()

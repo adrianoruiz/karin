@@ -10,7 +10,7 @@ const logger = require('./logger');
 // Importar serviços especializados
 const { processMessageBuffer } = require('./messageProcessor');
 const { executeTool } = require('./toolExecutor');
-const { getChatGPTResponse } = require('./gpt');
+const { getChatGPTResponse } = require('./gptCore');
 
 // Importar classes de erro
 const { MessageProcessingError, ToolExecutionError } = require('../errors/gptErrors');
@@ -53,7 +53,7 @@ async function processFunctionCalls(gptResponse, conversation, userName, clinica
             logger.debug(`[ConversationHandler] Executando ${functionName} com args:`, functionArgs);
             
             // Executar ferramenta usando o ToolExecutor
-            const toolResult = await executeTool(functionName, functionArgs, clinicaId, {
+            const toolResult = await executeTool(functionName, functionArgs, String(clinicaId), {
                 chatId,
                 segmentType: 'default' // Poderia ser dinâmico baseado na clínica
             });
@@ -65,7 +65,10 @@ async function processFunctionCalls(gptResponse, conversation, userName, clinica
             logger.debug(`[ConversationHandler] Tool ${functionName} executada com sucesso:`, toolResult.data);
             
             // Adicionar function call e resultado à conversa
-            currentConversation.push(currentResponse);
+            currentConversation.push({
+                ...currentResponse,
+                content: currentResponse.content || '' // Garantir que content não seja null
+            });
             currentConversation.push({
                 role: 'function',
                 name: functionName,
@@ -74,13 +77,16 @@ async function processFunctionCalls(gptResponse, conversation, userName, clinica
             
             // Chamar GPT novamente com o resultado
             logger.debug(`[ConversationHandler] Rechamando GPT após execução de ${functionName}`);
-            currentResponse = await getChatGPTResponse(currentConversation, userName, clinicaId);
+            currentResponse = await getChatGPTResponse(currentConversation, userName, String(clinicaId), chatId);
             
         } catch (toolError) {
             logger.error(`[ConversationHandler] Erro na execução de ${functionName} para ${chatId}: ${toolError.message}`);
             
             // Adicionar erro à conversa e tentar continuar
-            currentConversation.push(currentResponse);
+            currentConversation.push({
+                ...currentResponse,
+                content: currentResponse.content || '' // Garantir que content não seja null
+            });
             currentConversation.push({
                 role: 'function',
                 name: functionName,
@@ -88,7 +94,7 @@ async function processFunctionCalls(gptResponse, conversation, userName, clinica
             });
             
             try {
-                currentResponse = await getChatGPTResponse(currentConversation, userName, clinicaId);
+                currentResponse = await getChatGPTResponse(currentConversation, userName, String(clinicaId), chatId);
             } catch (gptError) {
                 logger.error(`[ConversationHandler] Erro ao chamar GPT após falha de tool: ${gptError.message}`);
                 throw new MessageProcessingError('Falha na recuperação após erro de ferramenta', {
@@ -227,7 +233,7 @@ async function handleConversationFlow(chatId, bufferedMessages, userName, clinic
     try {
         // 1. Processar mensagens do buffer (áudio, imagem, texto)
         logger.debug(`[ConversationHandler] Processando buffer de mensagens para ${chatId}`);
-        const processedMessages = await processMessageBuffer(bufferedMessages, userName, clinicaId);
+        const processedMessages = await processMessageBuffer(bufferedMessages, userName, clinicaId, chatId);
         
         if (!processedMessages || processedMessages.length === 0) {
             logger.warn(`[ConversationHandler] Nenhuma mensagem processável no buffer para ${chatId}`);
@@ -241,14 +247,14 @@ async function handleConversationFlow(chatId, bufferedMessages, userName, clinic
         
         // 3. Obter resposta inicial do GPT
         logger.debug(`[ConversationHandler] Chamando GPT para ${chatId}`);
-        const initialGptResponse = await getChatGPTResponse(fullConversation, userName, clinicaId);
+        const initialGptResponse = await getChatGPTResponse(fullConversation, userName, String(clinicaId), chatId);
         
         // 4. Processar function calls se necessário
         const finalResult = await processFunctionCalls(
             initialGptResponse,
             fullConversation,
             userName,
-            clinicaId,
+            String(clinicaId),
             chatId
         );
         
