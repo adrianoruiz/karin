@@ -11,8 +11,8 @@ function createGptRouter({ logger, conversationStore, waClient }) {
     const sessionStore = require('../services/sessionStore');
     // Importamos o serviço GPT (getChatGPTResponse) e o processIncomingMessageWithDebounce 
     const { getChatGPTResponse, processIncomingMessageWithDebounce } = require('../services/gpt');
-    // Importar debounceManager para garantir que está inicializado corretamente
-    require('../services/debounceManager');
+    // Importar messageDebouncer para garantir que está inicializado corretamente
+    require('../services/messageDebouncer');
     // Importar o MessageInterceptor para marcar como não lida
     const MessageInterceptor = require('../middleware/messageInterceptor');
     const { 

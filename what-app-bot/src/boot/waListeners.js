@@ -13,7 +13,7 @@ const { createAudioHandler } = require('../handlers/audioHandler');
 // const clinicStore = require('../store/clinicStore');
 
 // Importar a função para buscar o status da IA via API
-const { fetchAiStatusForClinica, processIncomingMessageWithDebounce } = require('../services/gpt'); // Adicionado processIncomingMessageWithDebounce
+const { fetchAiStatusForClinica, processIncomingMessageWithDebounce } = require('../services/gpt'); // Serviço refatorado
 
 // WhatsApp service for utility functions
 const whatsAppService = require('../services/whatsappService');

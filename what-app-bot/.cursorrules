@@ -2,7 +2,7 @@
 
 ## Contexto geral (sempre incluir)
 - Este é um projeto **Node.js 14** que implementa um chatbot multi-clínica no WhatsApp usando **whatsapp-web.js v1.26**.
-- Integra com a **OpenAI Chat Completions API** via `src/services/gpt.js`; modelo padrão: `gpt-4o-mini`.
+- Integra com a **OpenAI Chat Completions API** via `src/services/gpt.js`; modelo padrão: `gpt-4.1`.
 - Stack principal: JavaScript ES2022 (modules), Express, Redis opcional, TypeScript utils compilados em `dist/`.
 
 ## Estilo de código
