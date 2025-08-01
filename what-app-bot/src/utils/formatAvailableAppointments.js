@@ -30,11 +30,12 @@ async function formatAvailableAppointments(availableTimes) {
         });
         
         // Formatar a mensagem de resposta
-        let message = "Temos os seguintes horários:\n\n";
+        let message = "Esses são os horários disponíveis para esta semana:\n\n";
         
-        // Limitar a exibição para no máximo 2 ou 3 datas
+        // Garantir exibição de pelo menos 2 datas (ou todas se houver menos de 2)
         const dateEntries = Object.entries(appointmentsByDate);
-        const limitedDates = dateEntries.slice(0, 3); // Mostra até 3 datas
+        const minDates = Math.min(dateEntries.length, Math.max(2, dateEntries.length));
+        const limitedDates = dateEntries.slice(0, Math.max(minDates, 3)); // Mostra pelo menos 2, até 3 datas
         
         for (const [date, dateInfo] of limitedDates) {
             // Usar a data formatada e o dia da semana
@@ -43,15 +44,15 @@ async function formatAvailableAppointments(availableTimes) {
             
             message += `*${dayOfWeek} (${formattedDate})*:\n`;
             
-            // Destacar 1 ou 2 horários sugeridos
+            // Mostrar os horários disponíveis de forma mais clara
             if (dateInfo.suggestedTimes && dateInfo.suggestedTimes.length > 0) {
                 dateInfo.suggestedTimes.sort();
-                message += `→ Sugeridos: ${dateInfo.suggestedTimes.join(' ou ')}\n`;
+                message += `${dateInfo.suggestedTimes.join(', ')}\n`;
             } else {
-                 // Se não houver sugeridos, mostrar os primeiros 2 horários disponíveis
-                 const firstTwoTimes = dateInfo.times.sort().slice(0, 2);
-                 if (firstTwoTimes.length > 0) {
-                     message += `→ Disponíveis: ${firstTwoTimes.join(' ou ')}\n`;
+                 // Se não houver sugeridos, mostrar todos os horários disponíveis (limitado a 4 para não poluir)
+                 const availableTimes = dateInfo.times.sort().slice(0, 4);
+                 if (availableTimes.length > 0) {
+                     message += `${availableTimes.join(', ')}\n`;
                  }
             }
             
@@ -63,7 +64,7 @@ async function formatAvailableAppointments(availableTimes) {
             message += `*Temos mais ${dateEntries.length - limitedDates.length} datas com horários disponíveis.*\n\n`;
         }
         
-        message += "Qual horário você prefere? Nossa agenda está bem cheia, recomendo garantir logo que decidir."; // Gatilho de escassez
+        message += "Qual desses horários funciona melhor para você? 📅"; // Mensagem mais amigável
         return message;
     } catch (error) {
         logger.error('Erro ao formatar horários disponíveis:', error);

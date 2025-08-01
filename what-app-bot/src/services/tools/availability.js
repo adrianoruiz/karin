@@ -133,7 +133,7 @@ class AvailabilityService {
    * @param {number} daysToCheck - Número de dias a verificar
    * @returns {Promise<Array>} - Lista de horários disponíveis
    */
-  async _findNextAvailableDates(doctorId, daysToCheck = 7) {
+  async _findNextAvailableDates(doctorId, daysToCheck = 20) {
     const today = new Date();
     let allAvailableTimes = [];
     
@@ -159,8 +159,18 @@ class AvailabilityService {
             logger.log(`Encontrados ${availableTimes.length} horários para ${nextDate}`);
             allAvailableTimes = allAvailableTimes.concat(availableTimes);
             
-            // Se encontrou pelo menos 3 dias com horários disponíveis, interrompe a busca
-            if (Object.keys(this._groupByDate(allAvailableTimes)).length >= 3) {
+            // Garantir que temos pelo menos 2 datas com horários disponíveis antes de parar
+            const uniqueDates = Object.keys(this._groupByDate(allAvailableTimes)).length;
+            
+            // Se encontrou pelo menos 2 dias com horários disponíveis e já verificou pelo menos 5 dias, pode interromper
+            if (uniqueDates >= 2 && i >= 5) {
+              logger.log(`Encontradas ${uniqueDates} datas com horários após verificar ${i} dias`);
+              break;
+            }
+            
+            // Se encontrou 3 ou mais dias, pode parar mais cedo
+            if (uniqueDates >= 3) {
+              logger.log(`Encontradas ${uniqueDates} datas com horários, parando busca`);
               break;
             }
           }
@@ -170,6 +180,10 @@ class AvailabilityService {
         // Continua verificando os próximos dias mesmo em caso de erro
       }
     }
+    
+    // Log final para debugging
+    const finalUniqueDates = Object.keys(this._groupByDate(allAvailableTimes)).length;
+    logger.log(`Busca finalizada com ${finalUniqueDates} datas únicas e ${allAvailableTimes.length} horários totais`);
     
     return allAvailableTimes;
   }
