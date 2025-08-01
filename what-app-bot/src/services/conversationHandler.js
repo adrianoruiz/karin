@@ -66,8 +66,9 @@ async function processFunctionCalls(gptResponse, conversation, userName, clinica
             
             // Adicionar function call e resultado à conversa
             currentConversation.push({
-                ...currentResponse,
-                content: currentResponse.content || '' // Garantir que content não seja null
+                role: 'assistant',
+                content: currentResponse.content || null, // Manter null se for function_call
+                function_call: currentResponse.function_call
             });
             currentConversation.push({
                 role: 'function',
@@ -84,8 +85,9 @@ async function processFunctionCalls(gptResponse, conversation, userName, clinica
             
             // Adicionar erro à conversa e tentar continuar
             currentConversation.push({
-                ...currentResponse,
-                content: currentResponse.content || '' // Garantir que content não seja null
+                role: 'assistant',
+                content: currentResponse.content || null, // Manter null se for function_call
+                function_call: currentResponse.function_call
             });
             currentConversation.push({
                 role: 'function',

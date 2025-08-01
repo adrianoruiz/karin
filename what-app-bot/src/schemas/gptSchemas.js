@@ -30,17 +30,27 @@ const MessageSchema = z.object({
 });
 
 /**
- * Schema para validação de parâmetros do GPT
+ * Schema para validação de parâmetros do GPT  
  */
 const GPTRequestSchema = z.object({
     messages: z.array(z.object({
         role: z.enum(['system', 'user', 'assistant', 'function']),
-        content: z.string().min(1),
+        content: z.string().nullable(),
         name: z.string().optional(),
         function_call: z.object({
             name: z.string(),
             arguments: z.string()
         }).optional()
+    }).refine((msg) => {
+        // Se há function_call, content pode ser null
+        if (msg.function_call) {
+            return true;
+        }
+        // Se não há function_call, content deve ter pelo menos 1 caractere
+        return msg.content && msg.content.length > 0;
+    }, {
+        message: "Content deve ter pelo menos 1 caractere quando não há function_call",
+        path: ["content"]
     })).min(1, 'Pelo menos uma mensagem é obrigatória'),
     nome: z.string().min(1, 'Nome do usuário é obrigatório'),
     clinicaId: z.union([z.string(), z.number()]).transform(String)
