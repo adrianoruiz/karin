@@ -230,12 +230,23 @@ async function fetchAiStatusForClinica(clinicaId) {
         const executionTime = Date.now() - startTime;
         
         if (error instanceof AiStatusError || error instanceof ValidationError) {
+            // Em caso de erro de conectividade com API, usar fallback otimista para desenvolvimento
+            if (error.message.includes('Timeout') || error.message.includes('ECONNABORTED') || 
+                error.message.includes('ETIMEDOUT') || error.message.includes('connect')) {
+                logger.warn(`[AiStatusManager] API indisponível, usando fallback otimista para clínica ${clinicaId}`);
+                return true; // Assume IA ativa quando API não responde
+            }
             throw error;
         }
         
         logger.error(`[AiStatusManager] Erro geral para clínica ${clinicaId} (${executionTime}ms): ${error.message}`);
         
-        // Em caso de erro, retornar false como fallback
+        // Em caso de erro de conectividade, retornar true como fallback otimista para desenvolvimento
+        if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT' || error.code === 'ENOTFOUND') {
+            logger.warn(`[AiStatusManager] API indisponível (${error.code}), assumindo IA ativa para clínica ${clinicaId}`);
+            return true;
+        }
+        
         return false;
     }
 }

@@ -7,7 +7,9 @@
       "Bash(ls:*)",
       "Bash(mv:*)",
       "Bash(npm test:*)",
-      "Bash(npm start)"
+      "Bash(npm start)",
+      "Bash(kill:*)",
+      "Bash(curl:*)"
     ],
     "deny": []
   }

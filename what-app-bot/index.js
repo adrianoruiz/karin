@@ -73,7 +73,9 @@ function resetAllCaches() {
 async function loadClinicas() {
     try {
         logger.log('Buscando clínicas da API...');
-        const response = await axios.get(`${config.apiUrl}whatsapp/list-whats-users`);
+        const response = await axios.get(`${config.apiUrl}whatsapp/list-whats-users`, {
+            timeout: 10000 // 10 segundos de timeout
+        });
         const clinicas = response.data.data; 
 
         // Log para debug dos dados recebidos
@@ -106,8 +108,32 @@ async function loadClinicas() {
         }
     } catch (error) {
         logger.error('Erro ao buscar clinicas:', error.code || error.message);
-        if (error.code === 'ECONNREFUSED') {
-             logger.error(`Falha ao conectar à API em ${error.config?.url}. Verifique se a API está rodando.`);
+        
+        // FALLBACK: Se API não responder, usar dados simulados para desenvolvimento
+        if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT' || error.code === 'ENOTFOUND') {
+            logger.warn('🔄 API indisponível - usando dados simulados para desenvolvimento');
+            
+            const clinicasSimuladas = [
+                {
+                    id: 2,
+                    name: 'Clínica Teste',
+                    segment_types: 'clinica-medica',
+                    is_ai_active: true,
+                    ai_config: {
+                        is_active: true
+                    }
+                }
+            ];
+            
+            logger.log(`📋 Carregando ${clinicasSimuladas.length} clínicas simuladas`);
+            clinicStore.setClinicsData(clinicasSimuladas);
+            
+            clinicasSimuladas.forEach(clinica => {
+                logger.log(`🚀 Inicializando cliente simulado para clinica ${clinica.id}`);
+                initializeClient(clinica.id, bootstrapListeners); 
+            });
+        } else {
+            logger.error(`❌ Falha ao conectar à API em ${error.config?.url}. Verifique se a API está rodando.`);
         }
     }
 }

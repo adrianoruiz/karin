@@ -9,6 +9,9 @@ require('dotenv').config();
 const config = require('../config/gpt.config');
 const logger = require('./logger');
 
+// Importar clinicStore
+const clinicStore = require('../store/clinicStore');
+
 // Importar serviços especializados
 const { fetchAiStatusForClinica } = require('./aiStatusManager');
 const { checkRateLimit, markBlockedMessageSent, hasBlockedMessageBeenSent } = require('./rateLimiter');
