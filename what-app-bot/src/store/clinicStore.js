@@ -31,21 +31,30 @@ function getAllClinicsData() {
  * @returns {string|null} O segment_type da clínica ou 'default' se não encontrado.
  */
 function getSegmentTypeForClinicaId(clinicaId) {
-    logger.log(`[clinicStore] Buscando segment_type para clinicaId: ${clinicaId}`);
+    logger.log(`[clinicStore] 🔍 Buscando segment_type para clinicaId: ${clinicaId}`);
     logger.log(`[clinicStore] Total de clínicas armazenadas: ${clinicsData.length}`);
     
     const clinic = clinicsData.find(c => String(c.id) === String(clinicaId));
     if (clinic && clinic.segment_types) {
-        logger.log(`[clinicStore] Segment type para clinicaId ${clinicaId}: ${clinic.segment_types} (nível raiz)`);
+        logger.log(`[clinicStore] ✅ Segment type para clinicaId ${clinicaId}: "${clinic.segment_types}"`);
+        
+        // Validar se o segmento é conhecido
+        const validSegments = ['clinica-medica', 'clinica-odonto', 'salao-beleza'];
+        if (!validSegments.includes(clinic.segment_types)) {
+            logger.warn(`[clinicStore] ⚠️  Segmento desconhecido "${clinic.segment_types}" para clínica ${clinicaId}. Usando 'clinica-medica' como padrão.`);
+            return 'clinica-medica'; // Usar clínica médica como padrão mais útil
+        }
+        
         return clinic.segment_types;
     } else if (clinic) {
-        logger.log(`[clinicStore] Clínica ${clinicaId} encontrada:`, JSON.stringify(clinic, null, 2));
-        logger.warn(`[clinicStore] ClinicaId ${clinicaId} encontrado, mas não possui segment_types. Retornando 'default'.`);
-        return 'default'; // Ou null, dependendo da lógica desejada
+        logger.log(`[clinicStore] ❌ Clínica ${clinicaId} encontrada mas sem segment_types:`);
+        logger.log(`[clinicStore] Dados da clínica:`, JSON.stringify(clinic, null, 2));
+        logger.warn(`[clinicStore] ClinicaId ${clinicaId} encontrado, mas não possui segment_types. Usando 'clinica-medica' como padrão.`);
+        return 'clinica-medica'; // Usar clínica médica como padrão mais útil que 'default'
     }
-    logger.warn(`[clinicStore] ClinicaId ${clinicaId} não encontrado no store. Retornando 'default'.`);
-    logger.log(`[clinicStore] IDs disponíveis: ${clinicsData.map(c => c.id).join(', ')}`);
-    return 'default'; // Retorna um tipo padrão se não encontrar
+    logger.warn(`[clinicStore] ❌ ClinicaId ${clinicaId} não encontrado no store. Usando 'clinica-medica' como padrão.`);
+    logger.log(`[clinicStore] IDs disponíveis: [${clinicsData.map(c => c.id).join(', ')}]`);
+    return 'clinica-medica'; // Usar clínica médica como padrão mais útil que 'default'
 }
 
 /**
@@ -75,9 +84,25 @@ function isAiEnabledForClinica(clinicaId) {
     return false; // Default to false if clinic is not found
 }
 
+/**
+ * Obtém o prompt_fixed para um clinicaId específico.
+ * @param {string|number} clinicaId - O ID da clínica.
+ * @returns {string|null} O prompt_fixed da clínica ou null se não encontrado.
+ */
+function getPromptFixedForClinica(clinicaId) {
+    const clinic = clinicsData.find(c => String(c.id) === String(clinicaId));
+    if (clinic && clinic.ai_config && clinic.ai_config.prompt_fixed) {
+        logger.log(`[clinicStore] ✅ Prompt fixed encontrado para clinicaId ${clinicaId}`);
+        return clinic.ai_config.prompt_fixed;
+    }
+    logger.warn(`[clinicStore] ❌ Prompt fixed não encontrado para clinicaId ${clinicaId}`);
+    return null;
+}
+
 module.exports = {
     setClinicsData,
     getAllClinicsData,
     getSegmentTypeForClinicaId,
     isAiEnabledForClinica,
+    getPromptFixedForClinica,
 }; 

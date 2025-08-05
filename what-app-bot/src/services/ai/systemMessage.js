@@ -2,6 +2,7 @@
 const axios = require('axios');
 const config = require('../../../config'); // Ajuste o caminho conforme a estrutura do seu projeto
 const authService = require('../authService');
+const clinicStore = require('../../store/clinicStore');
 
 /**
  * Fornece uma mensagem de sistema fallback quando a API falha
@@ -49,7 +50,27 @@ async function getSystemMessage(nome, clinicaId = null) {
         const userId = clinicaId || process.env.CLINICA_ID || 1;
         console.log(`Obtendo system prompt para clínica ID: ${userId}`);
 
-        // Usar o serviço de autenticação para fazer a requisição
+        // PRIMEIRO: Tentar obter prompt_fixed diretamente do clinicStore (já carregado)
+        const promptFixed = clinicStore.getPromptFixedForClinica(userId);
+        
+        if (promptFixed) {
+            console.log(`🎯 [SystemMessage] Usando prompt_fixed do store para clínica ${userId}`);
+            
+            // Substituir placeholder [NOME] se existir
+            let finalPrompt = promptFixed;
+            if (finalPrompt.includes('[NOME]')) {
+                finalPrompt = finalPrompt.replace(/\[NOME\]/g, nome);
+                console.log(`🔍 [SystemMessage] Placeholder [NOME] substituído por: "${nome}"`);
+            }
+            
+            return {
+                role: "system",
+                content: finalPrompt
+            };
+        }
+
+        // FALLBACK: Usar o serviço de autenticação para fazer a requisição à API
+        console.log(`🔄 [SystemMessage] prompt_fixed não encontrado no store, tentando API...`);
         const response = await authService.makeAuthenticatedRequest(
             'post',
             'ai-config/get-system-prompt',
@@ -57,7 +78,7 @@ async function getSystemMessage(nome, clinicaId = null) {
         );
 
         if (response && response.success && response.system_prompt) {
-            console.log(`System prompt obtido com sucesso para clínica ${userId}`);
+            console.log(`System prompt obtido com sucesso da API para clínica ${userId}`);
             
             // Log para verificar se o prompt contém instruções sobre personalização
             const hasPersonalizationInstructions = response.system_prompt.includes('PERSONALIZAÇÃO') || 
@@ -65,14 +86,16 @@ async function getSystemMessage(nome, clinicaId = null) {
                                                   response.system_prompt.includes('nome da pessoa');
             console.log(`🔍 [SystemMessage] Prompt contém instruções de personalização: ${hasPersonalizationInstructions}`);
             
-            // Log para verificar se o nome será substituído no prompt
-            if (response.system_prompt.includes('[NOME]')) {
-                console.log(`🔍 [SystemMessage] Prompt contém placeholder [NOME] - será substituído por: "${nome}"`);
+            // Substituir placeholder [NOME] se existir
+            let finalPrompt = response.system_prompt;
+            if (finalPrompt.includes('[NOME]')) {
+                finalPrompt = finalPrompt.replace(/\[NOME\]/g, nome);
+                console.log(`🔍 [SystemMessage] Placeholder [NOME] substituído por: "${nome}"`);
             }
             
             return {
                 role: "system",
-                content: response.system_prompt
+                content: finalPrompt
             };
         } else {
             console.error("Erro ao obter system_prompt da API:", response ? response.message : "Resposta inválida");

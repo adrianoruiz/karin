@@ -47,6 +47,15 @@ async function getChatGPTResponse(messages, nome, clinicaId = null, chatId = nul
         const segmentType = getSegmentTypeForClinicaId(clinicaId);
         const availableFunctions = getFunctionsForSegment(segmentType);
         
+        // Log detalhado do segmento para debug
+        logger.info(`[GPTCore] 🔍 SEGMENTO DEBUG - Clínica: ${clinicaId} -> Segmento: "${segmentType}" -> Tools: [${availableFunctions.map(f => f.name).join(', ')}]`);
+        
+        // Verificar se getAvailableAppointments está disponível
+        const hasAvailabilityTool = availableFunctions.some(f => f.name === 'getAvailableAppointments');
+        if (!hasAvailabilityTool && segmentType !== 'salao-beleza') {
+            logger.warn(`[GPTCore] ⚠️  Ferramenta 'getAvailableAppointments' NÃO disponível para segmento '${segmentType}' da clínica ${clinicaId}!`);
+        }
+        
         // 2. Obter mensagem de sistema da API
         const systemMessage = await getSystemMessage(nome, clinicaId);
         

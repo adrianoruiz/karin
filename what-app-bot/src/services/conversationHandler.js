@@ -11,6 +11,7 @@ const logger = require('./logger');
 const { processMessageBuffer } = require('./messageProcessor');
 const { executeTool } = require('./toolExecutor');
 const { getChatGPTResponse } = require('./gptCore');
+const { getSegmentTypeForClinicaId } = require('../store/clinicStore');
 
 // Importar classes de erro
 const { MessageProcessingError, ToolExecutionError } = require('../errors/gptErrors');
@@ -52,10 +53,13 @@ async function processFunctionCalls(gptResponse, conversation, userName, clinica
             const functionArgs = JSON.parse(currentResponse.function_call.arguments || '{}');
             logger.debug(`[ConversationHandler] Executando ${functionName} com args:`, functionArgs);
             
+            // Obter segmento correto da clínica
+            const segmentType = getSegmentTypeForClinicaId(clinicaId);
+            
             // Executar ferramenta usando o ToolExecutor
             const toolResult = await executeTool(functionName, functionArgs, String(clinicaId), {
                 chatId,
-                segmentType: 'default' // Poderia ser dinâmico baseado na clínica
+                segmentType // Usar segmento dinâmico baseado na clínica
             });
             
             if (!toolResult.success) {

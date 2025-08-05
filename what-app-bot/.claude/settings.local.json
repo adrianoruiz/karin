@@ -9,7 +9,9 @@
       "Bash(npm test:*)",
       "Bash(npm start)",
       "Bash(kill:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(find:*)",
+      "Bash(rm:*)"
     ],
     "deny": []
   }

@@ -47,8 +47,10 @@ const segmentToolsConfig = {
         // Adicionar tools específicas para odonto, se houver
     ],
     'default': [ // Ferramentas padrão se o segmento não for reconhecido
+        availabilityFunction, // Incluir agendamento por padrão
         paymentMethodsFunction,
         getUserNameFunction,
+        bookingFunction, // Incluir agendamento básico por padrão
         // Poderíamos adicionar aqui uma tool genérica de "GeneralInquiry" ou "TransferToHuman"
     ]
 };

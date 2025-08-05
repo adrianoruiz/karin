@@ -19,16 +19,20 @@ class WhatsappController extends Controller
             ->whereNotNull('phone')
             ->get();
 
-        // Formatar para incluir segment_types e status do bot diretamente
+        // Formatar para incluir segment_types, status do bot e prompt_fixed
         $usersData = $whatsappUsers->map(function ($user) {
             // Verificar se o usuário tem configuração de IA
             $isAiActive = $user->aiConfig ? $user->aiConfig->is_active : false;
+            
+            // Obter o prompt_fixed da configuração de IA, se disponível
+            $promptFixed = $user->aiConfig ? $user->aiConfig->prompt_fixed : null;
 
             return array_merge(
                 $user->toArray(),
                 [
                     'segment_types' => $user->userData->segment_types ?? null,
                     'is_ai_active' => $isAiActive,
+                    'prompt_fixed' => $promptFixed,
                 ]
             );
         });
