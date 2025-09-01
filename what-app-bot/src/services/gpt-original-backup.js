@@ -147,17 +147,17 @@ async function getChatGPTResponse(messages, nome, clinicaId = null) {
         console.log('Enviando mensagens para OpenAI:', JSON.stringify(messagesWithSystem, null, 2));
         console.log(`[gptService] Usando tools para segmento "${segmentType}":`, availableFunctions.map(f => f.name));
         logger.info(`[gptService.getChatGPTResponse] Enviando ${messagesWithSystem.length} mensagens para OpenAI (segmento: ${segmentType}). Tools: ${availableFunctions.map(f => f.name).join(', ')}`);
-        logger.debug('[gptService.getChatGPTResponse] Payload OpenAI:', JSON.stringify({ model: "gpt-4.1-mini", messages: messagesWithSystem, functions: availableFunctions, function_call: "auto" }, null, 2));
+        logger.debug('[gptService.getChatGPTResponse] Payload OpenAI:', JSON.stringify({ model: "gpt-5-mini", messages: messagesWithSystem, functions: availableFunctions, function_call: "auto" }, null, 2));
         
         const response = await axios.post(
             'https://api.openai.com/v1/chat/completions',
             {
-                model: "gpt-4.1-mini", // Ou outro modelo atual
+                model: "gpt-5-mini", // Ou outro modelo atual
                 messages: messagesWithSystem,
                 functions: availableFunctions, // Tools dinâmicas baseadas no segmento
                 function_call: "auto",
                 max_tokens: 300,
-                temperature: 0.7,
+                temperature: 0.3,
             },
             {
                 headers: {

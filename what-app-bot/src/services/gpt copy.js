@@ -204,7 +204,7 @@ async function getChatGPTResponse(messages, nome, clinicaId = null) {
         const response = await axios.post(
             'https://api.openai.com/v1/chat/completions',
             {
-                model: "gpt-4.1-mini", // Ou outro modelo atual
+                model: "gpt-5-mini", // Ou outro modelo atual
                 messages: messagesWithSystem,
                 functions: [
                     availabilityFunction, 

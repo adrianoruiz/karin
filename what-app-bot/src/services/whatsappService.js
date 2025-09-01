@@ -10,6 +10,9 @@ const { clientManager } = require('./qr/qrcode'); // Correção: importando de q
 // Importar o MessageInterceptor para marcar como não lida
 const MessageInterceptor = require('../middleware/messageInterceptor');
 
+// Importar config para acessar a blacklist
+const config = require('../../config');
+
 const logger = new Logger(process.env.NODE_ENV !== 'production');
 
 /**
@@ -23,6 +26,24 @@ const logger = new Logger(process.env.NODE_ENV !== 'production');
 async function sendWhatsAppMessage(client, number, message, clinicaId) {
     try {
         const formattedNumber = formatPhoneNumber(number);
+        
+        // Verificar se o número está na blacklist
+        if (config.blacklist) {
+            const isBlacklisted = config.blacklist.some(blacklistNumber => {
+                const formattedBlacklistNumber = formatPhoneNumber(blacklistNumber);
+                return formattedBlacklistNumber === formattedNumber;
+            });
+            
+            if (isBlacklisted) {
+                logger.warn(`[BLACKLIST] Tentativa de envio bloqueada para número na blacklist: ${formattedNumber}`);
+                return {
+                    status: 'blocked',
+                    message: 'Número está na blacklist - envio bloqueado',
+                    messageId: null
+                };
+            }
+        }
+        
         logger.log(`Enviando mensagem para ${formattedNumber}`);
         
         // Garantir que a mensagem está em formato de string
@@ -82,6 +103,22 @@ async function sendVCardMessage(clinicaId, recipientNumber, contactName, contact
         }
 
         const formattedRecipientNumber = formatPhoneNumber(recipientNumber);
+        
+        // Verificar se o número está na blacklist
+        if (config.blacklist) {
+            const isBlacklisted = config.blacklist.some(blacklistNumber => {
+                const formattedBlacklistNumber = formatPhoneNumber(blacklistNumber);
+                return formattedBlacklistNumber === formattedRecipientNumber;
+            });
+            
+            if (isBlacklisted) {
+                logger.warn(`[BLACKLIST] Tentativa de envio de vCard bloqueada para número na blacklist: ${formattedRecipientNumber}`);
+                return {
+                    status: 'blocked',
+                    message: 'Número está na blacklist - envio de contato bloqueado'
+                };
+            }
+        }
         
         // Formatar o nome com a descrição, se fornecida
         const displayName = contactDescription 

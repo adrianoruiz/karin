@@ -21,6 +21,9 @@ const whatsAppService = require('../services/whatsappService');
 // Importar o MessageInterceptor para marcar como não lida
 const MessageInterceptor = require('../middleware/messageInterceptor');
 
+// Importar config para acessar a blacklist
+const config = require('../../config');
+
 const logger = new Logger(process.env.NODE_ENV !== 'production');
 
 /**
@@ -97,6 +100,22 @@ async function bootstrapListeners(client, clinicaId) {
             const number = contact.number;
             const messageBody = message.body; 
             const messageBodyNormalized = normalizeText(messageBody.trim());
+
+            // Verificar se o número está na blacklist
+            const { formatPhoneNumber } = require('../utils/formattedNumber');
+            const formattedFromNumber = formatPhoneNumber(number);
+            
+            if (config.blacklist) {
+                const isBlacklisted = config.blacklist.some(blacklistNumber => {
+                    const formattedBlacklistNumber = formatPhoneNumber(blacklistNumber);
+                    return formattedBlacklistNumber === formattedFromNumber;
+                });
+                
+                if (isBlacklisted) {
+                    logger.warn(`[BLACKLIST] Mensagem ignorada do número na blacklist: ${formattedFromNumber} (${nome})`);
+                    return;
+                }
+            }
 
             // Log detalhado sobre o contato
             console.log(`🔍 [WA] Informações do contato:`);

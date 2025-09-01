@@ -71,7 +71,7 @@ async function processImage(imageBuffer, prompt = 'Descreva detalhadamente o que
     const base64Image = processedImageBuffer.toString('base64');
     
     // Usar modelo configurável via variável de ambiente
-    const visionModel = process.env.OPENAI_VISION_MODEL || "gpt-4.1-mini";
+    const visionModel = process.env.OPENAI_VISION_MODEL || "gpt-5-mini";
     const detailLevel = process.env.VISION_DETAIL || "high";
     
     // Enviar para OpenAI Vision

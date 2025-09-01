@@ -7,6 +7,13 @@ module.exports = {
     // apiUrl: desenv ? 'http://127.0.0.1:8000/api/' : 'https://api.drakarin.com.br/api/',
     apiUrl: 'https://api.drakarin.com.br/api/',
 
+    // Blacklist de números que NÃO devem receber respostas do GPT
+    // Os números serão formatados dinamicamente durante a comparação
+    blacklist: [
+        '5547996385815',  // +55 47 9 9638-5815
+        '5547997294650'   // +55 47 9 9729-4650
+    ],
+
     disableGreeting: false,
     useVoiceResponse: false, // Alterado para true por padrão, será controlado dinamicamente
     voiceSettings: {

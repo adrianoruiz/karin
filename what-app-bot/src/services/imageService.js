@@ -256,7 +256,7 @@ async function processImage(imageInput, messageText = '') {
         const prompt = messageText || 'Descreva detalhadamente o que você vê nesta imagem, focando em elementos relevantes para atendimento médico/odontológico se aplicável.';
         
         // Configurar modelo
-        const visionModel = process.env.OPENAI_VISION_MODEL || 'gpt-4.1-mini';
+        const visionModel = process.env.OPENAI_VISION_MODEL || 'gpt-5-mini';
         const detailLevel = config.openai.image.detail || 'auto';
         
         logger.info(`[ImageService] Enviando para OpenAI Vision (modelo: ${visionModel}, detail: ${detailLevel})`);
@@ -398,7 +398,7 @@ function getServiceInfo() {
         maxFileSize: MAX_FILE_SIZE,
         supportedFormats: SUPPORTED_FORMATS,
         tempDir: TEMP_DIR,
-        visionModel: process.env.OPENAI_VISION_MODEL || 'gpt-4.1-mini',
+        visionModel: process.env.OPENAI_VISION_MODEL || 'gpt-5-mini',
         detailLevel: config.openai.image.detail || 'auto'
     };
 }
