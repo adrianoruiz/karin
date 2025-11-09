@@ -49,13 +49,16 @@ class DoctorAvailabilityController extends Controller
         $validator = Validator::make($request->all(), [
             'doctor_id' => 'required|exists:users,id',
             'date' => 'required|date|after_or_equal:today',
-            'times' => 'required|array',
-            'times.*' => 'required|date_format:H:i',
+            'times' => 'array',
+            'times.*' => 'date_format:H:i',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
+
+        // Garante que times seja um array (mesmo quando vazio ou null)
+        $times = $request->times ?? [];
 
         // Busca todos os horários existentes para o médico na data especificada
         $existingAvailabilities = DoctorAvailability::where('doctor_id', $request->doctor_id)
@@ -66,7 +69,7 @@ class DoctorAvailabilityController extends Controller
         // Horários que serão removidos (não estão na lista enviada)
         $timesToRemove = [];
         foreach ($existingAvailabilities as $existing) {
-            if (! in_array($existing->time, $request->times)) {
+            if (! in_array($existing->time, $times)) {
                 $timesToRemove[] = $existing->id;
             }
         }
@@ -78,7 +81,7 @@ class DoctorAvailabilityController extends Controller
 
         // Adiciona novos horários que ainda não existem
         $availabilities = [];
-        foreach ($request->times as $time) {
+        foreach ($times as $time) {
             // Verifica se já existe disponibilidade para este horário
             $exists = DoctorAvailability::where('doctor_id', $request->doctor_id)
                 ->whereDate('date', $request->date)
