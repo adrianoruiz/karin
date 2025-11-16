@@ -358,10 +358,10 @@ class PatientAppointmentController extends Controller
             ], 404);
         }
 
-        // Consulta agendamentos abertos
+        // Consulta agendamentos abertos (agendada ou confirmada)
         $appointmentsQuery = Appointment::with(['doctor', 'plan', 'paymentMethod'])
             ->where('user_id', $user->id)
-            ->where('status', 'agendada')
+            ->whereIn('status', ['agendada', 'confirmada'])
             ->orderBy('appointment_datetime', 'desc');
 
         if ($request->filled('doctor_id')) {
