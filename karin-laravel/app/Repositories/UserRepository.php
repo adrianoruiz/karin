@@ -82,9 +82,16 @@ class UserRepository
             });
         }
 
-        // Aplica filtro de busca por nome se fornecido
+        // Aplica filtro de busca por nome, phone, ou CPF (em user_data)
         if (isset($filters['search']) && ! empty($filters['search'])) {
-            $query->where('name', 'ILIKE', "%{$filters['search']}%");
+            $searchTerm = $filters['search'];
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'ILIKE', "%{$searchTerm}%")
+                  ->orWhere('phone', 'ILIKE', "%{$searchTerm}%")
+                  ->orWhereHas('userData', function ($subQ) use ($searchTerm) {
+                      $subQ->where('cpf', 'ILIKE', "%{$searchTerm}%");
+                  });
+            });
         }
 
         // Aplica filtro por role se fornecido

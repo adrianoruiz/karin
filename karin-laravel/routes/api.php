@@ -64,8 +64,8 @@ Route::group([
     Route::get('list-whats-users', [WhatsappController::class, 'listWhatsappUsers']);
 });
 
-// Rotas de usuários por função - protegidas por autenticação
-Route::middleware('auth:api')->group(function () {
+// Rotas públicas de usuários (para agente AI)
+Route::group([], function () {
     // Rotas específicas de usuários (devem vir antes das rotas com parâmetros)
     Route::get('users/roles', [UserController::class, 'getAllRoles']);
     Route::post('users/complete', [UserController::class, 'storeComplete']);
@@ -80,8 +80,10 @@ Route::middleware('auth:api')->group(function () {
     // Rotas com parâmetros de ID
     Route::put('users/{id}/complete', [UserController::class, 'updateComplete']);
     Route::post('users/{id}/avatar', [UserController::class, 'uploadAvatar']);
+});
 
-    // Rotas para gerenciar funcionários da empresa
+// Rotas protegidas para gerenciar funcionários da empresa
+Route::middleware('auth:api')->group(function () {
     Route::get('companies/{companyId}/employees', [CompanyEmployeeController::class, 'index']);
     Route::post('companies/{companyId}/employees', [CompanyEmployeeController::class, 'store']);
     Route::delete('companies/{companyId}/employees/{userId}', [CompanyEmployeeController::class, 'destroy']);
