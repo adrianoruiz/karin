@@ -140,8 +140,15 @@ class PatientAppointmentController extends Controller
                     'email' => $request->email,
                 ]);
 
-                // Cria dados adicionais se não existirem
-                if (! $user->userData) {
+                // Cria ou ATUALIZA dados adicionais (CPF e birthday)
+                if ($user->userData) {
+                    // Atualiza CPF e birthday se foram fornecidos
+                    $user->userData->update([
+                        'cpf' => $cpf,
+                        'birthday' => $request->birthday,
+                    ]);
+                } else {
+                    // Cria dados adicionais se não existirem
                     $user->userData()->create([
                         'cpf' => $cpf,
                         'birthday' => $request->birthday,
@@ -379,6 +386,106 @@ class PatientAppointmentController extends Controller
                 'cpf' => $cpf ?? ($user->userData->cpf ?? null),
             ],
             'appointments' => $appointments,
+        ]);
+    }
+
+    /**
+     * Confirma presença em uma consulta agendada
+     */
+    public function confirmAppointment(Request $request, $id)
+    {
+        $appointment = Appointment::find($id);
+
+        if (!$appointment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Agendamento não encontrado.',
+            ], 404);
+        }
+
+        // Verifica se já está confirmada
+        if ($appointment->status === 'confirmada') {
+            return response()->json([
+                'success' => true,
+                'already_confirmed' => true,
+                'message' => 'Esta consulta já está confirmada!',
+                'appointment' => $appointment->load(['doctor', 'plan', 'paymentMethod']),
+            ]);
+        }
+
+        // Só pode confirmar se estiver agendada
+        if ($appointment->status !== 'agendada') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Não é possível confirmar. Status atual: ' . $appointment->status,
+            ], 400);
+        }
+
+        // Atualiza para confirmada
+        $appointment->status = 'confirmada';
+        $appointment->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Consulta confirmada com sucesso!',
+            'appointment' => $appointment->load(['doctor', 'plan', 'paymentMethod']),
+        ]);
+    }
+
+    /**
+     * Cancela uma consulta agendada
+     */
+    public function cancelAppointment(Request $request, $id)
+    {
+        $appointment = Appointment::find($id);
+
+        if (!$appointment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Agendamento não encontrado.',
+            ], 404);
+        }
+
+        // Verifica se já está cancelada
+        if ($appointment->status === 'cancelada') {
+            return response()->json([
+                'success' => true,
+                'already_canceled' => true,
+                'message' => 'Esta consulta já foi cancelada.',
+                'appointment' => $appointment->load(['doctor']),
+            ]);
+        }
+
+        // Só pode cancelar se estiver agendada ou confirmada
+        if (!in_array($appointment->status, ['agendada', 'confirmada'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Não é possível cancelar. Status atual: ' . $appointment->status,
+            ], 400);
+        }
+
+        // Libera o horário de volta para disponível
+        $appointmentDate = date('Y-m-d', strtotime($appointment->appointment_datetime));
+        $appointmentTime = date('H:i', strtotime($appointment->appointment_datetime));
+
+        $availability = DoctorAvailability::where('doctor_id', $appointment->doctor_id)
+            ->whereDate('date', $appointmentDate)
+            ->whereTime('time', $appointmentTime)
+            ->first();
+
+        if ($availability) {
+            $availability->status = 'available';
+            $availability->save();
+        }
+
+        // Atualiza para cancelada
+        $appointment->status = 'cancelada';
+        $appointment->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Consulta cancelada com sucesso.',
+            'appointment' => $appointment->load(['doctor']),
         ]);
     }
 }

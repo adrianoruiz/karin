@@ -107,6 +107,9 @@ Route::prefix('patient')->group(function () {
     Route::get('payment-methods/{doctor_id}', [PatientAppointmentController::class, 'getDoctorPaymentMethods']);
     // Consultas em aberto de um paciente por CPF ou telefone
     Route::get('my-appointments', [PatientAppointmentController::class, 'myAppointments']);
+    // Confirmar e cancelar consultas
+    Route::put('confirm-appointment/{id}', [PatientAppointmentController::class, 'confirmAppointment']);
+    Route::put('cancel-appointment/{id}', [PatientAppointmentController::class, 'cancelAppointment']);
 });
 
 // Rotas de Chatbot - CRUD
