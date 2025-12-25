@@ -5,6 +5,7 @@ use App\Http\Controllers\AiPromptController;
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChatLogController;
+use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\CityController;
 use App\Http\Controllers\Api\CompanyEmployeeController;
 use App\Http\Controllers\Api\DoctorAvailabilityController;
@@ -205,9 +206,13 @@ Route::group([
 
     // Rotas de Cidades
     Route::get('/cities', [CityController::class, 'index']);
+    Route::get('/cities/search', [CityController::class, 'search']);
     Route::get('/cities/{id}', [CityController::class, 'show']);
     Route::get('/provinces/{provinceId}/cities', [CityController::class, 'byProvince']);
 });
+
+// Rota para busca de endereço por CEP (ViaCEP)
+Route::get('/address/cep/{cep}', [AddressController::class, 'searchByCep']);
 
 // Rotas para Prontuários Médicos
 Route::group([

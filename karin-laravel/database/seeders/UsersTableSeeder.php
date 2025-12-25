@@ -21,12 +21,13 @@ class UsersTableSeeder extends Seeder
         $faker = Faker::create();
         $role = RoleService::findSlug(ValidRoles::PATIENT);
 
+        $name = 'Amanda Lube';
         $user = User::create([
-            'name' => 'Amanda Lube',
+            'name' => $name,
             'email' => 'amanda@gmail.com',
             'password' => Hash::make('kar3fy007'),
             'status' => 1,
-            'avatar' => $faker->imageUrl(200, 200, 'people'),
+            'avatar' => $this->generateUiAvatarUrl($name),
             'phone' => $faker->phoneNumber,
             'is_whatsapp_user' => false,
         ]);
@@ -40,12 +41,13 @@ class UsersTableSeeder extends Seeder
         $user->roles()->sync([$role]);
 
         for ($i = 0; $i < 10; $i++) {
+            $name = $faker->name;
             $user = User::create([
-                'name' => $faker->name,
+                'name' => $name,
                 'email' => $faker->unique()->safeEmail,
                 'password' => Hash::make('kar3fy007'), // all users will have the same password
                 'status' => $faker->randomElement(['0', '1']),
-                'avatar' => $faker->imageUrl(200, 200, 'people'),
+                'avatar' => $this->generateUiAvatarUrl($name),
                 'phone' => $faker->phoneNumber,
                 'is_whatsapp_user' => false,
             ]);
@@ -59,5 +61,15 @@ class UsersTableSeeder extends Seeder
             $user->roles()->sync([$role]);
         }
 
+    }
+
+    /**
+     * Gera URL do UI Avatars baseado no nome do usuario.
+     */
+    private function generateUiAvatarUrl(string $name): string
+    {
+        $encodedName = urlencode($name);
+
+        return "https://ui-avatars.com/api/?name={$encodedName}&size=200&background=random&color=fff&bold=true";
     }
 }

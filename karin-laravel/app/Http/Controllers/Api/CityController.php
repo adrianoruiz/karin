@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\City;
+use App\Models\Province;
+use Illuminate\Http\Request;
 
 class CityController extends Controller
 {
@@ -54,6 +56,46 @@ class CityController extends Controller
     public function byProvince($provinceId)
     {
         $cities = City::where('province_id', $provinceId)->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $cities,
+        ]);
+    }
+
+    /**
+     * Busca cidades pelo nome com filtro opcional por estado.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function search(Request $request)
+    {
+        $name = $request->query('name');
+        $provinceInitials = $request->query('province_initials');
+
+        if (! $name) {
+            return response()->json([
+                'success' => false,
+                'message' => 'O parâmetro "name" é obrigatório.',
+            ], 400);
+        }
+
+        $query = City::with('province');
+
+        // Filtro por nome da cidade (busca parcial case-insensitive)
+        $query->whereRaw('LOWER(name) LIKE ?', ['%'.strtolower($name).'%']);
+
+        // Filtro opcional por estado
+        if ($provinceInitials) {
+            $province = Province::where('initials', strtoupper($provinceInitials))->first();
+
+            if ($province) {
+                $query->where('province_id', $province->id);
+            }
+        }
+
+        $cities = $query->limit(20)->get();
 
         return response()->json([
             'success' => true,
