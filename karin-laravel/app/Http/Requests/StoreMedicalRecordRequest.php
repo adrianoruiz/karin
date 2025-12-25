@@ -41,6 +41,11 @@ class StoreMedicalRecordRequest extends FormRequest
                 'integer',
                 'exists:users,id',
             ],
+            'appointment_id' => [
+                'nullable',
+                'integer',
+                'exists:appointments,id',
+            ],
             'consultation_date' => [
                 'required',
                 'date',
@@ -263,6 +268,7 @@ class StoreMedicalRecordRequest extends FormRequest
             'company_id.exists' => 'A empresa selecionada não existe.',
             'patient_id.required' => 'O ID do paciente é obrigatório.',
             'patient_id.exists' => 'O paciente selecionado não existe.',
+            'appointment_id.exists' => 'O agendamento selecionado não existe.',
             'consultation_date.required' => 'A data da consulta é obrigatória.',
             'consultation_date.before_or_equal' => 'A data da consulta não pode ser futura.',
             'consultation_type.required' => 'O tipo de consulta é obrigatório.',

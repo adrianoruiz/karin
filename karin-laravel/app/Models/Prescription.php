@@ -5,8 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class MedicalRecord extends Model
+class Prescription extends Model
 {
     use HasFactory;
 
@@ -19,25 +20,12 @@ class MedicalRecord extends Model
         'company_id',
         'patient_id',
         'doctor_id',
-        'appointment_id',
-        'consultation_date',
-        'consultation_type',
-        'chief_complaint',
-        'remember_complaint',
-        'current_pathological_history',
-        'past_pathological_history',
-        'family_history',
-        'social_history',
-        'physical_exam',
-        'complementary_exams',
-        'vital_signs',
-        'diagnosis',
-        'cid10_code',
-        'treatment',
+        'date',
+        'validity',
+        'type',
+        'simple_prescription',
+        'is_controlled',
         'notes',
-        'remember_notes',
-        'surgical_prescription',
-        'remember_surgical',
     ];
 
     /**
@@ -46,11 +34,9 @@ class MedicalRecord extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'consultation_date' => 'date',
-        'remember_complaint' => 'boolean',
-        'remember_notes' => 'boolean',
-        'remember_surgical' => 'boolean',
-        'vital_signs' => 'array',
+        'date' => 'date',
+        'validity' => 'integer',
+        'is_controlled' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -80,11 +66,11 @@ class MedicalRecord extends Model
     }
 
     /**
-     * Relacionamento com o agendamento vinculado (opcional).
+     * Relacionamento com os itens da prescrição (medicamentos).
      */
-    public function appointment(): BelongsTo
+    public function items(): HasMany
     {
-        return $this->belongsTo(Appointment::class, 'appointment_id');
+        return $this->hasMany(PrescriptionItem::class);
     }
 
     /**
@@ -124,38 +110,50 @@ class MedicalRecord extends Model
     }
 
     /**
-     * Scope para ordenar por data de consulta (mais recente primeiro).
+     * Scope para ordenar por data (mais recente primeiro).
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeLatestConsultation($query)
+    public function scopeLatestPrescription($query)
     {
-        return $query->orderBy('consultation_date', 'desc')->orderBy('created_at', 'desc');
+        return $query->orderBy('date', 'desc')->orderBy('created_at', 'desc');
     }
 
     /**
-     * Scope para filtrar por período de consultas.
+     * Scope para filtrar por período de datas.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @param  string  $startDate
      * @param  string  $endDate
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeConsultationPeriod($query, $startDate, $endDate)
+    public function scopePrescriptionPeriod($query, $startDate, $endDate)
     {
-        return $query->whereBetween('consultation_date', [$startDate, $endDate]);
+        return $query->whereBetween('date', [$startDate, $endDate]);
     }
 
     /**
-     * Scope para filtrar por tipo de consulta.
+     * Scope para filtrar por tipo de documento.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  string  $consultationType
+     * @param  string  $type
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeByConsultationType($query, $consultationType)
+    public function scopeByType($query, $type)
     {
-        return $query->where('consultation_type', $consultationType);
+        return $query->where('type', $type);
+    }
+
+    /**
+     * Scope para filtrar prescrições de controle especial.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  bool  $isControlled
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeControlled($query, $isControlled = true)
+    {
+        return $query->where('is_controlled', $isControlled);
     }
 }

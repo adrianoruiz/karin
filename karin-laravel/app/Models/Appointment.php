@@ -96,4 +96,12 @@ class Appointment extends Model
     {
         return $this->belongsTo(PaymentMethod::class, 'payment_method_id');
     }
+
+    /**
+     * Relacionamento com o prontuario medico (um agendamento tem no maximo um prontuario).
+     */
+    public function medicalRecord()
+    {
+        return $this->hasOne(MedicalRecord::class, 'appointment_id');
+    }
 }

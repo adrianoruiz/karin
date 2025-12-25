@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\CityController;
 use App\Http\Controllers\Api\CompanyEmployeeController;
 use App\Http\Controllers\Api\DoctorAvailabilityController;
 use App\Http\Controllers\Api\MedicalRecordController;
+use App\Http\Controllers\Api\PrescriptionController;
 use App\Http\Controllers\Api\PatientAppointmentController;
 use App\Http\Controllers\Api\PlanController;
 use App\Http\Controllers\Api\ProvinceController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\Api\UserWorkingHourController;
 use App\Http\Controllers\Api\WhatsappController;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\ChatbotCrudController;
+use App\Http\Controllers\CompanySettingsController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -231,6 +233,23 @@ Route::group([
     Route::delete('/{id}', [MedicalRecordController::class, 'destroy']);
 });
 
+// Rotas para Prescrições
+Route::group([
+    'prefix' => 'prescriptions',
+    'middleware' => 'auth:api',
+], function () {
+    // Rota específica para estatísticas (deve vir antes das rotas com parâmetros)
+    Route::get('/stats', [PrescriptionController::class, 'stats']);
+
+    // Rotas CRUD padrão
+    Route::get('/', [PrescriptionController::class, 'index']);
+    Route::post('/', [PrescriptionController::class, 'store']);
+    Route::get('/{id}', [PrescriptionController::class, 'show']);
+    Route::put('/{id}', [PrescriptionController::class, 'update']);
+    Route::patch('/{id}', [PrescriptionController::class, 'update']);
+    Route::delete('/{id}', [PrescriptionController::class, 'destroy']);
+});
+
 // Rotas para Triagem Médica
 Route::group([
     'prefix' => 'triage-records',
@@ -262,3 +281,15 @@ Route::group([
     Route::patch('/{id}', [ReminderController::class, 'update']);
     Route::delete('/{id}', [ReminderController::class, 'destroy']);
 });
+
+// Rotas para Configuracoes da Empresa
+Route::group([
+    'prefix' => 'company-settings',
+    'middleware' => 'auth:api',
+], function () {
+    Route::get('/', [CompanySettingsController::class, 'index']);
+    Route::put('/', [CompanySettingsController::class, 'update']);
+});
+
+// Rota publica para verificar status de modulo (sem autenticacao)
+Route::get('company-settings/{companyId}/module/{moduleKey}', [CompanySettingsController::class, 'checkModule']);

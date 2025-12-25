@@ -19,6 +19,7 @@ class MedicalRecordResource extends JsonResource
             'company_id' => $this->company_id,
             'patient_id' => $this->patient_id,
             'doctor_id' => $this->doctor_id,
+            'appointment_id' => $this->appointment_id,
             'consultation_date' => $this->consultation_date?->format('Y-m-d'),
             'consultation_type' => $this->consultation_type,
 
@@ -76,6 +77,16 @@ class MedicalRecordResource extends JsonResource
                     'id' => $this->company->id,
                     'name' => $this->company->name,
                     'email' => $this->company->email,
+                ];
+            }),
+
+            'appointment' => $this->whenLoaded('appointment', function () {
+                return [
+                    'id' => $this->appointment->id,
+                    'appointment_datetime' => $this->appointment->appointment_datetime,
+                    'status' => $this->appointment->status,
+                    'is_online' => $this->appointment->is_online,
+                    'observations' => $this->appointment->observations,
                 ];
             }),
         ];

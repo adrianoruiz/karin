@@ -110,7 +110,7 @@ class AppointmentController extends Controller
             // Campos para verificação do paciente
             'user_id' => 'nullable|exists:users,id',
             'cpf' => 'required_without:user_id|string',
-            'phone' => 'required_without:user_id|string',
+            'phone' => 'nullable|string',
             // Campos adicionais para caso seja necessário criar um novo usuário
             'name' => 'required_without:user_id|string|max:255',
             'email' => 'nullable|email|max:255|unique:users,email',
@@ -125,7 +125,14 @@ class AppointmentController extends Controller
     {
         $hasEmail = $request->filled('email');
 
-        ! $hasEmail && $request->merge(['email' => $request->phone]);
+        if (! $hasEmail) {
+            // Usa telefone como email padrão, ou CPF se telefone não informado
+            $defaultEmail = $request->filled('phone')
+                ? $request->phone
+                : preg_replace('/[^0-9]/', '', $request->cpf);
+
+            $request->merge(['email' => $defaultEmail]);
+        }
     }
 
     /**
@@ -157,7 +164,9 @@ class AppointmentController extends Controller
 
         // Limpa CPF e telefone
         $cpf = preg_replace('/[^0-9]/', '', $request->cpf);
-        $phone = preg_replace('/[^0-9]/', '', $request->phone);
+        $phone = $request->filled('phone')
+            ? preg_replace('/[^0-9]/', '', $request->phone)
+            : null;
 
         // Busca por CPF
         $userData = UserData::where('cpf', $cpf)->first();
@@ -166,11 +175,13 @@ class AppointmentController extends Controller
             return $userData->user_id;
         }
 
-        // Busca por telefone
-        $user = User::where('phone', $phone)->first();
+        // Busca por telefone (somente se informado)
+        if ($phone) {
+            $user = User::where('phone', $phone)->first();
 
-        if ($user) {
-            return $user->id;
+            if ($user) {
+                return $user->id;
+            }
         }
 
         // Cria novo usuário

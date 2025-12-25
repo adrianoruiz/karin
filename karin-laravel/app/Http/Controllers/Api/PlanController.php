@@ -30,11 +30,13 @@ class PlanController extends Controller
             'price' => 'required|numeric|min:0',
             'duration' => 'required|integer|min:1',
             'is_active' => 'boolean',
+            'is_default' => 'boolean',
             'user_id' => 'required|exists:users,id',
             'type' => 'required|string|in:consulta_avulsa,pacote',
             'consultations' => 'required_if:type,pacote|nullable|integer|min:1',
             'modality' => 'required|string|in:online,presencial',
             'installments' => 'required|integer|min:1|max:12',
+            'link' => 'nullable|url',
         ]);
 
         $plan = Plan::create($validated);
@@ -59,10 +61,12 @@ class PlanController extends Controller
             'price' => 'sometimes|required|numeric|min:0',
             'duration' => 'sometimes|required|integer|min:1',
             'is_active' => 'boolean',
+            'is_default' => 'boolean',
             'type' => 'sometimes|required|string|in:consulta_avulsa,pacote',
             'consultations' => 'required_if:type,pacote|nullable|integer|min:1',
             'modality' => 'sometimes|required|string|in:online,presencial',
             'installments' => 'sometimes|required|integer|min:1|max:12',
+            'link' => 'nullable|url',
         ]);
 
         $plan->update($validated);

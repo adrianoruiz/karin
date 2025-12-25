@@ -262,6 +262,16 @@ class User extends Authenticatable implements JWTSubject
     }
 
     /**
+     * Relacionamento com configurações da empresa.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function companySetting(): HasOne
+    {
+        return $this->hasOne(CompanySetting::class, 'company_id');
+    }
+
+    /**
      * Prontuários médicos onde este usuário é o paciente.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany

@@ -36,6 +36,11 @@ class UpdateMedicalRecordRequest extends FormRequest
                 'integer',
                 'exists:users,id',
             ],
+            'appointment_id' => [
+                'nullable',
+                'integer',
+                'exists:appointments,id',
+            ],
             'consultation_date' => [
                 'sometimes',
                 'date',
@@ -262,6 +267,7 @@ class UpdateMedicalRecordRequest extends FormRequest
         return [
             'company_id.exists' => 'A empresa selecionada não existe.',
             'patient_id.exists' => 'O paciente selecionado não existe.',
+            'appointment_id.exists' => 'O agendamento selecionado não existe.',
             'consultation_date.before_or_equal' => 'A data da consulta não pode ser futura.',
             'consultation_type.in' => 'O tipo de consulta deve ser: primeira_consulta, retorno, emergencia, exame ou procedimento.',
             'surgical_prescription.in' => 'A prescrição cirúrgica deve ser: sim ou nao.',

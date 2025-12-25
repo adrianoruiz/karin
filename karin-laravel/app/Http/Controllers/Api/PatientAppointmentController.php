@@ -73,8 +73,8 @@ class PatientAppointmentController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'cpf' => 'required|string',
-            'phone' => 'required|string',
-            'birthday' => 'required|date',
+            'phone' => 'nullable|string',
+            'birthday' => 'nullable|date',
             'doctor_id' => 'required|exists:users,id',
             'appointment_datetime' => 'required|date',
             'observations' => 'nullable|string',
@@ -108,7 +108,9 @@ class PatientAppointmentController extends Controller
 
         // Limpa CPF e telefone para conter apenas números
         $cpf = preg_replace('/[^0-9]/', '', $request->cpf);
-        $phone = preg_replace('/[^0-9]/', '', $request->phone);
+        $phone = $request->filled('phone')
+            ? preg_replace('/[^0-9]/', '', $request->phone)
+            : null;
 
         // Procura usuário pelo CPF
         $userData = UserData::where('cpf', $cpf)->first();
@@ -119,19 +121,27 @@ class PatientAppointmentController extends Controller
             $user = User::find($userData->user_id);
 
             // Atualiza dados do usuário se necessário
-            $user->update([
+            $updateData = [
                 'name' => $request->name,
                 'email' => $request->email,
-                'phone' => $phone,
-            ]);
+            ];
 
-            // Atualiza dados adicionais
+            // Atualiza telefone somente se informado
+            if ($phone) {
+                $updateData['phone'] = $phone;
+            }
+
+            $user->update($updateData);
+
+            // Atualiza dados adicionais (birthday pode ser null)
             $userData->update([
                 'birthday' => $request->birthday,
             ]);
         } else {
-            // Procura usuário pelo telefone
-            $user = User::where('phone', $phone)->first();
+            // Procura usuário pelo telefone (somente se informado)
+            if ($phone) {
+                $user = User::where('phone', $phone)->first();
+            }
 
             if ($user) {
                 // Atualiza dados do usuário
