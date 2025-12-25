@@ -21,10 +21,19 @@ class UserData extends Model
         'emergency_contact',
         'emergency_contact_phone',
         'alternative_phone',
+        'patient_type',
+        'health_insurance',
+        'insurance_number',
+        'insurance_expiration',
+        'notes',
         'fantasy',
         'cnpj',
         'corporate_name',
         'segment_types',
+    ];
+
+    protected $casts = [
+        'insurance_expiration' => 'date',
     ];
 
     public function user()

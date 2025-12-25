@@ -45,6 +45,11 @@ class StoreCompleteUserRequest extends FormRequest
             'user_data.cnpj' => 'nullable|string|max:18',
             'user_data.corporate_name' => 'nullable|string|max:255',
             'user_data.segment_types' => 'nullable|string|in:clinica-medica,salao-beleza,clinica-odonto',
+            'user_data.patient_type' => 'nullable|string|in:private,insurance',
+            'user_data.health_insurance' => 'nullable|string|max:255',
+            'user_data.insurance_number' => 'nullable|string|max:50',
+            'user_data.insurance_expiration' => 'nullable|date',
+            'user_data.notes' => 'nullable|string|max:2000',
 
             // Validação de endereço
             'address' => 'nullable|array',
