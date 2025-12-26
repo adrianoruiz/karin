@@ -273,9 +273,10 @@ class AuthController extends Controller
     {
         $isProduction = app()->environment('production');
 
-        // Em desenvolvimento: SameSite=None para cross-origin, Secure=false para HTTP
-        // Em producao: SameSite=Lax para CSRF protection, Secure=true para HTTPS
-        $sameSite = $isProduction ? 'lax' : 'none';
+        // SEMPRE usar SameSite=Lax (Chrome bloqueia None sem Secure mesmo em localhost)
+        // Em desenvolvimento: SameSite=Lax com Secure=false para HTTP localhost
+        // Em producao: SameSite=Lax com Secure=true para HTTPS
+        $sameSite = 'lax';
         $secure = $isProduction;
 
         return cookie(
@@ -297,7 +298,7 @@ class AuthController extends Controller
     protected function createExpiredCookie(): Cookie
     {
         $isProduction = app()->environment('production');
-        $sameSite = $isProduction ? 'lax' : 'none';
+        $sameSite = 'lax'; // Sempre usar lax (consistente com createSecureCookie)
 
         return cookie(
             name: JwtCookieAuthentication::COOKIE_NAME,
