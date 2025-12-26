@@ -20,7 +20,7 @@ class UserRepository
     public function findById(int $id): ?User
     {
         // return User::with(['userData', 'image', 'roles', 'workingHours'])->find($id);
-        return User::with(['userData', 'image', 'roles', 'addresses', 'specialties', 'workingHours'])->find($id);
+        return User::with(['userData', 'image', 'roles', 'addresses.city.province', 'specialties', 'workingHours'])->find($id);
     }
 
     /**
@@ -28,7 +28,7 @@ class UserRepository
      */
     public function findCompleteById(int $id): ?User
     {
-        return User::with(['userData', 'image', 'roles', 'addresses', 'specialties', 'workingHours'])->find($id);
+        return User::with(['userData', 'image', 'roles', 'addresses.city.province', 'specialties', 'workingHours'])->find($id);
     }
 
     /**
