@@ -30,6 +30,8 @@ class UserData extends Model
         'cnpj',
         'corporate_name',
         'segment_types',
+        'crm',
+        'rqe',
     ];
 
     protected $casts = [
