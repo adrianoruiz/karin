@@ -207,12 +207,17 @@ class UserService
             throw new \Exception('Usuário não encontrado');
         }
 
-        $formattedHours = collect($hours)->map(fn ($h) => array_merge($h, ['user_id' => $userId]));
+        $now = now();
+        $formattedHours = collect($hours)->map(fn ($h) => array_merge($h, [
+            'user_id' => $userId,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]));
 
         WorkingHour::upsert(
             $formattedHours->toArray(),
             ['user_id', 'day_of_week'],
-            ['opens_at', 'closes_at', 'is_open']
+            ['opens_at', 'closes_at', 'is_open', 'updated_at']
         );
     }
 
