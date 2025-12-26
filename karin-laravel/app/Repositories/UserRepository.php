@@ -287,6 +287,7 @@ class UserRepository
         $userData->cnpj = $userDataArray['cnpj'] ?? null;
         $userData->corporate_name = $userDataArray['corporate_name'] ?? null;
         $userData->segment_types = $userDataArray['segment_types'] ?? null;
+        $userData->site = $userDataArray['site'] ?? null;
         $userData->save();
 
         return $userData;
@@ -325,6 +326,10 @@ class UserRepository
 
         if (isset($userDataArray['segment_types'])) {
             $userData->segment_types = $userDataArray['segment_types'];
+        }
+
+        if (isset($userDataArray['site'])) {
+            $userData->site = $userDataArray['site'];
         }
 
         $userData->save();

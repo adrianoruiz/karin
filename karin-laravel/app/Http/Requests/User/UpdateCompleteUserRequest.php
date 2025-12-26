@@ -50,6 +50,7 @@ class UpdateCompleteUserRequest extends FormRequest
             'user_data.insurance_number' => 'nullable|string|max:50',
             'user_data.insurance_expiration' => 'nullable|date',
             'user_data.notes' => 'nullable|string|max:2000',
+            'user_data.site' => 'nullable|url|max:255',
 
             // Validação de endereço
             'address' => 'nullable|array',

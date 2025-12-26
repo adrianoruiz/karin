@@ -32,6 +32,7 @@ class UserData extends Model
         'segment_types',
         'crm',
         'rqe',
+        'site',
     ];
 
     protected $casts = [
