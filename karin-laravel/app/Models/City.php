@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class City extends Model
 {
     use HasFactory;
-    
+
     public $timestamps = false;
 
     protected $fillable = ['name', 'province_id', 'ibge_code', 'status'];

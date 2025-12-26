@@ -2,13 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\{
-    Factories\HasFactory,
-    Model,
-    Relations\BelongsTo
-};
-
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ChatLog extends Model
 {
@@ -30,7 +26,7 @@ class ChatLog extends Model
         'file_name',
         'file_mime_type',
         'is_read',
-        'read_at'
+        'read_at',
     ];
 
     /**
@@ -47,7 +43,7 @@ class ChatLog extends Model
 
     /**
      * Get the user that owns the chat log.
-     * 
+     *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function user(): BelongsTo
@@ -57,7 +53,7 @@ class ChatLog extends Model
 
     /**
      * Get the doctor that participated in the chat.
-     * 
+     *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function doctor(): BelongsTo
@@ -65,13 +61,11 @@ class ChatLog extends Model
         return $this->belongsTo(User::class, 'doctor_id');
     }
 
-   
     public function scopeByPhone($query, $phone)
     {
         return $query->where('phone_user', $phone);
     }
 
-   
     public function scopeUnread($query)
     {
         return $query->where('is_read', false);

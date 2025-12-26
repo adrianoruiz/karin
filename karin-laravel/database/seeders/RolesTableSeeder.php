@@ -6,8 +6,6 @@ use App\Enum\ValidRoles;
 use App\Models\Role;
 use Illuminate\Database\Seeder;
 
-
-
 class RolesTableSeeder extends Seeder
 {
     /**
@@ -18,64 +16,64 @@ class RolesTableSeeder extends Seeder
     public function run()
     {
         Role::create([
-            "description" => "Administrador",
-            "slug" => ValidRoles::ADMIN,
+            'description' => 'Administrador',
+            'slug' => ValidRoles::ADMIN,
         ]);
 
         Role::create([
-            "description" => "Tutor",
-            "slug" => ValidRoles::CLIENT,
+            'description' => 'Tutor',
+            'slug' => ValidRoles::CLIENT,
         ]);
 
         Role::create([
-            "description" => "patient",
-            "slug" => ValidRoles::PATIENT,
+            'description' => 'patient',
+            'slug' => ValidRoles::PATIENT,
         ]);
 
         Role::create([
-            "description" => "Clinic",
-            "slug" => ValidRoles::CLINIC,
+            'description' => 'Clinic',
+            'slug' => ValidRoles::CLINIC,
         ]);
 
         Role::create([
-            "description" => "Doctor",
-            "slug" => ValidRoles::DOCTOR,
+            'description' => 'Doctor',
+            'slug' => ValidRoles::DOCTOR,
         ]);
 
         Role::create([
-            "description" => "Serviços",
-            "slug" => ValidRoles::SERVICE,
+            'description' => 'Serviços',
+            'slug' => ValidRoles::SERVICE,
         ]);
 
         // roles internos
         Role::create([
-            "description" => "Comercial",
-            "slug" => ValidRoles::COMMERCIAL,
+            'description' => 'Comercial',
+            'slug' => ValidRoles::COMMERCIAL,
         ]);
 
         Role::create([
-            "description" => "Contato",
-            "slug" => ValidRoles::CONTACT,
+            'description' => 'Contato',
+            'slug' => ValidRoles::CONTACT,
         ]);
 
         Role::create([
-            "description" => "Suporte",
-            "slug" => ValidRoles::SUPPORT,
+            'description' => 'Suporte',
+            'slug' => ValidRoles::SUPPORT,
         ]);
 
         Role::create([
-            "description" => "Avaliador de produtos",
-            "slug" => ValidRoles::PRODUCT_VALIDATOR,
+            'description' => 'Avaliador de produtos',
+            'slug' => ValidRoles::PRODUCT_VALIDATOR,
         ]);
 
         Role::create([
-            "description" => "Financeiro",
-            "slug" => ValidRoles::FINANCIAL,
+            'description' => 'Financeiro',
+            'slug' => ValidRoles::FINANCIAL,
         ]);
 
         Role::create([
-            "description" => "Expeditor",
-            "slug" => ValidRoles::EXPEDITOR,
+            'description' => 'Expeditor',
+            'slug' => ValidRoles::EXPEDITOR,
         ]);
     }
 }

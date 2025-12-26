@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\User;
 
 class DoctorAvailability extends Model
 {
@@ -12,7 +11,7 @@ class DoctorAvailability extends Model
         'doctor_id',
         'date',
         'time',
-        'status'
+        'status',
     ];
 
     protected $casts = [

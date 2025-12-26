@@ -1,6 +1,6 @@
 // src/services/reactionService.js
 
-const { formatPhoneNumber } = require('./formattedNumber');
+const { formatPhoneNumber } = require('../utils/formattedNumber');
 const clientManager = require('../services/qr/clientManager');
 const config = require('../../config');
 

@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class Role extends Model
 {
     use HasFactory;
-    
+
     public $timestamps = false;
-    
+
     protected $fillable = [
         'slug',
         'description',
@@ -21,7 +21,7 @@ class Role extends Model
     {
         return $this->belongsToMany(RoleModule::class);
     }
-    
+
     public function users()
     {
         return $this->belongsToMany(User::class);

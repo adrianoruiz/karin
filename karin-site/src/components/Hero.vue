@@ -11,7 +11,10 @@ defineProps<{
 const showAppointmentModal = ref(false);
 
 const openAppointmentModal = () => {
-  showAppointmentModal.value = true;
+  window.location.href = '/conversion/consulta-online.html';
+  return;
+  //@Todo so descomentar para trabalhar com modal de agendamento
+  // showAppointmentModal.value = true;
 };
 
 const closeAppointmentModal = () => {

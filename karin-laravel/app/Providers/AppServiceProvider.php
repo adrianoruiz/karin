@@ -11,7 +11,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Registrar repositórios
+        $this->app->bind(
+            \App\Repositories\MedicalRecordRepository::class,
+            \App\Repositories\MedicalRecordRepository::class
+        );
     }
 
     /**

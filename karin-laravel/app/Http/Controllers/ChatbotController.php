@@ -7,13 +7,13 @@ use App\Models\User;
 use App\Services\ChatbotService;
 use App\Services\Integration\WhatsApp\MessageHandlerService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class ChatbotController extends Controller
 {
     protected $chatbotService;
+
     protected $messageHandlerService;
 
     public function __construct(ChatbotService $chatbotService, MessageHandlerService $messageHandlerService)
@@ -24,8 +24,7 @@ class ChatbotController extends Controller
 
     /**
      * Obtém e personaliza uma mensagem de chatbot por tipo.
-     * 
-     * @param Request $request
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function getPersonalizedMessageByType(Request $request)
@@ -43,7 +42,7 @@ class ChatbotController extends Controller
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Dados inválidos',
-                    'errors' => $validator->errors()
+                    'errors' => $validator->errors(),
                 ], 422);
             }
 
@@ -57,7 +56,7 @@ class ChatbotController extends Controller
                 'user_id' => $userId,
                 'message_type' => $messageType,
                 'name' => $name,
-                'phone_number' => $phoneNumber
+                'phone_number' => $phoneNumber,
             ]);
 
             // Mapear 'greeting' para 'welcome' se necessário
@@ -67,11 +66,11 @@ class ChatbotController extends Controller
 
             // Obter o usuário com seus dados
             $user = User::with('userData')->find($userId);
-            
-            if (!$user) {
+
+            if (! $user) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Usuário não encontrado'
+                    'message' => 'Usuário não encontrado',
                 ], 404);
             }
 
@@ -82,7 +81,7 @@ class ChatbotController extends Controller
                 ->first();
 
             // Se não encontrar mensagem personalizada, buscar mensagem padrão
-            if (!$chatbotMessage) {
+            if (! $chatbotMessage) {
                 $chatbotMessage = Chatbot::where('user_id', $userId)
                     ->where('message_type', $messageType)
                     ->where('is_default', true)
@@ -90,16 +89,16 @@ class ChatbotController extends Controller
             }
 
             // Se ainda não encontrar, buscar mensagem do admin (ID 1)
-            if (!$chatbotMessage) {
+            if (! $chatbotMessage) {
                 $chatbotMessage = Chatbot::where('user_id', 1)
                     ->where('message_type', $messageType)
                     ->first();
             }
 
-            if (!$chatbotMessage) {
+            if (! $chatbotMessage) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Mensagem não encontrada para este tipo'
+                    'message' => 'Mensagem não encontrada para este tipo',
                 ], 404);
             }
 
@@ -114,7 +113,7 @@ class ChatbotController extends Controller
             // Personalizar a mensagem
             $message = $chatbotMessage->message;
             foreach ($personalizationData as $key => $value) {
-                $message = str_replace('{' . $key . '}', $value, $message);
+                $message = str_replace('{'.$key.'}', $value, $message);
             }
 
             // Enviar mensagem via WhatsApp se o número de telefone foi fornecido
@@ -123,8 +122,8 @@ class ChatbotController extends Controller
                 $normalizedPhone = $this->messageHandlerService->normalizePhone($phoneNumber);
                 if ($normalizedPhone) {
                     $whatsappSent = $this->messageHandlerService->sendMessage(
-                        $normalizedPhone, 
-                        $message, 
+                        $normalizedPhone,
+                        $message,
                         $userId
                     );
                 }
@@ -138,29 +137,28 @@ class ChatbotController extends Controller
                     'personalized_message' => $message,
                     'message_type' => $messageType,
                     'personalization_data' => $personalizationData,
-                    'whatsapp_sent' => $whatsappSent
-                ]
+                    'whatsapp_sent' => $whatsappSent,
+                ],
             ]);
         } catch (\Exception $e) {
-            Log::error('Erro em getPersonalizedMessageByType: ' . $e->getMessage(), [
+            Log::error('Erro em getPersonalizedMessageByType: '.$e->getMessage(), [
                 'exception' => $e,
-                'request' => $request->all()
+                'request' => $request->all(),
             ]);
-            
+
             return response()->json([
                 'status' => 'error',
                 'message' => 'Erro ao processar a mensagem',
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
-                'line' => $e->getLine()
+                'line' => $e->getLine(),
             ], 500);
         }
     }
 
     /**
      * Atualiza uma mensagem de chatbot existente ou cria uma nova.
-     * 
-     * @param Request $request
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function updateMessage(Request $request)
@@ -178,7 +176,7 @@ class ChatbotController extends Controller
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Dados inválidos',
-                    'errors' => $validator->errors()
+                    'errors' => $validator->errors(),
                 ], 422);
             }
 
@@ -199,21 +197,20 @@ class ChatbotController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Mensagem atualizada com sucesso',
-                'data' => $chatbot
+                'data' => $chatbot,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Erro ao atualizar a mensagem',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
 
     /**
      * Redefine uma mensagem para o valor padrão.
-     * 
-     * @param Request $request
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function resetToDefault(Request $request)
@@ -228,7 +225,7 @@ class ChatbotController extends Controller
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Dados inválidos',
-                    'errors' => $validator->errors()
+                    'errors' => $validator->errors(),
                 ], 422);
             }
 
@@ -241,10 +238,10 @@ class ChatbotController extends Controller
                 ->where('is_default', true)
                 ->first();
 
-            if (!$defaultMessage) {
+            if (! $defaultMessage) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Mensagem padrão não encontrada para este tipo'
+                    'message' => 'Mensagem padrão não encontrada para este tipo',
                 ], 404);
             }
 
@@ -260,13 +257,13 @@ class ChatbotController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Mensagem redefinida para o padrão com sucesso',
-                'data' => $chatbot
+                'data' => $chatbot,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Erro ao redefinir a mensagem',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

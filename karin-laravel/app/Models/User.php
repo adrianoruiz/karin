@@ -6,24 +6,20 @@ namespace App\Models;
 
 use App\Enum\ValidRoles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
-use Illuminate\Database\Eloquent\Relations\{
-    HasOne,
-    MorphMany,
-    MorphOne,
-    HasMany,
-    BelongsToMany
-};
-
-
-
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -88,8 +84,9 @@ class User extends Authenticatable implements JWTSubject
     /**
      * Verifica se o usuário possui um determinado papel.
      *
-     * @param string|ValidRoles $role
+     * @param  string|ValidRoles  $role
      * @return bool
+     *
      * @throws \InvalidArgumentException
      */
     public function hasRole($role)
@@ -99,10 +96,11 @@ class User extends Authenticatable implements JWTSubject
         } elseif (is_string($role)) {
             $roleSlug = $role;
         } else {
-            throw new \InvalidArgumentException("Invalid role type");
+            throw new \InvalidArgumentException('Invalid role type');
         }
 
         $roles = $this->roles->pluck('slug');
+
         return $roles->contains($roleSlug);
     }
 
@@ -116,7 +114,7 @@ class User extends Authenticatable implements JWTSubject
         $defaultAddress = $this->addresses()->where('default', true)->first();
 
         // Se não houver endereço marcado como padrão
-        if (!$defaultAddress) {
+        if (! $defaultAddress) {
             // Pega o primeiro endereço da lista
             $defaultAddress = $this->addresses()->first();
 
@@ -161,6 +159,38 @@ class User extends Authenticatable implements JWTSubject
     }
 
     /**
+     * Relacionamento com clientes da empresa (médico/salão)
+     */
+    public function companyClientes()
+    {
+        return $this->hasMany(CompanyCliente::class, 'company_id');
+    }
+
+    /**
+     * Relacionamento com empresas do cliente
+     */
+    public function clientCompanies()
+    {
+        return $this->hasMany(CompanyCliente::class, 'client_id');
+    }
+
+    /**
+     * Empresas onde o usuário é funcionário
+     */
+    public function employeeCompanies(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'company_user', 'user_id', 'company_id');
+    }
+
+    /**
+     * Funcionários da empresa (quando este usuário é uma empresa)
+     */
+    public function employees(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'company_user', 'company_id', 'user_id');
+    }
+
+    /**
      * Relacionamento com imagem de perfil.
      *
      * @return \Illuminate\Database\Eloquent\Relations\MorphOne
@@ -179,7 +209,7 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(DoctorAvailability::class, 'doctor_id');
     }
-    
+
     /**
      * Relacionamento com formas de pagamento aceitas pelo médico.
      *
@@ -190,7 +220,7 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsToMany(PaymentMethod::class, 'doctor_payment_method', 'user_id', 'payment_method_id')
             ->withTimestamps();
     }
-    
+
     /**
      * Relacionamento com planos oferecidos pelo médico.
      *
@@ -199,5 +229,107 @@ class User extends Authenticatable implements JWTSubject
     public function plans(): HasMany
     {
         return $this->hasMany(Plan::class, 'user_id');
+    }
+
+    /**
+     * Relacionamento com especialidades.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function specialties(): BelongsToMany
+    {
+        return $this->belongsToMany(Specialty::class)->withTimestamps();
+    }
+
+    /**
+     * Relacionamento com horários de funcionamento.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function workingHours(): HasMany
+    {
+        return $this->hasMany(WorkingHour::class);
+    }
+
+    /**
+     * Relacionamento com configuração de IA.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function aiConfig(): HasOne
+    {
+        return $this->hasOne(AiConfig::class);
+    }
+
+    /**
+     * Relacionamento com configurações da empresa.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function companySetting(): HasOne
+    {
+        return $this->hasOne(CompanySetting::class, 'company_id');
+    }
+
+    /**
+     * Prontuários médicos onde este usuário é o paciente.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function patientMedicalRecords(): HasMany
+    {
+        return $this->hasMany(MedicalRecord::class, 'patient_id');
+    }
+
+    /**
+     * Prontuários médicos onde este usuário é o médico responsável.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function doctorMedicalRecords(): HasMany
+    {
+        return $this->hasMany(MedicalRecord::class, 'doctor_id');
+    }
+
+    /**
+     * Prontuários médicos da empresa (quando este usuário é uma empresa/clínica).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function companyMedicalRecords(): HasMany
+    {
+        return $this->hasMany(MedicalRecord::class, 'company_id');
+    }
+
+    /**
+     * Lembretes criados por este usuário.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function createdReminders(): HasMany
+    {
+        return $this->hasMany(Reminder::class, 'created_by');
+    }
+
+    /**
+     * Lembretes da empresa (quando este usuário é uma empresa).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function companyReminders(): HasMany
+    {
+        return $this->hasMany(Reminder::class, 'company_id');
+    }
+
+    /**
+     * Lembretes recebidos por este usuário.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function reminders(): BelongsToMany
+    {
+        return $this->belongsToMany(Reminder::class, 'reminder_recipients')
+                    ->withPivot(['sent_at', 'delivered', 'error_message', 'read_at'])
+                    ->withTimestamps();
     }
 }

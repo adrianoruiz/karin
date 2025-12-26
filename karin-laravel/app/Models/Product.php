@@ -13,14 +13,12 @@ class Product extends Model
     protected $fillable = [
         'name',
         'description',
-        'price'
+        'price',
     ];
 
     /**
      * Relacionamento com imagens do produto.
      * Um produto pode ter múltiplas imagens.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
      */
     public function images(): MorphMany
     {

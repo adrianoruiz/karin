@@ -1,0 +1,330 @@
+{
+	"info": {
+		"_postman_id": "9b253e6e-05de-4ae2-8f1c-3fb3d72e8a15",
+		"name": "Karin Laravel - Specialties API",
+		"description": "Coleção de endpoints para gerenciar especialidades no sistema Karin",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Listar todas as especialidades",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/specialties",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"specialties"
+					]
+				},
+				"description": "Retorna a lista de todas as especialidades. Pode ser utilizado sem autenticação."
+			}
+		},
+		{
+			"name": "Listar especialidades por segmento",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/specialties?segment_type=clinica-medica",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"specialties"
+					],
+					"query": [
+						{
+							"key": "segment_type",
+							"value": "clinica-medica",
+							"description": "Valores possíveis: clinica-medica, salao-beleza, clinica-odonto"
+						}
+					]
+				},
+				"description": "Filtra especialidades pelo tipo de segmento. Pode ser utilizado sem autenticação."
+			}
+		},
+		{
+			"name": "Obter detalhes de uma especialidade",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/specialties/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"specialties",
+						"1"
+					]
+				},
+				"description": "Obtém os detalhes de uma especialidade pelo ID. Pode ser utilizado sem autenticação."
+			}
+		},
+		{
+			"name": "Criar especialidade (admin)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Nova Especialidade\",\n    \"segment_type\": \"clinica-medica\",\n    \"status\": true\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/specialties",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"specialties"
+					]
+				},
+				"description": "Cria uma nova especialidade. Apenas usuários com a role 'admin' podem criar especialidades."
+			}
+		},
+		{
+			"name": "Atualizar especialidade (admin)",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Especialidade Atualizada\",\n    \"status\": true\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/specialties/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"specialties",
+						"1"
+					]
+				},
+				"description": "Atualiza uma especialidade existente. Apenas usuários com a role 'admin' podem atualizar especialidades."
+			}
+		},
+		{
+			"name": "Excluir especialidade (admin)",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/specialties/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"specialties",
+						"1"
+					]
+				},
+				"description": "Remove uma especialidade (soft delete). Apenas usuários com a role 'admin' podem remover especialidades."
+			}
+		},
+		{
+			"name": "Listar especialidades de um usuário",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/users/1/specialties",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"users",
+						"1",
+						"specialties"
+					]
+				},
+				"description": "Obtém todas as especialidades associadas a um usuário específico."
+			}
+		},
+		{
+			"name": "Atualizar especialidades de um usuário",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"specialty_ids\": [1, 2, 3]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/users/1/specialties",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"users",
+						"1",
+						"specialties"
+					]
+				},
+				"description": "Atualiza as especialidades de um usuário (substitui todas as existentes). Um usuário só pode atualizar suas próprias especialidades, a menos que tenha a role 'admin'."
+			}
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "seu_token_jwt_aqui",
+			"type": "string"
+		}
+	]
+} 

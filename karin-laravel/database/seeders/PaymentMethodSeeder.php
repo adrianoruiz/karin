@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\PaymentMethod;
 use App\Models\User;
+use Illuminate\Database\Seeder;
 
 class PaymentMethodSeeder extends Seeder
 {
@@ -20,36 +20,36 @@ class PaymentMethodSeeder extends Seeder
                 'slug' => 'cartao_credito',
                 'icon' => 'credit_card',
                 'description' => 'Pagamento com cartão de crédito em até 12x',
-                'is_active' => true
+                'is_active' => true,
             ],
             [
                 'name' => 'Cartão de Débito',
                 'slug' => 'cartao_debito',
                 'icon' => 'credit_card',
                 'description' => 'Pagamento à vista com cartão de débito',
-                'is_active' => true
+                'is_active' => true,
             ],
             [
                 'name' => 'PIX',
                 'slug' => 'pix',
                 'icon' => 'qr_code',
                 'description' => 'Pagamento instantâneo via PIX',
-                'is_active' => true
+                'is_active' => true,
             ],
             [
                 'name' => 'Dinheiro',
                 'slug' => 'dinheiro',
                 'icon' => 'payments',
                 'description' => 'Pagamento em espécie no consultório',
-                'is_active' => true
+                'is_active' => true,
             ],
             [
                 'name' => 'Convênio',
                 'slug' => 'convenio',
                 'icon' => 'health_and_safety',
                 'description' => 'Pagamento via plano de saúde ou convênio',
-                'is_active' => true
-            ]
+                'is_active' => true,
+            ],
         ];
 
         // Inserir as formas de pagamento no banco

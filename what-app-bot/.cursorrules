@@ -1,0 +1,42 @@
+# Seven Doctor WhatsApp Bot – Regras AI
+
+## Contexto geral (sempre incluir)
+- Este é um projeto **Node.js 14** que implementa um chatbot multi-clínica no WhatsApp usando **whatsapp-web.js v1.26**.
+- Integra com a **OpenAI Chat Completions API** via `src/services/gpt.js`; modelo padrão: `gpt-4.1`.
+- Stack principal: JavaScript ES2022 (modules), Express, Redis opcional, TypeScript utils compilados em `dist/`.
+
+## Estilo de código
+- Enforce ESLint Airbnb; sempre `;` ao fim da linha.
+- Use `const` por default, `let` apenas se reatribuir; jamais `var`.
+- Funções assíncronas sempre com `async/await`; evitar `.then()` encadeado.
+- Logger central é `new Logger()` importado de `src/utils/logger.js`.
+
+## Idiomas
+- Comentários e nomes de funções em **inglês**.
+- Strings enviadas ao usuário e logs em **português** (pt-BR).
+
+## Segurança
+- Nunca incluir valores de `process.env` diretamente no código gerado.
+- Qualquer exemplo de chave deve ser `process.env.MY_KEY`.
+
+## Fluxos de trabalho
+- Para novo service Express:
+  1. Crie arquivo em `src/services/`.
+  2. Exporte um `Router`.
+  3. Adicione validação com **Zod**.
+  4. Escreva teste Jest em `tests/`.
+- Para nova função GPT:
+  1. Defina schema em `ai/toolDefinitions.js`.
+  2. Registre no `toolRegistry.js`.
+  3. Implemente em `services/tools/`.
+  4. Atualize README com exemplo de payload.
+
+## WhatsApp específicos
+- Sempre formatar números com `formatPhoneNumber(number)`.
+- Antes de enviar mídia, verificar `msg.hasMedia`.
+- Ao enviar vCard, marcar mensagem com `markMessageAsSentByBot` antes de `client.sendMessage`.
+
+## Deploy e PM2
+- Se for localhost, usar `node index.js`.
+- Usar `pm2-runtime ecosystem.config.js --env production`.
+- Log rotate semanal via `pm2 set pm2-logrotate ...`.

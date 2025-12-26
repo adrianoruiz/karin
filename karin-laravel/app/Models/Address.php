@@ -3,16 +3,18 @@
 namespace App\Models;
 
 use App\Models\Traits\CacheTag;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 
 class Address extends Model
 {
     use CacheTag, SoftDeletes;
 
     const TYPE_HOME = 'home';
+
     const TYPE_PERSONAL = 'personal';
+
     const TYPE_PETSHOP = 'petshop';
 
     public $timestamps = false;
@@ -32,7 +34,7 @@ class Address extends Model
         'default',
         'latitude',
         'longitude',
-        'role'
+        'role',
     ];
 
     protected $appends = ['province_id'];

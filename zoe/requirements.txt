@@ -1,0 +1,21 @@
+# Framework principal
+agno
+
+# Dependências para Telegram
+python-telegram-bot
+fastapi
+uvicorn
+
+# Dependências para PostgreSQL
+psycopg2-binary
+sqlalchemy
+
+# Dependências para calendário
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+
+# Outras dependências úteis
+python-dotenv
+aiofiles
+cryptography

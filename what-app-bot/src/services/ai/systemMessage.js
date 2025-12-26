@@ -1,39 +1,113 @@
 // systemMessage.js
-function getSystemMessage(nome) {
+const axios = require('axios');
+const config = require('../../../config'); // Ajuste o caminho conforme a estrutura do seu projeto
+const authService = require('../authService');
+const clinicStore = require('../../store/clinicStore');
+
+/**
+ * Fornece uma mensagem de sistema fallback quando a API falha
+ * @param {string} nome - Nome do usuário
+ * @returns {Object} Objeto de mensagem do sistema para o GPT
+ */
+function getFallbackSystemMessage(nome) {
     return {
         role: "system",
         content: `
-Você é a secretária virtual da Dra. Karin Boldarini, médica psiquiatra com pós-graduação. Seu nome é Neusa.
-- Seja cordial, prestativa e mantenha respostas concisas (máximo 2-3 frases).
+Você é uma secretária virtual médica. Seu nome é Neusa.
+
+IDENTIDADE E COMUNICAÇÃO:
+- Seja cordial, prestativa e mantenha respostas concisas (máximo 2-3 frases curtas).
+- Use emojis moderadamente (1-2 por mensagem).
 - Não mencione que você é uma IA; aja como parte real da equipe.
-- Você agenda consultas exclusivamente para a Dra. Karin, que atende casos de ansiedade, depressão, TDAH, transtornos do sono e vícios.
-- Sempre recomende que o atendimento (psicológico ou psiquiátrico) seja feito pela Dra. Karin, elogiando sua competência; se o assunto não for dessa área, informe que não trabalhamos com isso.
+- Seja calorosa e acolhedora, mantendo o profissionalismo.
 
-REGRAS IMPORTANTES:
-- Nunca dê conselhos médicos, diagnósticos ou intervenções terapêuticas.
-- Se alguém mencionar sintomas ou pedir ajuda médica, demonstre empatia e sugira agendar uma consulta.
-- Seu papel é agendar consultas e esclarecer dúvidas administrativas (horários, valores, formas de pagamento).
-- Quando o usuário perguntar sobre horários ou disponibilidade para agendamento, SEMPRE chame a função "getAvailableAppointments" com a data informada (se houver) para retornar os horários disponíveis. Não invente horários.
-- Quando o usuário perguntar sobre valores, planos, preços ou pacotes disponíveis, SEMPRE chame a função "getAvailablePlans" para obter informações atualizadas. Não forneça valores ou planos de memória.
+REGRAS ESPECIAIS:
+- Se mencionarem emergência ou urgência, sugira atendimento hospitalar imediato.
+- Se pedirem para falar com o médico, informe que a mensagem será encaminhada.
 
-RESPOSTAS PADRÃO:
-- Renovação de receita: "Para renovação de receita, é necessário agendar uma consulta, pois a Dra. precisa avaliar sua situação clínica atual. Você gostaria de marcar um horário?"
-- Sintomas ou medicamentos: "Não podemos dar um diagnóstico ou prescrição pelo WhatsApp. Recomendo agendar uma consulta para avaliação detalhada."
-- Desconto: "Atualmente, trabalhamos com valores fixos e pacotes para facilitar o tratamento. Posso te passar mais detalhes?"
-- Problemas psicológicos: "Entendo que isso pode ser difícil. A Dra. Karin poderá fazer uma avaliação completa durante a consulta. Gostaria de agendar um horário?"
-- Pedido de ajuda médica: "Compreendo sua situação. Para receber o atendimento adequado, é necessário agendar uma consulta com a Dra. Karin. Quando seria um bom momento para você?"
-
-INFORMAÇÕES:
-- Planos de saúde: "No momento, não trabalhamos com convênios; oferecemos reembolso caso o plano permita."
-- Formas de pagamento: cartão de crédito ou débito, PIX, transferência.
-- Endereço presencial: Rua Jaraguá, 273, Centro - Blumenau, SC.
-- Formação: "A Dra. Karin é formada pela Escola de Medicina de Joinville, com pós-graduação em Psiquiatria."
-- Consultas online são realizadas por vídeo chamada (duração média de 50 minutos).
-- Consultas presenciais requerem 30 minutos de deslocamento antes e depois (total de 2 horas).
+PROCESSO DE AGENDAMENTO:
+- Use getAvailableAppointments para mostrar horários disponíveis.
+- Colete dados apenas após o cliente escolher um horário.
+- Dados necessários: nome, CPF, telefone, data de nascimento e forma de pagamento.
 
 Você está falando com ${nome}.
         `
     };
 }
 
+/**
+ * Obtém a mensagem de sistema para um usuário específico.
+ * @param {string} nome - Nome do usuário
+ * @param {number} clinicaId - ID da clínica (opcional)
+ * @returns {Promise<Object>} Objeto de mensagem do sistema para o GPT
+ */
+async function getSystemMessage(nome, clinicaId = null) {
+    try {
+        // Log para verificar se o nome está chegando corretamente
+        console.log(`🔍 [SystemMessage] Nome recebido: "${nome}" | Clínica ID: ${clinicaId}`);
+        
+        // Usar ID da clínica do ambiente ou o passado como parâmetro, ou 1 como padrão
+        const userId = clinicaId || process.env.CLINICA_ID || 1;
+        console.log(`Obtendo system prompt para clínica ID: ${userId}`);
+
+        // PRIMEIRO: Tentar obter prompt_fixed diretamente do clinicStore (já carregado)
+        const promptFixed = clinicStore.getPromptFixedForClinica(userId);
+        
+        if (promptFixed) {
+            console.log(`🎯 [SystemMessage] Usando prompt_fixed do store para clínica ${userId}`);
+            
+            // Substituir placeholder [NOME] se existir
+            let finalPrompt = promptFixed;
+            if (finalPrompt.includes('[NOME]')) {
+                finalPrompt = finalPrompt.replace(/\[NOME\]/g, nome);
+                console.log(`🔍 [SystemMessage] Placeholder [NOME] substituído por: "${nome}"`);
+            }
+            
+            return {
+                role: "system",
+                content: finalPrompt
+            };
+        }
+
+        // FALLBACK: Usar o serviço de autenticação para fazer a requisição à API
+        console.log(`🔄 [SystemMessage] prompt_fixed não encontrado no store, tentando API...`);
+        const response = await authService.makeAuthenticatedRequest(
+            'post',
+            'ai-config/get-system-prompt',
+            { user_id: userId }
+        );
+
+        if (response && response.success && response.system_prompt) {
+            console.log(`System prompt obtido com sucesso da API para clínica ${userId}`);
+            
+            // Log para verificar se o prompt contém instruções sobre personalização
+            const hasPersonalizationInstructions = response.system_prompt.includes('PERSONALIZAÇÃO') || 
+                                                  response.system_prompt.includes('[NOME]') ||
+                                                  response.system_prompt.includes('nome da pessoa');
+            console.log(`🔍 [SystemMessage] Prompt contém instruções de personalização: ${hasPersonalizationInstructions}`);
+            
+            // Substituir placeholder [NOME] se existir
+            let finalPrompt = response.system_prompt;
+            if (finalPrompt.includes('[NOME]')) {
+                finalPrompt = finalPrompt.replace(/\[NOME\]/g, nome);
+                console.log(`🔍 [SystemMessage] Placeholder [NOME] substituído por: "${nome}"`);
+            }
+            
+            return {
+                role: "system",
+                content: finalPrompt
+            };
+        } else {
+            console.error("Erro ao obter system_prompt da API:", response ? response.message : "Resposta inválida");
+            console.log(`🔍 [SystemMessage] Usando fallback com nome: "${nome}"`);
+            return getFallbackSystemMessage(nome);
+        }
+    } catch (error) {
+        console.error("Erro na chamada da API para getSystemMessage:", error.message);
+        console.log(`🔍 [SystemMessage] Usando fallback com nome: "${nome}"`);
+        return getFallbackSystemMessage(nome);
+    }
+}
+
+// Exportar a função original, mas agora como assíncrona
 module.exports = getSystemMessage;

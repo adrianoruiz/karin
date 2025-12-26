@@ -1,0 +1,630 @@
+{
+	"info": {
+		"_postman_id": "7b5e4f3c-8d1a-4b2c-9e6f-1a2b3c4d5e6f",
+		"name": "Karin - API Prontuários Médicos",
+		"description": "Collection completa para testar a API de prontuários médicos do sistema Karin.\n\n**Configuração:**\n1. Configure a variável {{baseurl}} com o endereço da API (ex: http://localhost:8000)\n2. Execute primeiro o endpoint de Login para obter o token JWT\n3. O token será automaticamente configurado para as demais requisições\n\n**Dados de Teste:**\n- **Dra. Karin**: karin@clinica.com (senha: senha123)\n- **Company ID**: 2\n- **Pacientes vinculados**: 3 pacientes de teste",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "🔐 Autenticação",
+			"item": [
+				{
+					"name": "Login - Dra. Karin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Salvar token automaticamente",
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.access_token) {",
+									"        pm.environment.set(\"access_token\", jsonData.access_token);",
+									"        pm.globals.set(\"access_token\", jsonData.access_token);",
+									"        console.log(\"Token JWT salvo automaticamente!\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"karin@clinica.com\",\n    \"password\": \"senha123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseurl}}/api/auth/login",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verificar Usuário Logado",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseurl}}/api/auth/me",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"me"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📋 Prontuários Médicos - CRUD",
+			"item": [
+				{
+					"name": "Listar Prontuários da Empresa",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseurl}}/api/medical-records?company_id=2&per_page=10",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"api",
+								"medical-records"
+							],
+							"query": [
+								{
+									"key": "company_id",
+									"value": "2",
+									"description": "ID da empresa (Dra. Karin)"
+								},
+								{
+									"key": "per_page",
+									"value": "10",
+									"description": "Itens por página (opcional)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Prontuários por Paciente",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseurl}}/api/medical-records?company_id=2&patient_id=14",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"api",
+								"medical-records"
+							],
+							"query": [
+								{
+									"key": "company_id",
+									"value": "2",
+									"description": "ID da empresa (Dra. Karin)"
+								},
+								{
+									"key": "patient_id",
+									"value": "14",
+									"description": "ID do paciente (Maria dos Santos)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Criar Novo Prontuário",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Salvar ID do prontuário criado",
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.id) {",
+									"        pm.environment.set(\"medical_record_id\", jsonData.data.id);",
+									"        pm.globals.set(\"medical_record_id\", jsonData.data.id);",
+									"        console.log(\"ID do prontuário salvo: \" + jsonData.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"company_id\": 2,\n    \"patient_id\": 14,\n    \"doctor_id\": 2,\n    \"consultation_date\": \"2024-12-19\",\n    \"consultation_type\": \"primeira_consulta\",\n    \"chief_complaint\": \"Dor no peito há 2 dias\",\n    \"current_pathological_history\": \"Paciente relata dor em aperto no peito, que irradia para o braço esquerdo\",\n    \"physical_exam\": \"PA: 140x90 mmHg, FC: 88 bpm. Ausculta cardíaca normal.\",\n    \"vital_signs\": {\n        \"blood_pressure\": \"140x90\",\n        \"heart_rate\": \"88\",\n        \"temperature\": \"36.5\",\n        \"oxygen_saturation\": \"98\"\n    },\n    \"diagnosis\": \"Angina pectoris - investigar\",\n    \"treatment\": \"Solicitar ECG e enzimas cardíacas. AAS 100mg/dia.\",\n    \"notes\": \"Paciente orientado sobre sinais de alerta\",\n    \"surgical_prescription\": \"nao\"\n}"
+						},
+						"url": {
+							"raw": "{{baseurl}}/api/medical-records",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"api",
+								"medical-records"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Visualizar Prontuário Específico",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseurl}}/api/medical-records/{{medical_record_id}}?company_id=2",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"api",
+								"medical-records",
+								"{{medical_record_id}}"
+							],
+							"query": [
+								{
+									"key": "company_id",
+									"value": "2",
+									"description": "ID da empresa (obrigatório)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Prontuário",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"company_id\": 2,\n    \"diagnosis\": \"Angina pectoris estável - confirmada por ECG\",\n    \"treatment\": \"AAS 100mg/dia, Atenolol 25mg/dia. Retorno em 7 dias.\",\n    \"notes\": \"ECG realizado - alterações compatíveis com angina. Paciente orientado sobre atividade física.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseurl}}/api/medical-records/{{medical_record_id}}",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"api",
+								"medical-records",
+								"{{medical_record_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Excluir Prontuário",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseurl}}/api/medical-records/{{medical_record_id}}?company_id=2",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"api",
+								"medical-records",
+								"{{medical_record_id}}"
+							],
+							"query": [
+								{
+									"key": "company_id",
+									"value": "2",
+									"description": "ID da empresa (obrigatório)"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📊 Estatísticas e Filtros",
+			"item": [
+				{
+					"name": "Estatísticas da Empresa",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseurl}}/api/medical-records/stats?company_id=2",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"api",
+								"medical-records",
+								"stats"
+							],
+							"query": [
+								{
+									"key": "company_id",
+									"value": "2",
+									"description": "ID da empresa (obrigatório)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Filtros Avançados - Por Tipo",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseurl}}/api/medical-records?company_id=2&consultation_type=primeira_consulta",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"api",
+								"medical-records"
+							],
+							"query": [
+								{
+									"key": "company_id",
+									"value": "2",
+									"description": "ID da empresa"
+								},
+								{
+									"key": "consultation_type",
+									"value": "primeira_consulta",
+									"description": "Filtrar por tipo de consulta"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Filtros Avançados - Por Período",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseurl}}/api/medical-records?company_id=2&start_date=2024-12-01&end_date=2024-12-31",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"api",
+								"medical-records"
+							],
+							"query": [
+								{
+									"key": "company_id",
+									"value": "2",
+									"description": "ID da empresa"
+								},
+								{
+									"key": "start_date",
+									"value": "2024-12-01",
+									"description": "Data inicial"
+								},
+								{
+									"key": "end_date",
+									"value": "2024-12-31",
+									"description": "Data final"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Paciente por Nome",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseurl}}/api/medical-records?company_id=2&patient_search=Maria",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"api",
+								"medical-records"
+							],
+							"query": [
+								{
+									"key": "company_id",
+									"value": "2",
+									"description": "ID da empresa"
+								},
+								{
+									"key": "patient_search",
+									"value": "Maria",
+									"description": "Buscar por nome do paciente"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🧪 Testes de Validação",
+			"item": [
+				{
+					"name": "Erro - Sem Autenticação",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseurl}}/api/medical-records?company_id=2",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"api",
+								"medical-records"
+							],
+							"query": [
+								{
+									"key": "company_id",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Erro - Campos Obrigatórios",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"chief_complaint\": \"Teste sem campos obrigatórios\"\n}"
+						},
+						"url": {
+							"raw": "{{baseurl}}/api/medical-records",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"api",
+								"medical-records"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Erro - Paciente Não Vinculado",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"company_id\": 2,\n    \"patient_id\": 999,\n    \"doctor_id\": 2,\n    \"consultation_date\": \"2024-12-19\",\n    \"consultation_type\": \"primeira_consulta\",\n    \"chief_complaint\": \"Teste com paciente inexistente\",\n    \"surgical_prescription\": \"nao\"\n}"
+						},
+						"url": {
+							"raw": "{{baseurl}}/api/medical-records",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"api",
+								"medical-records"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseurl",
+			"value": "http://localhost:8000",
+			"type": "string"
+		}
+	]
+} 

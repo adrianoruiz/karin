@@ -1,0 +1,241 @@
+{
+  "info": {
+    "_postman_id": "f6d9e333-8a72-4dc9-98a7-bfa3183744f5",
+    "name": "Karin - API de Localizações",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Coleção de endpoints para gerenciamento de províncias e cidades"
+  },
+  "item": [
+    {
+      "name": "Províncias",
+      "description": "Endpoints para gerenciamento de províncias",
+      "item": [
+        {
+          "name": "Listar todas as províncias",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/locations/provinces",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "locations",
+                "provinces"
+              ]
+            },
+            "description": "Retorna uma lista de todas as províncias ativas"
+          },
+          "response": []
+        },
+        {
+          "name": "Obter província específica com suas cidades",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/locations/provinces/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "locations",
+                "provinces",
+                "1"
+              ]
+            },
+            "description": "Retorna os detalhes de uma província específica junto com suas cidades"
+          },
+          "response": []
+        },
+        {
+          "name": "Listar todas as províncias com suas cidades",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/locations/provinces/with-cities",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "locations",
+                "provinces",
+                "with-cities"
+              ]
+            },
+            "description": "Retorna uma lista de todas as províncias ativas com suas cidades"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cidades",
+      "description": "Endpoints para gerenciamento de cidades",
+      "item": [
+        {
+          "name": "Listar todas as cidades",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/locations/cities",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "locations",
+                "cities"
+              ]
+            },
+            "description": "Retorna uma lista de todas as cidades ativas"
+          },
+          "response": []
+        },
+        {
+          "name": "Obter cidade específica",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/locations/cities/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "locations",
+                "cities",
+                "1"
+              ]
+            },
+            "description": "Retorna os detalhes de uma cidade específica junto com sua província"
+          },
+          "response": []
+        },
+        {
+          "name": "Listar cidades por província",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/locations/provinces/1/cities",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "locations",
+                "provinces",
+                "1",
+                "cities"
+              ]
+            },
+            "description": "Retorna uma lista de todas as cidades ativas de uma província específica"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "auth_token",
+      "value": ""
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ]
+} 

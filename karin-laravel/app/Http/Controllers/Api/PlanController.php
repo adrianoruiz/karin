@@ -4,25 +4,21 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Plan;
-
-use Illuminate\Http\{
-    Request,
-    Response
-};
-
-
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class PlanController extends Controller
 {
     public function index(Request $request)
     {
         $doctorId = $request->query('doctor_id');
-        
-        if (!$doctorId) {
+
+        if (! $doctorId) {
             return response()->json(['error' => 'doctor_id é obrigatório'], 400);
         }
 
         $plans = Plan::where('user_id', $doctorId)->paginate(20);
+
         return response()->json($plans);
     }
 
@@ -34,14 +30,17 @@ class PlanController extends Controller
             'price' => 'required|numeric|min:0',
             'duration' => 'required|integer|min:1',
             'is_active' => 'boolean',
+            'is_default' => 'boolean',
             'user_id' => 'required|exists:users,id',
             'type' => 'required|string|in:consulta_avulsa,pacote',
             'consultations' => 'required_if:type,pacote|nullable|integer|min:1',
             'modality' => 'required|string|in:online,presencial',
-            'installments' => 'required|integer|min:1|max:12'
+            'installments' => 'required|integer|min:1|max:12',
+            'link' => 'nullable|url',
         ]);
 
         $plan = Plan::create($validated);
+
         return response()->json($plan, Response::HTTP_CREATED);
     }
 
@@ -62,13 +61,16 @@ class PlanController extends Controller
             'price' => 'sometimes|required|numeric|min:0',
             'duration' => 'sometimes|required|integer|min:1',
             'is_active' => 'boolean',
+            'is_default' => 'boolean',
             'type' => 'sometimes|required|string|in:consulta_avulsa,pacote',
             'consultations' => 'required_if:type,pacote|nullable|integer|min:1',
             'modality' => 'sometimes|required|string|in:online,presencial',
-            'installments' => 'sometimes|required|integer|min:1|max:12'
+            'installments' => 'sometimes|required|integer|min:1|max:12',
+            'link' => 'nullable|url',
         ]);
 
         $plan->update($validated);
+
         return response()->json($plan);
     }
 
@@ -79,6 +81,7 @@ class PlanController extends Controller
         }
 
         $plan->delete();
+
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

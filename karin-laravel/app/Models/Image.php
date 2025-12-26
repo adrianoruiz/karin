@@ -15,15 +15,13 @@ class Image extends Model
     protected $fillable = [
         'path',
         'imageable_type',
-        'imageable_id'
+        'imageable_id',
     ];
 
     protected $appends = ['url'];
 
     /**
      * Obtém o atributo URL da imagem
-     * 
-     * @return string
      */
     public function getUrlAttribute(): string
     {
@@ -36,8 +34,6 @@ class Image extends Model
 
     /**
      * Obtém o modelo relacionado que possui esta imagem
-     * 
-     * @return MorphTo
      */
     public function imageable(): MorphTo
     {

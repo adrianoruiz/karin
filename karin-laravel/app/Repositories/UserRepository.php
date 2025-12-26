@@ -1,0 +1,499 @@
+<?php
+
+namespace App\Repositories;
+
+use App\Models\Address;
+use App\Models\Role;
+use App\Models\Specialty;
+use App\Models\User;
+use App\Models\UserData;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+
+class UserRepository
+{
+    /**
+     * Busca um usuário pelo ID carregando relacionamentos comuns.
+     */
+    public function findById(int $id): ?User
+    {
+        // return User::with(['userData', 'image', 'roles', 'workingHours'])->find($id);
+        return User::with([
+            'userData',
+            'image',
+            'roles',
+            'specialties',
+            'workingHours',
+            'addresses' => function ($query) {
+                $query->with('city.province')
+                    ->orderBy('default_address', 'desc')
+                    ->orderBy('default', 'desc')
+                    ->orderBy('id');
+            },
+        ])->find($id);
+    }
+
+    /**
+     * Busca um usuário completo pelo ID carregando todos os relacionamentos.
+     */
+    public function findCompleteById(int $id): ?User
+    {
+        return User::with([
+            'userData',
+            'image',
+            'roles',
+            'specialties',
+            'workingHours',
+            'addresses' => function ($query) {
+                $query->with('city.province')
+                    ->orderBy('default_address', 'desc')
+                    ->orderBy('default', 'desc')
+                    ->orderBy('id');
+            },
+        ])->find($id);
+    }
+
+    /**
+     * Lista usuários com paginação aplicando filtros.
+     */
+    public function listWithFilters(array $filters, int $perPage = 15): LengthAwarePaginator
+    {
+        $query = User::with(['userData', 'image']);
+
+        $authenticatedUser = Auth::user();
+
+        // Verifica se o usuário autenticado possui a role 'admin'
+        $isAdmin = false;
+        if ($authenticatedUser) {
+            // Verificamos diretamente através da relação 'roles'
+            $adminRole = DB::table('role_user')
+                ->join('roles', 'roles.id', '=', 'role_user.role_id')
+                ->where('role_user.user_id', $authenticatedUser->id)
+                ->where('roles.slug', 'admin')
+                ->exists();
+
+            $isAdmin = $adminRole;
+        }
+
+        // Se não for admin, filtra por empresas relacionadas ao usuário autenticado
+        if (! $isAdmin && $authenticatedUser) {
+            // Obtém as empresas em que o usuário autenticado está vinculado como funcionário
+            $employeeCompanyIds = DB::table('company_user')
+                ->where('user_id', $authenticatedUser->id)
+                ->pluck('company_id')
+                ->toArray();
+
+            // Obtém as empresas que o usuário possui como proprietário
+            $ownedCompanyIds = [$authenticatedUser->id];
+
+            // Combina os dois arrays de IDs de empresas
+            $allCompanyIds = array_merge($employeeCompanyIds, $ownedCompanyIds);
+
+            // Filtra por usuários que estão vinculados às mesmas empresas
+            $query->where(function ($q) use ($allCompanyIds) {
+                // Inclui usuários que são funcionários dessas empresas
+                $q->whereHas('employeeCompanies', function ($q) use ($allCompanyIds) {
+                    $q->whereIn('company_id', $allCompanyIds);
+                })
+                    // Ou inclui as próprias empresas
+                    ->orWhereIn('id', $allCompanyIds)
+                    // Inclui usuários que são clientes dessas empresas
+                    ->orWhereHas('clientCompanies', function ($q) use ($allCompanyIds) {
+                        $q->whereIn('company_id', $allCompanyIds);
+                    });
+            });
+        }
+
+        // Aplica filtro de busca por nome, phone, ou CPF (em user_data)
+        if (isset($filters['search']) && ! empty($filters['search'])) {
+            $searchTerm = $filters['search'];
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'ILIKE', "%{$searchTerm}%")
+                  ->orWhere('phone', 'ILIKE', "%{$searchTerm}%")
+                  ->orWhereHas('userData', function ($subQ) use ($searchTerm) {
+                      $subQ->where('cpf', 'ILIKE', "%{$searchTerm}%");
+                  });
+            });
+        }
+
+        // Aplica filtro por role se fornecido
+        if (isset($filters['role']) && ! empty($filters['role'])) {
+            $roleModel = Role::where('slug', $filters['role'])->first();
+
+            if ($roleModel) {
+                $userIds = $roleModel->users()->pluck('users.id');
+                $query->whereIn('id', $userIds);
+            }
+        }
+
+        // Filtra por company_id específico se fornecido
+        if (isset($filters['company_id']) && ! empty($filters['company_id'])) {
+            $query->where(function ($q) use ($filters) {
+                // Inclui usuários que são funcionários dessa empresa específica
+                $q->whereHas('employeeCompanies', function ($subQ) use ($filters) {
+                    $subQ->where('company_id', $filters['company_id']);
+                })
+                    // Inclui usuários que são clientes (pacientes) dessa empresa específica
+                    ->orWhereHas('clientCompanies', function ($subQ) use ($filters) {
+                        $subQ->where('company_id', $filters['company_id']);
+                    })
+                    // Ou inclui a própria empresa
+                    ->orWhere('id', $filters['company_id']);
+            });
+        }
+
+        return $query->paginate($perPage);
+    }
+
+    /**
+     * Cria um novo usuário básico.
+     */
+    public function create(array $userData): User
+    {
+        $user = new User;
+        $user->name = $userData['name'];
+        $user->email = $userData['email'];
+        $user->password = Hash::make($userData['password']);
+        $user->phone = $userData['phone'] ?? null;
+        $user->is_whatsapp_user = $userData['is_whatsapp_user'] ?? false;
+        $user->status = $userData['status'] ?? true;
+        $user->save();
+
+        if (isset($userData['roles']) && is_array($userData['roles'])) {
+            $this->syncRoles($user, $userData['roles']);
+        }
+
+        return $user;
+    }
+
+    /**
+     * Atualiza um usuário existente.
+     */
+    public function update(User $user, array $userData): User
+    {
+        if (isset($userData['name'])) {
+            $user->name = $userData['name'];
+        }
+
+        if (isset($userData['email'])) {
+            $user->email = $userData['email'];
+        }
+
+        if (isset($userData['password'])) {
+            $user->password = Hash::make($userData['password']);
+        }
+
+        if (isset($userData['phone'])) {
+            $user->phone = $userData['phone'];
+        }
+
+        if (isset($userData['is_whatsapp_user'])) {
+            $user->is_whatsapp_user = $userData['is_whatsapp_user'];
+        }
+
+        if (isset($userData['status'])) {
+            $user->status = $userData['status'];
+        }
+
+        $user->save();
+
+        if (isset($userData['roles']) && is_array($userData['roles'])) {
+            $this->syncRoles($user, $userData['roles']);
+        }
+
+        return $user;
+    }
+
+    /**
+     * Exclui (soft delete) um usuário.
+     */
+    public function delete(User $user): bool
+    {
+        return $user->delete();
+    }
+
+    /**
+     * Cria um usuário completo com todos os relacionamentos.
+     */
+    public function createComplete(array $userData): User
+    {
+        DB::beginTransaction();
+
+        try {
+            // Cria o usuário básico
+            $user = $this->create($userData);
+
+            // Cria os dados adicionais do usuário, se fornecidos
+            if (isset($userData['user_data']) && is_array($userData['user_data'])) {
+                $this->createUserData($user, $userData['user_data']);
+            }
+
+            // Cria o endereço, se fornecido
+            if (isset($userData['address']) && is_array($userData['address'])) {
+                $this->createAddress($user, $userData['address']);
+            }
+
+            // Atribui especialidades, se fornecidas
+            if (isset($userData['specialty_ids']) && is_array($userData['specialty_ids'])) {
+                $this->syncSpecialties($user, $userData['specialty_ids']);
+            }
+
+            DB::commit();
+
+            return $this->findCompleteById($user->id);
+        } catch (\Exception $e) {
+            DB::rollback();
+            throw $e;
+        }
+    }
+
+    /**
+     * Atualiza um usuário completo com todos os relacionamentos.
+     */
+    public function updateComplete(User $user, array $userData): User
+    {
+        DB::beginTransaction();
+
+        try {
+            // Atualiza os dados básicos do usuário
+            $this->update($user, $userData);
+
+            // Atualiza os dados adicionais do usuário, se fornecidos
+            if (isset($userData['user_data']) && is_array($userData['user_data'])) {
+                $this->updateUserData($user, $userData['user_data']);
+            }
+
+            // Atualiza ou cria o endereço, se fornecido
+            if (isset($userData['address']) && is_array($userData['address'])) {
+                if (isset($userData['address']['id'])) {
+                    $this->updateAddress($user, $userData['address']);
+                } else {
+                    $this->createAddress($user, $userData['address']);
+                }
+            }
+
+            // Atualiza especialidades, se fornecidas
+            if (isset($userData['specialty_ids']) && is_array($userData['specialty_ids'])) {
+                $this->syncSpecialties($user, $userData['specialty_ids']);
+            }
+
+            DB::commit();
+
+            return $this->findCompleteById($user->id);
+        } catch (\Exception $e) {
+            DB::rollback();
+            throw $e;
+        }
+    }
+
+    /**
+     * Sincroniza as roles de um usuário.
+     */
+    protected function syncRoles(User $user, array $rolesSlugs): void
+    {
+        $rolesIds = Role::whereIn('slug', $rolesSlugs)->pluck('id')->toArray();
+        $user->roles()->sync($rolesIds);
+    }
+
+    /**
+     * Cria os dados adicionais de um usuário.
+     */
+    protected function createUserData(User $user, array $userDataArray): UserData
+    {
+        $userData = new UserData;
+        $userData->user_id = $user->id;
+        $userData->birthday = $userDataArray['birthday'] ?? null;
+        $userData->rg = $userDataArray['rg'] ?? null;
+        $userData->cpf = $userDataArray['cpf'] ?? null;
+        $userData->gender = $userDataArray['gender'] ?? null;
+        $userData->marital_status = $userDataArray['marital_status'] ?? null;
+        $userData->emergency_contact = $userDataArray['emergency_contact'] ?? null;
+        $userData->emergency_contact_phone = $userDataArray['emergency_contact_phone'] ?? null;
+        $userData->alternative_phone = $userDataArray['alternative_phone'] ?? null;
+        $userData->patient_type = $userDataArray['patient_type'] ?? null;
+        $userData->health_insurance = $userDataArray['health_insurance'] ?? null;
+        $userData->insurance_number = $userDataArray['insurance_number'] ?? null;
+        $userData->insurance_expiration = $userDataArray['insurance_expiration'] ?? null;
+        $userData->notes = $userDataArray['notes'] ?? null;
+        $userData->fantasy = $userDataArray['fantasy'] ?? null;
+        $userData->cnpj = $userDataArray['cnpj'] ?? null;
+        $userData->corporate_name = $userDataArray['corporate_name'] ?? null;
+        $userData->segment_types = $userDataArray['segment_types'] ?? null;
+        $userData->site = $userDataArray['site'] ?? null;
+        $userData->crm = $userDataArray['crm'] ?? null;
+        $userData->rqe = $userDataArray['rqe'] ?? null;
+        $userData->save();
+
+        return $userData;
+    }
+
+    /**
+     * Atualiza os dados adicionais de um usuário.
+     */
+    protected function updateUserData(User $user, array $userDataArray): UserData
+    {
+        $userData = UserData::firstOrNew(['user_id' => $user->id]);
+
+        if (isset($userDataArray['birthday'])) {
+            $userData->birthday = $userDataArray['birthday'];
+        }
+
+        if (isset($userDataArray['rg'])) {
+            $userData->rg = $userDataArray['rg'];
+        }
+
+        if (isset($userDataArray['cpf'])) {
+            $userData->cpf = $userDataArray['cpf'];
+        }
+
+        if (isset($userDataArray['gender'])) {
+            $userData->gender = $userDataArray['gender'];
+        }
+
+        if (isset($userDataArray['marital_status'])) {
+            $userData->marital_status = $userDataArray['marital_status'];
+        }
+
+        if (isset($userDataArray['emergency_contact'])) {
+            $userData->emergency_contact = $userDataArray['emergency_contact'];
+        }
+
+        if (isset($userDataArray['emergency_contact_phone'])) {
+            $userData->emergency_contact_phone = $userDataArray['emergency_contact_phone'];
+        }
+
+        if (isset($userDataArray['alternative_phone'])) {
+            $userData->alternative_phone = $userDataArray['alternative_phone'];
+        }
+
+        if (isset($userDataArray['patient_type'])) {
+            $userData->patient_type = $userDataArray['patient_type'];
+        }
+
+        if (isset($userDataArray['health_insurance'])) {
+            $userData->health_insurance = $userDataArray['health_insurance'];
+        }
+
+        if (isset($userDataArray['insurance_number'])) {
+            $userData->insurance_number = $userDataArray['insurance_number'];
+        }
+
+        if (isset($userDataArray['insurance_expiration'])) {
+            $userData->insurance_expiration = $userDataArray['insurance_expiration'];
+        }
+
+        if (isset($userDataArray['notes'])) {
+            $userData->notes = $userDataArray['notes'];
+        }
+
+        if (isset($userDataArray['fantasy'])) {
+            $userData->fantasy = $userDataArray['fantasy'];
+        }
+
+        if (isset($userDataArray['cnpj'])) {
+            $userData->cnpj = $userDataArray['cnpj'];
+        }
+
+        if (isset($userDataArray['corporate_name'])) {
+            $userData->corporate_name = $userDataArray['corporate_name'];
+        }
+
+        if (isset($userDataArray['segment_types'])) {
+            $userData->segment_types = $userDataArray['segment_types'];
+        }
+
+        if (isset($userDataArray['site'])) {
+            $userData->site = $userDataArray['site'];
+        }
+
+        if (isset($userDataArray['crm'])) {
+            $userData->crm = $userDataArray['crm'];
+        }
+
+        if (isset($userDataArray['rqe'])) {
+            $userData->rqe = $userDataArray['rqe'];
+        }
+
+        $userData->save();
+
+        return $userData;
+    }
+
+    /**
+     * Cria um endereço para um usuário.
+     */
+    protected function createAddress(User $user, array $addressData): Address
+    {
+        $address = new Address;
+        $address->street = $addressData['street'];
+        $address->number = $addressData['number'];
+        $address->complement = $addressData['complement'] ?? null;
+        $address->neighborhood = $addressData['neighborhood'];
+        $address->zip = $addressData['zip'];
+        $address->city_id = $addressData['city_id'];
+        $address->default_address = $addressData['default'] ?? true;
+
+        $user->addresses()->save($address);
+
+        return $address;
+    }
+
+    /**
+     * Atualiza um endereço existente.
+     *
+     * @throws \Exception
+     */
+    protected function updateAddress(User $user, array $addressData): ?Address
+    {
+        $address = Address::where('id', $addressData['id'])
+            ->where('addressable_id', $user->id)
+            ->where('addressable_type', User::class)
+            ->first();
+
+        if (! $address) {
+            throw new \Exception('Endereço não encontrado ou não pertence a este usuário');
+        }
+
+        $address->street = $addressData['street'];
+        $address->number = $addressData['number'];
+        $address->complement = $addressData['complement'] ?? null;
+        $address->neighborhood = $addressData['neighborhood'];
+        $address->zip = $addressData['zip'];
+        $address->city_id = $addressData['city_id'];
+
+        // Se estiver marcando como padrão, desmarca outros endereços
+        if (isset($addressData['default']) && $addressData['default']) {
+            $user->addresses()->update(['default_address' => false]);
+            $address->default_address = true;
+        }
+
+        $address->save();
+
+        return $address;
+    }
+
+    /**
+     * Sincroniza as especialidades de um usuário.
+     *
+     * @throws \Exception
+     */
+    protected function syncSpecialties(User $user, array $specialtyIds): void
+    {
+        // Verifica se as especialidades pertencem ao segment_type do usuário
+        $userSegmentType = $user->userData ? $user->userData->segment_types : null;
+
+        if ($userSegmentType) {
+            $specialties = Specialty::whereIn('id', $specialtyIds)->get();
+
+            foreach ($specialties as $specialty) {
+                if ($specialty->segment_type !== $userSegmentType) {
+                    throw new \Exception("A especialidade '{$specialty->name}' não pertence ao segmento {$userSegmentType}");
+                }
+            }
+        }
+
+        $user->specialties()->sync($specialtyIds);
+    }
+}

@@ -2,13 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\{
-    Factories\HasFactory,
-    Model,
-    Relations\BelongsTo
-};
-
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Chatbot extends Model
 {
@@ -50,8 +46,9 @@ class Chatbot extends Model
     {
         $message = $this->message;
         foreach ($data as $key => $value) {
-            $message = str_replace('{' . $key . '}', $value, $message);
+            $message = str_replace('{'.$key.'}', $value, $message);
         }
+
         return $message;
     }
 }
