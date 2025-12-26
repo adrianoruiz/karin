@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Http\Requests\User;
+namespace App\Http\Requests\Auth;
 
-use App\Rules\BrazilianPhone;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
 /**
- * Request de validacao para criacao de usuario.
+ * Request de validacao para registro de usuario.
  *
  * SECURITY: Implementa validacao robusta seguindo as mesmas
- * regras do frontend (Zod validation) com sanitizacao de dados.
+ * regras do frontend (Zod validation) com validacoes adicionais
+ * de seguranca no backend.
  */
-class StoreUserRequest extends FormRequest
+class RegisterRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -34,7 +34,7 @@ class StoreUserRequest extends FormRequest
                 'required',
                 'string',
                 'min:2',
-                'max:255',
+                'max:100',
                 'regex:/^[\p{L}\s\'-]+$/u', // Apenas letras, espacos, apostrofos e hifens
             ],
             'email' => [
@@ -49,29 +49,19 @@ class StoreUserRequest extends FormRequest
                 'string',
                 'min:6',
                 'max:128',
-                Password::min(6)->letters()->numbers(),
+                Password::min(6)
+                    ->letters()
+                    ->numbers(),
             ],
             'phone' => [
                 'nullable',
                 'string',
                 'max:20',
-                new BrazilianPhone,
+                'regex:/^[\d\s\(\)\-\+]+$/', // Formato de telefone valido
             ],
             'is_whatsapp_user' => [
                 'nullable',
                 'boolean',
-            ],
-            'status' => [
-                'nullable',
-                'boolean',
-            ],
-            'roles' => [
-                'nullable',
-                'array',
-            ],
-            'roles.*' => [
-                'string',
-                'max:50',
             ],
         ];
     }
@@ -84,17 +74,19 @@ class StoreUserRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'O nome do usuario e obrigatorio.',
+            'name.required' => 'O nome e obrigatorio.',
             'name.min' => 'O nome deve ter no minimo 2 caracteres.',
-            'name.max' => 'O nome nao pode exceder 255 caracteres.',
+            'name.max' => 'O nome nao pode exceder 100 caracteres.',
             'name.regex' => 'O nome deve conter apenas letras, espacos, apostrofos e hifens.',
-            'email.required' => 'O e-mail do usuario e obrigatorio.',
+            'email.required' => 'O e-mail e obrigatorio.',
             'email.email' => 'Formato de e-mail invalido.',
             'email.unique' => 'Este e-mail ja esta sendo utilizado.',
+            'email.max' => 'O e-mail nao pode exceder 255 caracteres.',
             'password.required' => 'A senha e obrigatoria.',
             'password.min' => 'A senha deve ter no minimo 6 caracteres.',
             'password.max' => 'A senha nao pode exceder 128 caracteres.',
             'phone.max' => 'O telefone nao pode exceder 20 caracteres.',
+            'phone.regex' => 'Formato de telefone invalido.',
         ];
     }
 
@@ -103,6 +95,7 @@ class StoreUserRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
+        // Sanitiza os dados de entrada
         $data = [];
 
         if ($this->has('email')) {
@@ -113,9 +106,9 @@ class StoreUserRequest extends FormRequest
             $data['name'] = trim($this->name);
         }
 
-        if ($this->has('phone') && $this->phone) {
-            // Remove caracteres especiais mantendo apenas numeros
-            $data['phone'] = preg_replace('/[^\d]/', '', $this->phone);
+        if ($this->has('phone')) {
+            // Remove caracteres nao permitidos do telefone
+            $data['phone'] = preg_replace('/[^\d\s\(\)\-\+]/', '', $this->phone);
         }
 
         if (! empty($data)) {

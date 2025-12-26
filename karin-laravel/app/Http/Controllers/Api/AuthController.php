@@ -3,153 +3,300 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\JwtCookieAuthentication;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Cookie;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
+/**
+ * Controller de autenticacao com suporte a httpOnly cookies.
+ *
+ * SECURITY: Implementa autenticacao segura usando:
+ * - httpOnly cookies para armazenamento do JWT (previne XSS)
+ * - Secure flag em producao (previne MITM)
+ * - SameSite=Lax para prevenir CSRF basico
+ * - Validacao robusta de entrada
+ */
 class AuthController extends Controller
 {
     /**
-     * Cria uma nova instância do controlador.
-     *
-     * @return void
+     * Duracao do cookie em minutos (deve corresponder ao TTL do JWT).
+     */
+    protected int $cookieMinutes;
+
+    /**
+     * Flag para usar modo legacy (token no body) em vez de cookie.
+     * Permite migracao gradual do frontend.
+     */
+    protected bool $legacyMode = true;
+
+    /**
+     * Cria uma nova instancia do controlador.
      */
     public function __construct()
     {
-        // Removendo o middleware daqui, será aplicado nas rotas
+        $this->cookieMinutes = (int) config('jwt.ttl', 60 * 24);
     }
 
     /**
      * Obter um token JWT via credenciais fornecidas.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * SECURITY: Retorna token em httpOnly cookie para prevenir XSS.
+     * Mantém compatibilidade com modo legacy (token no body) durante migracao.
      */
-    public function login(Request $request)
+    public function login(LoginRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required|string|min:6',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
         $credentials = $request->only('email', 'password');
 
         if (! $token = Auth::guard('api')->attempt($credentials)) {
-            return response()->json(['error' => 'Credenciais inválidas'], 401);
+            // Log tentativa de login invalida para auditoria
+            Log::warning('Tentativa de login falhou', [
+                'email' => $request->email,
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'invalid_credentials',
+                'message' => 'Credenciais invalidas',
+            ], 401);
         }
 
-        return $this->respondWithToken($token);
+        // Log login bem-sucedido
+        Log::info('Login bem-sucedido', [
+            'user_id' => Auth::guard('api')->user()->id,
+            'ip' => $request->ip(),
+        ]);
+
+        // Verifica se deve usar cookie ou modo legacy
+        $useCookie = $request->boolean('use_cookie', ! $this->legacyMode);
+
+        return $this->respondWithToken($token, $useCookie);
     }
 
     /**
-     * Registrar um novo usuário.
-     *
-     * @return \Illuminate\Http\JsonResponse
+     * Registrar um novo usuario.
      */
-    public function register(Request $request)
+    public function register(RegisterRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|between:2,100',
-            'email' => 'required|string|email|max:100|unique:users',
-            'password' => 'required|string|min:6',
-            'phone' => 'nullable|string',
-            'is_whatsapp_user' => 'boolean',
+        $user = User::create([
+            'name' => $request->validated('name'),
+            'email' => $request->validated('email'),
+            'password' => bcrypt($request->validated('password')),
+            'phone' => $request->validated('phone'),
+            'is_whatsapp_user' => $request->validated('is_whatsapp_user', false),
         ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
-        }
-
-        $user = User::create(array_merge(
-            $validator->validated(),
-            ['password' => bcrypt($request->password)]
-        ));
+        Log::info('Novo usuario registrado', [
+            'user_id' => $user->id,
+            'email' => $user->email,
+            'ip' => $request->ip(),
+        ]);
 
         return response()->json([
-            'message' => 'Usuário registrado com sucesso',
-            'user' => $user,
+            'success' => true,
+            'message' => 'Usuario registrado com sucesso',
+            'data' => [
+                'user' => $user,
+            ],
         ], 201);
     }
 
     /**
-     * Obter o usuário autenticado.
-     *
-     * @return \Illuminate\Http\JsonResponse
+     * Obter o usuario autenticado.
      */
-    public function me()
+    public function me(): JsonResponse
     {
         $user = Auth::guard('api')->user();
         if (! $user) {
-            return response()->json(['error' => 'Não autenticado'], 401);
+            return response()->json([
+                'success' => false,
+                'error' => 'unauthenticated',
+                'message' => 'Nao autenticado',
+            ], 401);
         }
 
-        // Carrega o usuário com seus roles e userData
+        // Carrega o usuario com seus roles e userData
         $userWithRoles = User::with(['roles', 'userData'])->find($user->id);
 
-        // Cria a resposta
         return response()->json([
-            'id' => $userWithRoles->id,
-            'name' => $userWithRoles->name,
-            'email' => $userWithRoles->email,
-            'phone' => $userWithRoles->phone,
-            'email_verified_at' => $userWithRoles->email_verified_at,
-            'is_whatsapp_user' => $userWithRoles->is_whatsapp_user,
-            'status' => $userWithRoles->status,
-            'avatar' => $userWithRoles->avatar,
-            'created_at' => $userWithRoles->created_at,
-            'updated_at' => $userWithRoles->updated_at,
-            'deleted_at' => $userWithRoles->deleted_at,
-            'roles' => $userWithRoles->roles,
-            'segment_types' => $userWithRoles->userData ? $userWithRoles->userData->segment_types : null,
+            'success' => true,
+            'data' => [
+                'id' => $userWithRoles->id,
+                'name' => $userWithRoles->name,
+                'email' => $userWithRoles->email,
+                'phone' => $userWithRoles->phone,
+                'email_verified_at' => $userWithRoles->email_verified_at,
+                'is_whatsapp_user' => $userWithRoles->is_whatsapp_user,
+                'status' => $userWithRoles->status,
+                'avatar' => $userWithRoles->avatar,
+                'created_at' => $userWithRoles->created_at,
+                'updated_at' => $userWithRoles->updated_at,
+                'deleted_at' => $userWithRoles->deleted_at,
+                'roles' => $userWithRoles->roles,
+                'segment_types' => $userWithRoles->userData?->segment_types,
+            ],
         ]);
     }
 
     /**
-     * Deslogar o usuário (invalidar o token).
+     * Deslogar o usuario (invalidar o token).
      *
-     * @return \Illuminate\Http\JsonResponse
+     * SECURITY: Remove o cookie httpOnly e invalida o token JWT.
      */
-    public function logout()
+    public function logout(Request $request): JsonResponse
     {
-        Auth::guard('api')->logout();
+        try {
+            $userId = Auth::guard('api')->user()?->id;
 
-        return response()->json(['message' => 'Deslogado com sucesso']);
+            Auth::guard('api')->logout();
+
+            Log::info('Logout realizado', [
+                'user_id' => $userId,
+                'ip' => $request->ip(),
+            ]);
+
+            // Remove o cookie httpOnly
+            $cookie = $this->createExpiredCookie();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Deslogado com sucesso',
+            ])->withCookie($cookie);
+        } catch (\Exception $e) {
+            Log::error('Erro no logout', [
+                'error' => $e->getMessage(),
+                'ip' => $request->ip(),
+            ]);
+
+            // Mesmo com erro, tenta remover o cookie
+            $cookie = $this->createExpiredCookie();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Deslogado com sucesso',
+            ])->withCookie($cookie);
+        }
     }
 
     /**
      * Atualizar o token.
-     *
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function refresh()
+    public function refresh(Request $request): JsonResponse
     {
         try {
             $newToken = JWTAuth::parseToken()->refresh();
 
-            return $this->respondWithToken($newToken);
+            // Verifica se deve usar cookie ou modo legacy
+            $useCookie = $request->boolean('use_cookie', ! $this->legacyMode);
+
+            return $this->respondWithToken($newToken, $useCookie);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Não foi possível atualizar o token'], 401);
+            Log::warning('Falha ao refresh token', [
+                'error' => $e->getMessage(),
+                'ip' => $request->ip(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'token_refresh_failed',
+                'message' => 'Nao foi possivel atualizar o token',
+            ], 401);
         }
     }
 
     /**
      * Obter a estrutura do array do token.
      *
-     * @param  string  $token
-     * @return \Illuminate\Http\JsonResponse
+     * @param  bool  $useCookie  Se true, retorna token em httpOnly cookie
      */
-    protected function respondWithToken($token)
+    protected function respondWithToken(string $token, bool $useCookie = false): JsonResponse
     {
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => config('jwt.ttl') * 60, // TTL em minutos convertido para segundos
-            'user' => Auth::guard('api')->user(),
-        ]);
+        $user = Auth::guard('api')->user();
+        $userWithRoles = User::with(['roles', 'userData'])->find($user->id);
+
+        $responseData = [
+            'success' => true,
+            'data' => [
+                'token_type' => 'bearer',
+                'expires_in' => config('jwt.ttl') * 60, // TTL em segundos
+                'user' => [
+                    'id' => $userWithRoles->id,
+                    'name' => $userWithRoles->name,
+                    'email' => $userWithRoles->email,
+                    'phone' => $userWithRoles->phone,
+                    'email_verified_at' => $userWithRoles->email_verified_at,
+                    'is_whatsapp_user' => $userWithRoles->is_whatsapp_user,
+                    'status' => $userWithRoles->status,
+                    'avatar' => $userWithRoles->avatar,
+                    'created_at' => $userWithRoles->created_at,
+                    'updated_at' => $userWithRoles->updated_at,
+                    'roles' => $userWithRoles->roles,
+                    'segment_types' => $userWithRoles->userData?->segment_types,
+                ],
+            ],
+        ];
+
+        if ($useCookie) {
+            // SECURITY: Token em httpOnly cookie
+            $cookie = $this->createSecureCookie($token);
+
+            return response()->json($responseData)->withCookie($cookie);
+        }
+
+        // Modo legacy: token no body da resposta
+        $responseData['data']['access_token'] = $token;
+
+        return response()->json($responseData);
+    }
+
+    /**
+     * Cria um cookie httpOnly seguro para o token JWT.
+     *
+     * SECURITY FLAGS:
+     * - httpOnly: Previne acesso via JavaScript (XSS protection)
+     * - secure: Cookie so enviado via HTTPS em producao
+     * - sameSite: Lax para prevenir CSRF basico mantendo UX
+     */
+    protected function createSecureCookie(string $token): Cookie
+    {
+        $isProduction = app()->environment('production');
+
+        return cookie(
+            name: JwtCookieAuthentication::COOKIE_NAME,
+            value: $token,
+            minutes: $this->cookieMinutes,
+            path: '/',
+            domain: config('session.domain'),
+            secure: $isProduction, // HTTPS only em producao
+            httpOnly: true, // JavaScript nao pode acessar
+            raw: false,
+            sameSite: 'lax' // Protecao CSRF basica
+        );
+    }
+
+    /**
+     * Cria um cookie expirado para logout.
+     */
+    protected function createExpiredCookie(): Cookie
+    {
+        return cookie(
+            name: JwtCookieAuthentication::COOKIE_NAME,
+            value: '',
+            minutes: -1, // Expira imediatamente
+            path: '/',
+            domain: config('session.domain'),
+            secure: app()->environment('production'),
+            httpOnly: true,
+            raw: false,
+            sameSite: 'lax'
+        );
     }
 }
