@@ -36,12 +36,19 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Rotas de autenticação
+// Rotas de autenticação públicas (sem middleware)
 Route::group([
     'prefix' => 'auth',
 ], function () {
     Route::post('login', [AuthController::class, 'login']);
     Route::post('register', [AuthController::class, 'register']);
+});
+
+// Rotas de autenticação protegidas (requerem JWT via cookie ou header)
+Route::group([
+    'prefix' => 'auth',
+    'middleware' => 'jwt.cookie',
+], function () {
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::get('me', [AuthController::class, 'me']);

@@ -19,9 +19,20 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => env('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000'),
+    'allowed_origins' => explode(',', env('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000')),
 
-    'allowed_origins_patterns' => [],
+    /*
+    |--------------------------------------------------------------------------
+    | Allowed Origins Patterns
+    |--------------------------------------------------------------------------
+    |
+    | Patterns for dynamic origin matching using regex.
+    | This catches any localhost variation (0.0.0.0, 127.0.0.1, localhost).
+    |
+    */
+    'allowed_origins_patterns' => [
+        '#^https?://(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?$#',
+    ],
 
     'allowed_headers' => ['*'],
 

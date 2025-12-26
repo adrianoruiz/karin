@@ -263,22 +263,31 @@ class AuthController extends Controller
      * SECURITY FLAGS:
      * - httpOnly: Previne acesso via JavaScript (XSS protection)
      * - secure: Cookie so enviado via HTTPS em producao
-     * - sameSite: Lax para prevenir CSRF basico mantendo UX
+     * - sameSite: None em dev (cross-origin), Lax em producao (CSRF protection)
+     *
+     * NOTA: Em desenvolvimento, usamos SameSite=None para permitir
+     * cross-origin requests entre frontend (0.0.0.0:3000) e backend (localhost:8000).
+     * Chrome permite SameSite=None sem Secure para localhost.
      */
     protected function createSecureCookie(string $token): Cookie
     {
         $isProduction = app()->environment('production');
+
+        // Em desenvolvimento: SameSite=None para cross-origin, Secure=false para HTTP
+        // Em producao: SameSite=Lax para CSRF protection, Secure=true para HTTPS
+        $sameSite = $isProduction ? 'lax' : 'none';
+        $secure = $isProduction;
 
         return cookie(
             name: JwtCookieAuthentication::COOKIE_NAME,
             value: $token,
             minutes: $this->cookieMinutes,
             path: '/',
-            domain: config('session.domain'),
-            secure: $isProduction, // HTTPS only em producao
+            domain: null, // null permite qualquer subdominio em dev
+            secure: $secure,
             httpOnly: true, // JavaScript nao pode acessar
             raw: false,
-            sameSite: 'lax' // Protecao CSRF basica
+            sameSite: $sameSite
         );
     }
 
@@ -287,16 +296,19 @@ class AuthController extends Controller
      */
     protected function createExpiredCookie(): Cookie
     {
+        $isProduction = app()->environment('production');
+        $sameSite = $isProduction ? 'lax' : 'none';
+
         return cookie(
             name: JwtCookieAuthentication::COOKIE_NAME,
             value: '',
             minutes: -1, // Expira imediatamente
             path: '/',
-            domain: config('session.domain'),
-            secure: app()->environment('production'),
+            domain: null,
+            secure: $isProduction,
             httpOnly: true,
             raw: false,
-            sameSite: 'lax'
+            sameSite: $sameSite
         );
     }
 }
