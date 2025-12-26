@@ -322,6 +322,8 @@ class UserRepository
         $userData->corporate_name = $userDataArray['corporate_name'] ?? null;
         $userData->segment_types = $userDataArray['segment_types'] ?? null;
         $userData->site = $userDataArray['site'] ?? null;
+        $userData->crm = $userDataArray['crm'] ?? null;
+        $userData->rqe = $userDataArray['rqe'] ?? null;
         $userData->save();
 
         return $userData;
@@ -404,6 +406,14 @@ class UserRepository
 
         if (isset($userDataArray['site'])) {
             $userData->site = $userDataArray['site'];
+        }
+
+        if (isset($userDataArray['crm'])) {
+            $userData->crm = $userDataArray['crm'];
+        }
+
+        if (isset($userDataArray['rqe'])) {
+            $userData->rqe = $userDataArray['rqe'];
         }
 
         $userData->save();
