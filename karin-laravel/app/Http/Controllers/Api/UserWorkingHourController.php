@@ -43,9 +43,15 @@ class UserWorkingHourController extends Controller
         try {
             $this->userService->upsertWorkingHours($userId, $request->validated()['hours']);
 
+            // Buscar os horários atualizados para retornar
+            $hours = WorkingHour::where('user_id', $userId)
+                ->orderBy('day_of_week')
+                ->get();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Horário salvo com sucesso',
+                'hours' => $hours,
             ]);
         } catch (\Exception $e) {
             return response()->json([
