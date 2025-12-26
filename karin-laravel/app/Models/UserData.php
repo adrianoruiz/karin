@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -36,8 +37,23 @@ class UserData extends Model
     ];
 
     protected $casts = [
+        'birthday' => 'date',
         'insurance_expiration' => 'date',
     ];
+
+    /**
+     * Calculate age based on birthday.
+     *
+     * @return int|null
+     */
+    public function getAgeAttribute()
+    {
+        if (!$this->birthday) {
+            return null;
+        }
+
+        return Carbon::parse($this->birthday)->age;
+    }
 
     public function user()
     {

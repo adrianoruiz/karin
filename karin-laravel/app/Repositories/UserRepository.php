@@ -283,6 +283,16 @@ class UserRepository
         $userData->birthday = $userDataArray['birthday'] ?? null;
         $userData->rg = $userDataArray['rg'] ?? null;
         $userData->cpf = $userDataArray['cpf'] ?? null;
+        $userData->gender = $userDataArray['gender'] ?? null;
+        $userData->marital_status = $userDataArray['marital_status'] ?? null;
+        $userData->emergency_contact = $userDataArray['emergency_contact'] ?? null;
+        $userData->emergency_contact_phone = $userDataArray['emergency_contact_phone'] ?? null;
+        $userData->alternative_phone = $userDataArray['alternative_phone'] ?? null;
+        $userData->patient_type = $userDataArray['patient_type'] ?? null;
+        $userData->health_insurance = $userDataArray['health_insurance'] ?? null;
+        $userData->insurance_number = $userDataArray['insurance_number'] ?? null;
+        $userData->insurance_expiration = $userDataArray['insurance_expiration'] ?? null;
+        $userData->notes = $userDataArray['notes'] ?? null;
         $userData->fantasy = $userDataArray['fantasy'] ?? null;
         $userData->cnpj = $userDataArray['cnpj'] ?? null;
         $userData->corporate_name = $userDataArray['corporate_name'] ?? null;
@@ -310,6 +320,46 @@ class UserRepository
 
         if (isset($userDataArray['cpf'])) {
             $userData->cpf = $userDataArray['cpf'];
+        }
+
+        if (isset($userDataArray['gender'])) {
+            $userData->gender = $userDataArray['gender'];
+        }
+
+        if (isset($userDataArray['marital_status'])) {
+            $userData->marital_status = $userDataArray['marital_status'];
+        }
+
+        if (isset($userDataArray['emergency_contact'])) {
+            $userData->emergency_contact = $userDataArray['emergency_contact'];
+        }
+
+        if (isset($userDataArray['emergency_contact_phone'])) {
+            $userData->emergency_contact_phone = $userDataArray['emergency_contact_phone'];
+        }
+
+        if (isset($userDataArray['alternative_phone'])) {
+            $userData->alternative_phone = $userDataArray['alternative_phone'];
+        }
+
+        if (isset($userDataArray['patient_type'])) {
+            $userData->patient_type = $userDataArray['patient_type'];
+        }
+
+        if (isset($userDataArray['health_insurance'])) {
+            $userData->health_insurance = $userDataArray['health_insurance'];
+        }
+
+        if (isset($userDataArray['insurance_number'])) {
+            $userData->insurance_number = $userDataArray['insurance_number'];
+        }
+
+        if (isset($userDataArray['insurance_expiration'])) {
+            $userData->insurance_expiration = $userDataArray['insurance_expiration'];
+        }
+
+        if (isset($userDataArray['notes'])) {
+            $userData->notes = $userDataArray['notes'];
         }
 
         if (isset($userDataArray['fantasy'])) {
