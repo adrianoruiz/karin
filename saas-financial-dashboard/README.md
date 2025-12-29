@@ -152,19 +152,69 @@ GET    /api/expenses-breakdown
 GET    /api/expenses-recurring
 ```
 
-## Instalação
+## Instalação com Docker
+
+### Pré-requisitos
+- Docker Desktop instalado
+- Make (opcional, facilita os comandos)
+
+### Quick Start (1 comando)
 
 ```bash
-# 1. Copiar arquivos para seu projeto Laravel
-
-# 2. Rodar migrations
-php artisan migrate
-
-# 3. Instalar dependências frontend
-npm install vue@3 chart.js tailwindcss
-
-# 4. Importar componentes Vue
+make install
 ```
+
+Isso vai:
+1. Copiar `.env.example` para `.env`
+2. Buildar os containers
+3. Instalar dependências PHP (composer)
+4. Gerar APP_KEY
+5. Rodar migrations
+6. Popular banco com dados demo
+
+**Acesse:** http://localhost:8080
+
+### Manual (sem Make)
+
+```bash
+# 1. Copiar configuração
+cp .env.example .env
+
+# 2. Subir containers
+docker-compose up -d --build
+
+# 3. Instalar dependências
+docker-compose exec app composer install
+
+# 4. Gerar chave
+docker-compose exec app php artisan key:generate
+
+# 5. Rodar migrations
+docker-compose exec app php artisan migrate
+
+# 6. Popular dados demo
+docker-compose exec app php artisan db:seed --class=DemoDataSeeder
+```
+
+### Comandos Úteis
+
+```bash
+make up          # Inicia containers
+make down        # Para containers
+make logs        # Ver logs
+make shell       # Acessa container PHP
+make db-shell    # Acessa PostgreSQL
+make migrate     # Roda migrations
+make fresh       # Reset banco + seed
+make frontend    # Dev server Vue
+```
+
+### Portas
+
+| Serviço    | Porta |
+|------------|-------|
+| Nginx/App  | 8080  |
+| PostgreSQL | 5432  |
 
 ## Cálculo dos KPIs
 
