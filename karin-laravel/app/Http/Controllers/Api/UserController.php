@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateAvatarUrlRequest;
 use App\Http\Requests\UploadAvatarRequest;
 use App\Http\Requests\User\StoreCompleteUserRequest;
 use App\Http\Requests\User\StoreUserRequest;
@@ -254,6 +255,57 @@ class UserController extends Controller
                 'message' => 'Erro ao atualizar avatar',
                 'error' => $e->getMessage(),
             ], 500);
+        }
+    }
+
+    /**
+     * Atualiza o avatar do usuario a partir de uma URL externa.
+     *
+     * Baixa a imagem da URL fornecida, valida se e uma imagem valida,
+     * salva no storage local e atualiza o campo avatar do usuario.
+     */
+    public function updateAvatarFromUrl(UpdateAvatarUrlRequest $request, int $id): JsonResponse
+    {
+        try {
+            $user = $this->userService->findById($id);
+
+            if (! $user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario nao encontrado',
+                ], 404);
+            }
+
+            $updatedUser = $this->userService->updateAvatarFromUrl($id, $request->validated()['avatar_url']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Avatar atualizado com sucesso a partir da URL',
+                'data' => [
+                    'avatar_url' => $updatedUser->avatar,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            $statusCode = 500;
+
+            // Define codigo de status apropriado baseado no tipo de erro
+            if (str_contains($e->getMessage(), 'nao encontrado')) {
+                $statusCode = 404;
+            } elseif (str_contains($e->getMessage(), 'nao aponta para uma imagem') ||
+                      str_contains($e->getMessage(), 'nao e uma imagem valida') ||
+                      str_contains($e->getMessage(), 'Tipo de imagem nao suportado') ||
+                      str_contains($e->getMessage(), 'excede o tamanho')) {
+                $statusCode = 422;
+            } elseif (str_contains($e->getMessage(), 'Timeout') ||
+                      str_contains($e->getMessage(), 'Nao foi possivel acessar')) {
+                $statusCode = 502;
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao atualizar avatar a partir da URL',
+                'error' => $e->getMessage(),
+            ], $statusCode);
         }
     }
 }

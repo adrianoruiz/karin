@@ -8,7 +8,10 @@ use App\Models\WorkingHour;
 use App\Repositories\UserRepository;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class UserService
 {
@@ -340,5 +343,167 @@ class UserService
         return $company->employees()
             ->with(['userData', 'workingHours', 'image', 'roles', 'specialties'])
             ->paginate($perPage);
+    }
+
+    /**
+     * Atualiza o avatar do usuario a partir de uma URL externa.
+     *
+     * Este metodo baixa a imagem da URL fornecida, valida se e uma imagem valida,
+     * salva no storage local e atualiza o campo avatar do usuario.
+     *
+     * @param  int  $userId  ID do usuario
+     * @param  string  $url  URL externa da imagem
+     * @return User Usuario atualizado
+     *
+     * @throws \Exception Se o usuario nao for encontrado, URL invalida, download falhar ou imagem invalida
+     */
+    public function updateAvatarFromUrl(int $userId, string $url): User
+    {
+        $user = $this->findById($userId);
+        if (! $user) {
+            throw new \Exception('Usuario nao encontrado');
+        }
+
+        // Configuracao de timeout e validacao
+        $timeout = 30; // segundos
+        $maxFileSize = 5 * 1024 * 1024; // 5MB
+        $allowedMimeTypes = [
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'image/webp',
+        ];
+
+        try {
+            // Primeiro, faz um HEAD request para verificar o Content-Type e tamanho
+            $headResponse = Http::timeout($timeout)->head($url);
+
+            if (! $headResponse->successful()) {
+                throw new \Exception('Nao foi possivel acessar a URL fornecida. Status: '.$headResponse->status());
+            }
+
+            $contentType = $headResponse->header('Content-Type');
+            $contentLength = (int) $headResponse->header('Content-Length');
+
+            // Valida o Content-Type se disponivel
+            if ($contentType && ! $this->isValidImageMimeType($contentType, $allowedMimeTypes)) {
+                throw new \Exception('A URL nao aponta para uma imagem valida. Content-Type: '.$contentType);
+            }
+
+            // Valida o tamanho se disponivel
+            if ($contentLength > 0 && $contentLength > $maxFileSize) {
+                throw new \Exception('A imagem excede o tamanho maximo permitido de 5MB.');
+            }
+
+            // Baixa a imagem
+            $response = Http::timeout($timeout)->get($url);
+
+            if (! $response->successful()) {
+                throw new \Exception('Falha ao baixar a imagem. Status: '.$response->status());
+            }
+
+            $imageContent = $response->body();
+            $actualSize = strlen($imageContent);
+
+            // Valida o tamanho real
+            if ($actualSize > $maxFileSize) {
+                throw new \Exception('A imagem excede o tamanho maximo permitido de 5MB.');
+            }
+
+            // Valida se e realmente uma imagem usando getimagesizefromstring
+            $imageInfo = @getimagesizefromstring($imageContent);
+            if ($imageInfo === false) {
+                throw new \Exception('O arquivo baixado nao e uma imagem valida.');
+            }
+
+            $detectedMimeType = $imageInfo['mime'];
+            if (! in_array($detectedMimeType, $allowedMimeTypes)) {
+                throw new \Exception('Tipo de imagem nao suportado: '.$detectedMimeType);
+            }
+
+            // Determina a extensao baseada no MIME type
+            $extension = $this->getExtensionFromMimeType($detectedMimeType);
+
+            // Gera um nome unico para o arquivo
+            $filename = Str::uuid().'.'.$extension;
+            $path = 'avatars/'.$filename;
+
+            // Salva a imagem no storage
+            Storage::disk('public')->put($path, $imageContent);
+
+            // Remove avatar anterior se existir no storage
+            if ($user->image) {
+                Storage::disk('public')->delete($user->image->path);
+                $user->image->delete();
+            }
+
+            // Cria registro na tabela images
+            $user->image()->create([
+                'path' => $path,
+                'imageable_type' => User::class,
+                'imageable_id' => $user->id,
+            ]);
+
+            // Atualiza campo avatar no usuario com a URL publica
+            $user->avatar = asset('storage/'.$path);
+            $user->save();
+
+            Log::info('Avatar atualizado via URL externa', [
+                'user_id' => $userId,
+                'source_url' => $url,
+                'saved_path' => $path,
+            ]);
+
+            return $user->refresh();
+
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            Log::error('Timeout ao baixar avatar de URL externa', [
+                'user_id' => $userId,
+                'url' => $url,
+                'error' => $e->getMessage(),
+            ]);
+            throw new \Exception('Timeout ao tentar baixar a imagem. Verifique se a URL esta acessivel.');
+        } catch (\Illuminate\Http\Client\RequestException $e) {
+            Log::error('Erro de requisicao ao baixar avatar', [
+                'user_id' => $userId,
+                'url' => $url,
+                'error' => $e->getMessage(),
+            ]);
+            throw new \Exception('Erro ao tentar baixar a imagem: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Verifica se o Content-Type e um MIME type de imagem valido.
+     *
+     * @param  string  $contentType  Content-Type retornado pelo servidor
+     * @param  array  $allowedMimeTypes  Lista de MIME types permitidos
+     * @return bool
+     */
+    private function isValidImageMimeType(string $contentType, array $allowedMimeTypes): bool
+    {
+        // O Content-Type pode conter charset, ex: "image/jpeg; charset=utf-8"
+        $mimeType = explode(';', $contentType)[0];
+        $mimeType = trim(strtolower($mimeType));
+
+        return in_array($mimeType, $allowedMimeTypes);
+    }
+
+    /**
+     * Retorna a extensao de arquivo correspondente ao MIME type.
+     *
+     * @param  string  $mimeType  MIME type da imagem
+     * @return string Extensao do arquivo (sem ponto)
+     */
+    private function getExtensionFromMimeType(string $mimeType): string
+    {
+        $mimeToExtension = [
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/gif' => 'gif',
+            'image/webp' => 'webp',
+        ];
+
+        return $mimeToExtension[$mimeType] ?? 'jpg';
     }
 }

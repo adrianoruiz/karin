@@ -83,6 +83,7 @@ Route::group([], function () {
     // Rotas com parâmetros de ID
     Route::put('users/{id}/complete', [UserController::class, 'updateComplete']);
     Route::post('users/{id}/avatar', [UserController::class, 'uploadAvatar']);
+    Route::put('users/{id}/avatar-url', [UserController::class, 'updateAvatarFromUrl']);
 });
 
 // Rotas protegidas para gerenciar funcionários da empresa
