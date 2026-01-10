@@ -58,7 +58,6 @@ class StoreMedicalRecordRequest extends FormRequest
             'chief_complaint' => [
                 'nullable',
                 'string',
-                'max:1000',
             ],
             'remember_complaint' => [
                 'boolean',
@@ -164,7 +163,7 @@ class StoreMedicalRecordRequest extends FormRequest
         ]);
 
         // Define o doctor_id como o usuário autenticado se não fornecido
-        if (! $this->has('doctor_id') && Auth::check()) {
+        if (!$this->has('doctor_id') && Auth::check()) {
             $this->merge(['doctor_id' => Auth::user()->id]);
         }
     }
@@ -196,7 +195,7 @@ class StoreMedicalRecordRequest extends FormRequest
                             ->where('user_id', $currentUser->id)
                             ->exists();
 
-                        if (! $isLinked) {
+                        if (!$isLinked) {
                             CompanyUser::create([
                                 'company_id' => $this->company_id,
                                 'user_id' => $currentUser->id,
@@ -205,8 +204,10 @@ class StoreMedicalRecordRequest extends FormRequest
                     }
                     // Cenário 2: Se o usuário tem role de médico e está tentando acessar uma empresa médica/clínica
                     // Isso pode acontecer quando um médico trabalha para outra empresa
-                    elseif (($currentUser->roles->contains('slug', ValidRoles::DOCTOR) || $currentUser->roles->contains('slug', ValidRoles::ADMIN)) &&
-                            ($company->hasRole(ValidRoles::DOCTOR) || $company->hasRole(ValidRoles::CLINIC) || $company->hasRole(ValidRoles::ADMIN))) {
+                    elseif (
+                        ($currentUser->roles->contains('slug', ValidRoles::DOCTOR) || $currentUser->roles->contains('slug', ValidRoles::ADMIN)) &&
+                        ($company->hasRole(ValidRoles::DOCTOR) || $company->hasRole(ValidRoles::CLINIC) || $company->hasRole(ValidRoles::ADMIN))
+                    ) {
                         // Verifica se ele já está vinculado à empresa
                         $isLinked = CompanyUser::where('company_id', $this->company_id)
                             ->where('user_id', $currentUser->id)
@@ -214,7 +215,7 @@ class StoreMedicalRecordRequest extends FormRequest
 
                         // Se não está vinculado, pode ser que seja o dono da empresa
                         // Para maior segurança, só auto-vincula se o usuário for doctor/admin e a empresa também
-                        if (! $isLinked && ($company->hasRole(ValidRoles::DOCTOR) || $company->hasRole(ValidRoles::ADMIN))) {
+                        if (!$isLinked && ($company->hasRole(ValidRoles::DOCTOR) || $company->hasRole(ValidRoles::ADMIN))) {
                             CompanyUser::create([
                                 'company_id' => $this->company_id,
                                 'user_id' => $currentUser->id,
@@ -229,7 +230,7 @@ class StoreMedicalRecordRequest extends FormRequest
             // Verifica se o paciente tem a role 'patient'
             if ($this->patient_id) {
                 $patient = User::find($this->patient_id);
-                if ($patient && ! $patient->hasRole(ValidRoles::PATIENT)) {
+                if ($patient && !$patient->hasRole(ValidRoles::PATIENT)) {
                     $validator->errors()->add('patient_id', 'O usuário selecionado não possui a role de paciente.');
                 }
             }
@@ -242,7 +243,7 @@ class StoreMedicalRecordRequest extends FormRequest
                         ->where('company_id', $this->company_id)
                         ->exists();
 
-                    if (! $hasRelation) {
+                    if (!$hasRelation) {
                         $validator->errors()->add('patient_id', 'O paciente não está vinculado a esta empresa.');
                     }
                 }
@@ -251,7 +252,7 @@ class StoreMedicalRecordRequest extends FormRequest
             // Verifica se a empresa existe e é válida (após auto-vinculação)
             if ($this->company_id) {
                 $company = User::find($this->company_id);
-                if ($company && (! $company->hasRole(ValidRoles::DOCTOR) && ! $company->hasRole(ValidRoles::CLINIC) && ! $company->hasRole(ValidRoles::ADMIN))) {
+                if ($company && (!$company->hasRole(ValidRoles::DOCTOR) && !$company->hasRole(ValidRoles::CLINIC) && !$company->hasRole(ValidRoles::ADMIN))) {
                     $validator->errors()->add('company_id', 'A empresa selecionada deve ter role de médico, clínica ou administrador.');
                 }
             }
@@ -275,7 +276,7 @@ class StoreMedicalRecordRequest extends FormRequest
             'consultation_type.in' => 'O tipo de consulta deve ser: primeira_consulta, retorno, emergencia, exame ou procedimento.',
             'surgical_prescription.required' => 'A prescrição cirúrgica é obrigatória.',
             'surgical_prescription.in' => 'A prescrição cirúrgica deve ser: sim ou nao.',
-            'chief_complaint.max' => 'A queixa principal não pode exceder 1000 caracteres.',
+
             'current_pathological_history.max' => 'A história patológica atual não pode exceder 2000 caracteres.',
             'past_pathological_history.max' => 'A história patológica pregressa não pode exceder 2000 caracteres.',
             'family_history.max' => 'A história familiar não pode exceder 1000 caracteres.',

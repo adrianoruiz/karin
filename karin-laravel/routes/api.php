@@ -5,6 +5,7 @@ use App\Http\Controllers\AiPromptController;
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChatLogController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\CityController;
 use App\Http\Controllers\Api\CompanyEmployeeController;
@@ -270,10 +271,10 @@ Route::group([
 ], function () {
     // Rota específica para estatísticas (deve vir antes das rotas com parâmetros)
     Route::get('/statistics', [ReminderController::class, 'statistics']);
-    
+
     // Rota para ativar/desativar lembretes
     Route::patch('/{id}/toggle-active', [ReminderController::class, 'toggleActive']);
-    
+
     // Rotas CRUD padrão
     Route::get('/', [ReminderController::class, 'index']);
     Route::post('/', [ReminderController::class, 'store']);
@@ -281,6 +282,18 @@ Route::group([
     Route::put('/{id}', [ReminderController::class, 'update']);
     Route::patch('/{id}', [ReminderController::class, 'update']);
     Route::delete('/{id}', [ReminderController::class, 'destroy']);
+});
+
+// Rotas para Notificações
+Route::group([
+    'prefix' => 'notifications',
+    'middleware' => 'auth:api',
+], function () {
+    Route::get('/', [NotificationController::class, 'index']);
+    Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::put('/mark-all-as-read', [NotificationController::class, 'markAllAsRead']);
+    Route::put('/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::delete('/{id}', [NotificationController::class, 'destroy']);
 });
 
 // Rotas para Configuracoes da Empresa

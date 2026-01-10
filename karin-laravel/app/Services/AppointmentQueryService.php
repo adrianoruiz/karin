@@ -106,8 +106,9 @@ class AppointmentQueryService
 
     public function calculateIndicators($query)
     {
-        $totalAppointments = $query->count();
-        $totalRevenue = $query->join('plans', 'appointments.plan_id', '=', 'plans.id')
+        $activeQuery = (clone $query)->where('status', '!=', Appointment::STATUS_CANCELLED);
+        $totalAppointments = $activeQuery->count();
+        $totalRevenue = $activeQuery->join('plans', 'appointments.plan_id', '=', 'plans.id')
             ->sum('plans.price');
         $averageTicket = $totalAppointments > 0 ? $totalRevenue / $totalAppointments : 0;
 
