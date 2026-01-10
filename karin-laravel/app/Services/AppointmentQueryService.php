@@ -12,6 +12,10 @@ class AppointmentQueryService
         $doctorId = request('doctor_id');
         $this->applyDoctorFilter($query, $indicatorsQuery, $doctorId);
 
+        // Filtro por ID do paciente (user_id)
+        $userId = request('user_id');
+        $this->applyUserIdFilter($query, $indicatorsQuery, $userId);
+
         // Filtro por status
         $statuses = request('status');
         $this->applyStatusFilter($query, $indicatorsQuery, $statuses);
@@ -24,6 +28,13 @@ class AppointmentQueryService
         $this->applyPatientFilter($query, $indicatorsQuery, $patientSearch);
     }
 
+    private function applyUserIdFilter($query, $indicatorsQuery, $userId)
+    {
+        $hasUserId = request()->has('user_id');
+        $hasUserId && $query->where('appointments.user_id', $userId);
+        $hasUserId && $indicatorsQuery->where('appointments.user_id', $userId);
+    }
+
     private function applyDoctorFilter($query, $indicatorsQuery, $doctorId)
     {
         $hasDoctorId = request()->has('doctor_id');
@@ -34,7 +45,7 @@ class AppointmentQueryService
     private function applyStatusFilter($query, $indicatorsQuery, $statuses)
     {
         $hasStatus = request()->has('status');
-        if (! $hasStatus) {
+        if (!$hasStatus) {
             return;
         }
         $statusArray = is_string($statuses) ? explode(',', $statuses) : $statuses;
@@ -76,7 +87,7 @@ class AppointmentQueryService
         $query->whereDate('appointment_datetime', $operator, $date);
         $indicatorsQuery->whereDate('appointment_datetime', $operator, $date);
         $isGreaterOperator = in_array($operator, ['>', '>=']);
-        if (! $isGreaterOperator) {
+        if (!$isGreaterOperator) {
             return;
         }
         $endDate = request('appointment_date_end') ?? \Carbon\Carbon::parse($date)->addDays(3)->endOfDay()->toDateString();
@@ -94,7 +105,7 @@ class AppointmentQueryService
     private function applyPatientFilter($query, $indicatorsQuery, $patientSearch)
     {
         $hasPatient = request()->has('patient');
-        if (! $hasPatient) {
+        if (!$hasPatient) {
             return;
         }
         $patientFilter = function ($q) use ($patientSearch) {
