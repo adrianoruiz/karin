@@ -78,7 +78,7 @@ class UserRepository
         }
 
         // Se não for admin, filtra por empresas relacionadas ao usuário autenticado
-        if (! $isAdmin && $authenticatedUser) {
+        if (!$isAdmin && $authenticatedUser) {
             // Obtém as empresas em que o usuário autenticado está vinculado como funcionário
             $employeeCompanyIds = DB::table('company_user')
                 ->where('user_id', $authenticatedUser->id)
@@ -107,19 +107,19 @@ class UserRepository
         }
 
         // Aplica filtro de busca por nome, phone, ou CPF (em user_data)
-        if (isset($filters['search']) && ! empty($filters['search'])) {
+        if (isset($filters['search']) && !empty($filters['search'])) {
             $searchTerm = $filters['search'];
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('name', 'ILIKE', "%{$searchTerm}%")
-                  ->orWhere('phone', 'ILIKE', "%{$searchTerm}%")
-                  ->orWhereHas('userData', function ($subQ) use ($searchTerm) {
-                      $subQ->where('cpf', 'ILIKE', "%{$searchTerm}%");
-                  });
+                    ->orWhere('phone', 'ILIKE', "%{$searchTerm}%")
+                    ->orWhereHas('userData', function ($subQ) use ($searchTerm) {
+                        $subQ->where('cpf', 'ILIKE', "%{$searchTerm}%");
+                    });
             });
         }
 
         // Aplica filtro por role se fornecido
-        if (isset($filters['role']) && ! empty($filters['role'])) {
+        if (isset($filters['role']) && !empty($filters['role'])) {
             $roleModel = Role::where('slug', $filters['role'])->first();
 
             if ($roleModel) {
@@ -129,7 +129,7 @@ class UserRepository
         }
 
         // Filtra por company_id específico se fornecido
-        if (isset($filters['company_id']) && ! empty($filters['company_id'])) {
+        if (isset($filters['company_id']) && !empty($filters['company_id'])) {
             $query->where(function ($q) use ($filters) {
                 // Inclui usuários que são funcionários dessa empresa específica
                 $q->whereHas('employeeCompanies', function ($subQ) use ($filters) {
@@ -408,12 +408,12 @@ class UserRepository
             $userData->site = $userDataArray['site'];
         }
 
-        if (isset($userDataArray['crm'])) {
-            $userData->crm = $userDataArray['crm'];
+        if (array_key_exists('crm', $userDataArray)) {
+            $userData->crm = $userDataArray['crm'] === '' ? null : $userDataArray['crm'];
         }
 
-        if (isset($userDataArray['rqe'])) {
-            $userData->rqe = $userDataArray['rqe'];
+        if (array_key_exists('rqe', $userDataArray)) {
+            $userData->rqe = $userDataArray['rqe'] === '' ? null : $userDataArray['rqe'];
         }
 
         $userData->save();
@@ -452,7 +452,7 @@ class UserRepository
             ->where('addressable_type', User::class)
             ->first();
 
-        if (! $address) {
+        if (!$address) {
             throw new \Exception('Endereço não encontrado ou não pertence a este usuário');
         }
 

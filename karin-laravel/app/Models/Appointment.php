@@ -35,6 +35,10 @@ class Appointment extends Model
 
     public const STATUS_CANCELLED = 'cancelada';
 
+    public const STATUS_CANCELLED_CLINIC = 'cancelada_clinica';
+
+    public const STATUS_CANCELLED_PATIENT = 'cancelada_paciente';
+
     public const STATUS_NO_SHOW = 'nao_compareceu';
 
     public static array $validStatuses = [
@@ -44,6 +48,8 @@ class Appointment extends Model
         self::STATUS_IN_PROGRESS,
         self::STATUS_COMPLETED,
         self::STATUS_CANCELLED,
+        self::STATUS_CANCELLED_CLINIC,
+        self::STATUS_CANCELLED_PATIENT,
         self::STATUS_NO_SHOW,
     ];
 
@@ -54,6 +60,8 @@ class Appointment extends Model
         self::STATUS_IN_PROGRESS => 'Em Atendimento',
         self::STATUS_COMPLETED => 'Concluída',
         self::STATUS_CANCELLED => 'Cancelada',
+        self::STATUS_CANCELLED_CLINIC => 'Cancelada pela Clínica',
+        self::STATUS_CANCELLED_PATIENT => 'Cancelada pelo Paciente',
         self::STATUS_NO_SHOW => 'Faltou',
     ];
 
