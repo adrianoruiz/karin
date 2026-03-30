@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enum\ValidRoles;
+use App\Models\CompanyCliente;
 use App\Models\CompanyUser;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
@@ -236,6 +237,7 @@ class StoreMedicalRecordRequest extends FormRequest
             }
 
             // Verifica se o paciente pertence à empresa (company_id)
+            // Se não pertence, auto-vincula o paciente à empresa
             if ($this->patient_id && $this->company_id) {
                 $patient = User::find($this->patient_id);
                 if ($patient) {
@@ -244,7 +246,10 @@ class StoreMedicalRecordRequest extends FormRequest
                         ->exists();
 
                     if (!$hasRelation) {
-                        $validator->errors()->add('patient_id', 'O paciente não está vinculado a esta empresa.');
+                        CompanyCliente::create([
+                            'company_id' => $this->company_id,
+                            'client_id' => $this->patient_id,
+                        ]);
                     }
                 }
             }
