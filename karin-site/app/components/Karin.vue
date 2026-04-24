@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { ArrowRight } from 'lucide-vue-next';
 import WhatsAppIcon from './icons/WhatsAppIcon.vue';
+import { useWhatsAppLink } from '~/composables/useWhatsAppLink';
 
 defineProps<{
   title: string;
 }>();
+
+const { href: whatsappHref } = useWhatsAppLink('about');
 </script>
 
 <template>
@@ -38,8 +41,9 @@ defineProps<{
 
             <div class="pt-6">
               <a
-                href="/conversion/consulta-online.html"
+                :href="whatsappHref"
                 target="_blank"
+                rel="noopener"
                 class="group inline-flex items-center gap-3 bg-ink text-sand px-8 py-4 rounded-full text-base md:text-lg font-medium hover:bg-clay-dark transition-colors duration-300 w-full md:w-auto justify-center"
               >
                 <WhatsAppIcon :size="18" class="text-sand" />

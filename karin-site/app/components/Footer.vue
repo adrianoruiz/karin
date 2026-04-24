@@ -2,8 +2,10 @@
 import { MapPin } from 'lucide-vue-next';
 import WhatsAppIcon from './icons/WhatsAppIcon.vue';
 import { useAppointmentStore } from '../stores/appointment_store';
+import { useWhatsAppLink } from '~/composables/useWhatsAppLink';
 
 const store = useAppointmentStore();
+const { href: whatsappHref } = useWhatsAppLink('footer');
 
 const openTermsOfUse = (event: Event) => {
   event.preventDefault();
@@ -42,8 +44,9 @@ const openPrivacyPolicy = (event: Event) => {
         <div class="text-white">
           <h2 class="text-eyebrow uppercase opacity-80 mb-4">Contato</h2>
           <a
-            href="https://wa.me/5547991259577"
+            :href="whatsappHref"
             target="_blank"
+            rel="noopener"
             class="inline-flex items-center gap-2 bg-white text-clay-ink px-4 py-2 rounded-full hover:bg-sand-soft transition-colors duration-300"
           >
             <WhatsAppIcon :size="18" />
