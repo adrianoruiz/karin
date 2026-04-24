@@ -38,7 +38,7 @@ const methods: Method[] = [
       <div class="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20 items-start">
         <div class="relative rounded-[28px] overflow-hidden">
           <img
-            src="/images/consulta.jpeg"
+            src="/images/consulta.webp"
             alt="Sessão de consulta"
             class="w-full h-full object-cover"
           />
