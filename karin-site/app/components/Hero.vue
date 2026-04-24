@@ -31,9 +31,13 @@ const trustItems = [
             <span class="text-sm tracking-[0.15em] uppercase text-accent-crm font-medium">CRM-SC 26419</span>
           </p>
 
-          <h1 class="font-aloe text-ink text-display-lg leading-[1.02] max-w-[26ch] mx-auto lg:mx-0">
-            Ansiedade, insônia, depressão e TDAH têm tratamento<span class="text-accent-crm">.</span>
+          <h1 class="font-aloe text-ink text-display-lg leading-[1.02] max-w-[22ch] mx-auto lg:mx-0">
+            Pare de viver no automático<span class="text-accent-crm">.</span>
           </h1>
+
+          <p class="font-aloe text-ink/80 text-xl md:text-2xl leading-snug max-w-[32ch] mx-auto lg:mx-0">
+            Ansiedade, insônia e TDAH têm tratamento — com acompanhamento próximo e humano.
+          </p>
 
           <p class="text-ink-soft/90 text-lg md:text-xl leading-relaxed max-w-xl mx-auto lg:mx-0">
             {{ description }}

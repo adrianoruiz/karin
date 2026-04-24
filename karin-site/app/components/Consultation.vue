@@ -80,7 +80,7 @@ const { href: presencialHref } = useWhatsAppLink(
 
             <div class="flex items-center gap-2 text-sand/80 text-sm">
               <MapPin :size="16" :stroke-width="1.5" aria-hidden="true" />
-              <span>Rua Jaraguá, 273 · Centro · Blumenau, SC</span>
+              <span>Blumenau, SC</span>
             </div>
 
             <div class="pt-2 text-center lg:text-left">

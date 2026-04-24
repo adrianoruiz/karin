@@ -35,8 +35,7 @@ const openPrivacyPolicy = (event: Event) => {
           <div class="flex items-start gap-2">
             <MapPin :size="18" :stroke-width="1.5" class="mt-1 flex-shrink-0" aria-hidden="true" />
             <p class="leading-relaxed">
-              Rua Jaraguá, 273<br />
-              Centro — Blumenau, SC
+              Blumenau, SC
             </p>
           </div>
         </div>
