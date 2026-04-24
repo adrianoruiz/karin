@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Quote } from 'lucide-vue-next';
+
 interface Testimonial {
   name: string;
   content: string;
@@ -8,12 +10,12 @@ const testimonials: Testimonial[] = [
   {
     name: "Thalia Varela",
     content:
-      "Excelente atendimento, a Dra Karin é muito prestativa e atenciosa, profissional que tem uma  visão holística do paciente. Sou grata por poder me consultar com alguém tão qualificada. Em cada atendimento que tenho o cuidado é excelente, pois a Dra além de ser uma ótima psiquiatra também é como uma psicóloga que nos ajuda muito através das conversas que temos ao decorrer das consultas.",
+      "Excelente atendimento, a Dra Karin é muito prestativa e atenciosa, profissional que tem uma visão holística do paciente. Sou grata por poder me consultar com alguém tão qualificada. Em cada atendimento que tenho o cuidado é excelente, pois a Dra além de ser uma ótima psiquiatra também é como uma psicóloga que nos ajuda muito através das conversas que temos ao decorrer das consultas.",
   },
   {
     name: "Maura Lisboa",
     content:
-      "Dra Karin é uma profissional excelente. Sempre gentil, com audição atenta e preocupada com o paciente. Agradeço muito pela eficácia do meu tratamento. Sem a dra Karin, isso não seria possível!!!",
+      "Dra Karin é uma profissional excelente. Sempre gentil, com audição atenta e preocupada com o paciente. Agradeço muito pela eficácia do meu tratamento. Sem a Dra Karin, isso não seria possível!",
   },
   {
     name: "Caroline Souza",
@@ -30,7 +32,6 @@ const testimonials: Testimonial[] = [
     content:
       "Muito satisfeito com o atendimento da Dra. Karin. Ela é extremamente profissional e dedicada, sempre buscando o melhor para seus pacientes. Recomendo sem hesitar.",
   },
-
   {
     name: "Bruno Costa",
     content:
@@ -40,53 +41,40 @@ const testimonials: Testimonial[] = [
 </script>
 
 <template>
-  <section id="feedbacks" class="py-20 bg-white">
-    <div class="container mx-auto px-4">
-      <h2 class="text-4xl font-aloe text-center mb-4 text-[#4d290e]">
-        Veja o que os pacientes estão
-      </h2>
-      <h2 class="text-4xl font-aloe text-center mb-8 text-[#4d290e]">
-        achando da consulta...
-      </h2>
-      <p class="text-center font-serif text-[#4d290e] mb-12">
-        Todos os depoimentos aqui citados são originados diretamente com o
-        paciente.
-      </p>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <div
+  <section id="feedbacks" class="py-24 md:py-32 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16 md:mb-20 max-w-2xl mx-auto">
+        <span class="inline-block text-eyebrow uppercase text-clay mb-4">
+          Depoimentos
+        </span>
+        <h2 class="font-aloe text-display-lg text-ink-soft leading-[1.05] mb-5">
+          Veja o que os pacientes dizem
+        </h2>
+        <p class="text-ink-muted text-sm md:text-base">
+          Todos os depoimentos aqui citados são originados diretamente com o paciente.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        <article
           v-for="(testimonial, index) in testimonials"
           :key="index"
-          class="bg-[#8B8178] rounded-[32px] shadow-lg p-8 hover:shadow-xl transition-shadow duration-300"
+          class="relative bg-sand-soft rounded-[28px] p-8 ring-1 ring-ink/5 transition-colors duration-300 hover:bg-sand-warm"
         >
-          <div class="flex items-center mb-6">
-            <div class="w-12 h-12 flex-shrink-0">
-              <!-- Ícone de usuário SVG -->
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-full h-full text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.551 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
+          <Quote :size="28" :stroke-width="1.5" class="text-clay-dark/50 mb-4" aria-hidden="true" />
+          <p class="text-ink-soft leading-relaxed mb-6 text-[0.95rem]">
+            {{ testimonial.content }}
+          </p>
+          <div class="flex items-center gap-3 pt-4 border-t border-clay/20">
+            <div class="w-10 h-10 rounded-full bg-clay-dark text-white flex items-center justify-center font-serif text-sm">
+              {{ testimonial.name.charAt(0) }}
             </div>
-            <h3 class="ml-4 text-xl font-semibold text-white">
+            <h3 class="font-serif text-ink-soft text-base">
               {{ testimonial.name }}
             </h3>
           </div>
-          <p class="text-white leading-relaxed">{{ testimonial.content }}</p>
-        </div>
+        </article>
       </div>
     </div>
   </section>
 </template>
-
-<style scoped>
-/* Opcional: Adicionar estilos adicionais se necessário */
-</style>
