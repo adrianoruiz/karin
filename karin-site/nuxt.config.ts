@@ -1,0 +1,73 @@
+import tailwindcss from '@tailwindcss/vite'
+
+export default defineNuxtConfig({
+  compatibilityDate: '2025-07-15',
+  devtools: { enabled: true },
+
+  future: {
+    compatibilityVersion: 4
+  },
+
+  modules: [
+    '@pinia/nuxt',
+    '@nuxt/image',
+    '@nuxt/content',
+    '@nuxt/eslint'
+  ],
+
+  css: ['~/assets/css/main.css'],
+
+  vite: {
+    plugins: [tailwindcss()]
+  },
+
+  runtimeConfig: {
+    databaseUrl: process.env.DATABASE_URL,
+    betterAuthSecret: process.env.BETTER_AUTH_SECRET,
+    public: {
+      appName: 'Dra. Karin Boldarini',
+      appUrl: process.env.NUXT_PUBLIC_APP_URL || 'http://localhost:3000',
+      apiUrl: process.env.NUXT_PUBLIC_API_URL || 'https://api.drakarin.com.br/api/'
+    }
+  },
+
+  app: {
+    head: {
+      htmlAttrs: { lang: 'pt-BR' },
+      charset: 'utf-8',
+      viewport: 'width=device-width, initial-scale=1',
+      title: 'Dra. Karin Boldarini — Médica Psiquiatra',
+      meta: [
+        { name: 'description', content: 'Atenção em saúde mental focada no equilíbrio entre mente, corpo e emoções.' },
+        { name: 'theme-color', content: '#8B7355' }
+      ],
+      link: [
+        { rel: 'icon', type: 'image/png', href: '/favicon.png' },
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap' }
+      ]
+    }
+  },
+
+  nitro: {
+    preset: process.env.NITRO_PRESET || 'node-server'
+  },
+
+  typescript: {
+    strict: true
+  },
+
+  image: {
+    quality: 80,
+    format: ['webp', 'avif', 'png', 'jpg']
+  },
+
+  content: {
+    build: {
+      markdown: {
+        toc: { depth: 3, searchDepth: 3 }
+      }
+    }
+  }
+})
