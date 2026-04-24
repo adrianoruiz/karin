@@ -19,7 +19,7 @@ const scrollToSection = (href: string) => {
 
   if (element) {
     isOpen.value = false;
-    const navbarHeight = 64;
+    const navbarHeight = window.innerWidth >= 768 ? 102 : 80;
     const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
     const offsetPosition = elementPosition - navbarHeight;
 
@@ -39,24 +39,32 @@ const scrollToTop = () => {
 </script>
 
 <template>
-  <nav class="fixed w-full top-0 bg-clay-ink/95 backdrop-blur-sm z-50 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
+  <nav class="w-full bg-clay-ink/95 backdrop-blur-sm shadow-sm">
+    <div class="mx-auto max-w-[1540px] px-5 sm:px-8 lg:px-16">
+      <div class="flex h-20 items-center justify-between md:h-[102px]">
         <div
-          class="flex-shrink-0 flex items-center cursor-pointer"
+          class="flex flex-shrink-0 cursor-pointer items-center gap-3 md:gap-5"
           @click="scrollToTop"
         >
-          <img class="h-10 w-10" src="../assets/logobranca.svg" alt="Logo Dra. Karin Boldarini" />
+          <img class="h-11 w-auto md:h-[62px]" src="../assets/logobranca.svg" alt="Logo Dra. Karin Boldarini" >
+          <div class="hidden leading-none sm:block">
+            <p class="font-aloe text-[1.75rem] text-sand md:text-[2.15rem]">
+              Dra. Karin Boldarini
+            </p>
+            <p class="mt-2 text-[0.62rem] font-medium uppercase text-[#EBC89A] md:text-[0.7rem]">
+              SAÚDE MENTAL, CORPO E EMOÇÕES
+            </p>
+          </div>
         </div>
 
         <div class="hidden md:block">
-          <div class="ml-10 flex items-baseline space-x-8">
+          <div class="ml-10 flex items-center gap-12">
             <a
               v-for="item in menuItems"
               :key="item.name"
-              @click.prevent="scrollToSection(item.href)"
               :href="item.href"
-              class="text-white/90 hover:text-sand text-sm font-medium tracking-wide uppercase transition-colors duration-300 relative after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-px after:bg-sand after:transition-all after:duration-300 hover:after:w-full"
+              class="relative text-sm font-medium uppercase text-white/90 transition-colors duration-300 after:absolute after:-bottom-2 after:left-0 after:h-px after:w-0 after:bg-sand after:transition-all after:duration-300 hover:text-sand hover:after:w-full"
+              @click.prevent="scrollToSection(item.href)"
             >
               {{ item.name }}
             </a>
@@ -65,9 +73,9 @@ const scrollToTop = () => {
 
         <div class="md:hidden">
           <button
-            @click="toggleMenu"
             aria-label="Alternar menu"
-            class="text-white p-2 rounded-md hover:bg-white/10 transition-colors duration-300"
+            class="rounded-md p-2 text-white transition-colors duration-300 hover:bg-white/10"
+            @click="toggleMenu"
           >
             <MenuIcon v-if="!isOpen" :size="22" :stroke-width="1.75" aria-hidden="true" />
             <CloseIcon v-else :size="22" :stroke-width="1.75" aria-hidden="true" />
@@ -84,14 +92,14 @@ const scrollToTop = () => {
       leave-from-class="transform translate-y-0 opacity-100"
       leave-to-class="transform -translate-y-4 opacity-0"
     >
-      <div v-if="isOpen" class="md:hidden bg-clay-ink shadow-lg">
+      <div v-if="isOpen" class="bg-clay-ink shadow-lg md:hidden">
         <div class="px-2 pt-2 pb-3 space-y-1">
           <a
             v-for="item in menuItems"
             :key="item.name"
-            @click.prevent="scrollToSection(item.href)"
             :href="item.href"
             class="text-white/90 hover:text-sand block px-3 py-2 rounded-md text-base font-medium transition-colors duration-300 hover:bg-white/5"
+            @click.prevent="scrollToSection(item.href)"
           >
             {{ item.name }}
           </a>

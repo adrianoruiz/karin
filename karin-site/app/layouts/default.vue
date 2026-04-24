@@ -4,7 +4,7 @@
       <NavBar />
     </div>
 
-    <main class="pt-16">
+    <main class="pt-20 md:pt-[102px]">
       <slot />
       <Footer />
     </main>

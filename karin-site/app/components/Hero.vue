@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import { ArrowRight } from 'lucide-vue-next';
+import { ArrowRight, HeartPulse, Monitor, UserRound } from 'lucide-vue-next';
 import WhatsAppIcon from './icons/WhatsAppIcon.vue';
 import { useWhatsAppLink } from '~/composables/useWhatsAppLink';
+
+defineOptions({
+  name: 'HomeHero',
+});
 
 defineProps<{
   description: string;
@@ -10,31 +14,33 @@ defineProps<{
 const { href: whatsappHref } = useWhatsAppLink('hero');
 
 const trustItems = [
-  { label: 'Online & Presencial', detail: 'Blumenau SC' },
-  { label: 'Atendemos', detail: 'Adultos' },
-  { label: 'Foco clínico', detail: 'Ansiedade, TDAH, depressão, insônia' },
+  { icon: Monitor, label: 'Online & Presencial', detail: 'Blumenau SC' },
+  { icon: UserRound, label: 'Atendemos', detail: 'Adultos' },
+  { icon: HeartPulse, label: 'Foco clínico', detail: 'Ansiedade, TDAH, depressão, insônia' },
 ];
 </script>
 
 <template>
-  <section class="relative bg-sand pt-8 md:pt-10 overflow-hidden">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-end">
-        <div class="lg:col-span-7 lg:self-center space-y-8 text-center lg:text-left">
-          <span class="inline-block text-eyebrow uppercase text-ink-muted">
+  <section class="relative overflow-hidden bg-sand">
+    <div class="relative">
+      <div aria-hidden="true" class="pointer-events-none absolute inset-0 hidden lg:block bg-[radial-gradient(ellipse_at_80%_45%,#D9C4A8_0%,#EADFCE_35%,#F5E6D3_65%,#F5E6D3_100%)]" />
+    <div class="relative mx-auto w-full max-w-[1540px] px-5 sm:px-8 lg:px-16">
+      <div class="grid min-h-[640px] grid-cols-1 items-end gap-8 pt-12 md:pt-16 lg:grid-cols-12 lg:gap-8 lg:pt-0">
+        <div class="z-10 space-y-7 pb-8 text-center lg:col-span-6 lg:self-center lg:pb-0 lg:text-left xl:col-span-6">
+          <span class="inline-block text-sm font-medium uppercase text-clay-ink md:text-base">
             SAÚDE MENTAL · BLUMENAU SC
           </span>
 
-          <h1 class="font-aloe text-ink leading-none text-[clamp(2.75rem,7vw,5.25rem)] max-w-[14ch] mx-auto lg:mx-0">
+          <h1 class="mx-auto max-w-[12ch] font-aloe text-[clamp(3.25rem,7vw,8.5rem)] leading-[0.92] text-ink lg:mx-0 lg:max-w-[11ch]">
             Dra. Karin Boldarini
           </h1>
 
           <p class="flex items-center gap-4 justify-center lg:justify-start">
-            <span class="block h-px w-10 bg-clay-ink/50" aria-hidden="true"></span>
-            <span class="text-sm tracking-[0.22em] uppercase text-clay-ink font-medium">CRM SC 26419</span>
+            <span class="block h-px w-24 bg-clay-ink/60" aria-hidden="true"/>
+            <span class="text-sm font-medium uppercase text-clay-ink md:text-base">CRM SC 26419</span>
           </p>
 
-          <p class="text-ink/85 text-lg md:text-xl leading-relaxed max-w-[44ch] mx-auto lg:mx-0">
+          <p class="mx-auto max-w-[43ch] text-lg leading-relaxed text-ink-soft md:text-[1.35rem] lg:mx-0">
             {{ description }}
           </p>
 
@@ -44,7 +50,7 @@ const trustItems = [
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Agendar consulta no WhatsApp"
-              class="group inline-flex items-center gap-3 bg-ink text-sand px-8 py-4 rounded-full text-base md:text-lg font-medium hover:bg-clay-dark transition-colors duration-300"
+              class="group inline-flex items-center gap-4 rounded-full bg-ink px-8 py-4 text-base font-medium text-sand transition-colors duration-300 hover:bg-clay-dark md:px-9 md:text-lg"
             >
               <WhatsAppIcon :size="18" class="text-sand" />
               <span>Agendar minha consulta</span>
@@ -53,26 +59,32 @@ const trustItems = [
           </div>
         </div>
 
-        <div class="lg:col-span-5 flex justify-center lg:justify-end items-end">
-          <div class="relative flex flex-col items-center lg:items-end w-full">
+        <div class="flex items-end justify-center lg:col-span-6 lg:h-full lg:justify-end xl:col-span-6">
+          <div class="relative flex w-full flex-col items-center lg:h-full lg:items-end lg:justify-end">
             <img
               src="/images/karin-psiq.png"
               alt="Dra. Karin Boldarini"
-              class="relative z-10 max-w-xs md:max-w-md lg:max-w-full object-contain object-bottom block"
+              class="relative z-10 block max-h-[520px] w-auto max-w-[92vw] object-contain object-bottom md:max-h-[640px] lg:max-h-[640px] lg:max-w-none xl:max-h-[680px]"
             >
             <div
               aria-hidden="true"
               class="lg:hidden relative z-0 -mt-3 h-6 w-64 max-w-[80%] rounded-[50%]"
               style="background: radial-gradient(ellipse at center, rgba(45,43,40,0.28) 0%, rgba(45,43,40,0.12) 45%, rgba(45,43,40,0) 75%); filter: blur(6px);"
-            ></div>
+            />
           </div>
         </div>
       </div>
+    </div>
+    </div>
 
-      <dl class="mt-10 lg:mt-0 border-t border-clay/25 grid grid-cols-1 sm:grid-cols-3 divide-y divide-clay/20 sm:divide-y-0 sm:divide-x sm:divide-clay/25 text-center sm:text-left">
-        <div v-for="item in trustItems" :key="item.label" class="py-5 sm:py-6 sm:px-6 first:sm:pl-0 last:sm:pr-0">
-          <dt class="text-xs uppercase tracking-[0.14em] text-clay-dark font-medium">{{ item.label }}</dt>
-          <dd class="mt-1 font-aloe text-ink text-base leading-snug">{{ item.detail }}</dd>
+    <div class="relative border-t border-clay/20 bg-sand-warm/55">
+      <dl class="mx-auto grid w-full max-w-[1540px] grid-cols-1 divide-y divide-clay/25 md:grid-cols-3 md:divide-x md:divide-y-0">
+        <div v-for="item in trustItems" :key="item.label" class="flex items-center gap-4 px-5 py-5 text-left sm:px-8 md:px-10 md:py-6 lg:px-16">
+          <component :is="item.icon" :size="38" :stroke-width="1.3" class="shrink-0 text-clay-ink" aria-hidden="true" />
+          <div class="min-w-0">
+            <dt class="text-[11px] font-medium uppercase tracking-wide text-clay-ink md:text-xs">{{ item.label }}</dt>
+            <dd class="mt-1 whitespace-nowrap font-aloe text-base leading-snug text-ink md:text-lg">{{ item.detail }}</dd>
+          </div>
         </div>
       </dl>
     </div>
