@@ -30,7 +30,7 @@ const methods = [
         <!-- Left side illustration -->
         <div class="relative">
 
-          <img src="/images/consulta.webp" alt="Therapy session illustration" class="w-full h-full object-contain" />
+          <img src="/images/consulta.jpeg" alt="Therapy session illustration" class="w-full h-full object-contain" />
 
         </div>
 
