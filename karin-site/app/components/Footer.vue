@@ -31,23 +31,25 @@ const openPrivacyPolicy = (event: Event) => {
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 md:pt-20 pb-28 md:pb-10">
       <div class="grid grid-cols-12 gap-y-14 gap-x-8">
 
-        <div class="col-span-12 lg:col-span-7">
+        <div class="col-span-12 lg:col-span-7 text-center lg:text-left">
           <span class="inline-flex items-center gap-3 text-eyebrow uppercase text-sand/60">
             <span class="block h-px w-8 bg-sand/40" aria-hidden="true"></span>
             Consultório · Blumenau SC
+            <span class="block h-px w-8 bg-sand/40 lg:hidden" aria-hidden="true"></span>
           </span>
 
-          <h2 class="mt-6 font-aloe leading-[1] text-sand text-[clamp(1.5rem,3.15vw,2.5rem)] whitespace-nowrap">
+          <h2 class="mt-6 font-aloe leading-[1] text-sand text-[clamp(1.75rem,7vw,2.5rem)] whitespace-nowrap">
             Dra. Karin Boldarini
           </h2>
 
-          <p class="mt-6 flex items-center gap-3 text-sand/70">
+          <p class="mt-6 flex items-center justify-center lg:justify-start gap-3 text-sand/70">
             <span class="block h-px w-8 bg-sand/40" aria-hidden="true"></span>
             <span class="text-xs tracking-[0.22em] uppercase font-medium">CRM SC 26419 · Saúde Mental</span>
+            <span class="block h-px w-8 bg-sand/40 lg:hidden" aria-hidden="true"></span>
           </p>
         </div>
 
-        <div class="col-span-12 lg:col-span-5 lg:pl-10 lg:border-l lg:border-sand/10 space-y-10">
+        <div class="col-span-12 lg:col-span-5 lg:pl-10 lg:border-l lg:border-sand/10 space-y-10 text-center lg:text-left">
           <div>
             <h3 class="text-eyebrow uppercase text-sand/50 mb-3">Agendar</h3>
             <a
@@ -62,10 +64,10 @@ const openPrivacyPolicy = (event: Event) => {
             </a>
           </div>
 
-          <dl class="grid grid-cols-2 gap-x-6 gap-y-6">
+          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6 text-center lg:text-left">
             <div>
               <dt class="text-eyebrow uppercase text-sand/50 mb-2">Endereço</dt>
-              <dd class="flex items-start gap-2 text-sand/90">
+              <dd class="flex items-start justify-center lg:justify-start gap-2 text-sand/90">
                 <MapPin :size="16" :stroke-width="1.5" class="mt-0.5 flex-shrink-0" aria-hidden="true" />
                 <span class="leading-relaxed">Blumenau, SC</span>
               </dd>
@@ -73,7 +75,7 @@ const openPrivacyPolicy = (event: Event) => {
 
             <div>
               <dt class="text-eyebrow uppercase text-sand/50 mb-2">Instagram</dt>
-              <dd>
+              <dd class="flex justify-center lg:justify-start">
                 <a
                   href="https://www.instagram.com/dra.karin.alana/"
                   target="_blank"
@@ -90,12 +92,12 @@ const openPrivacyPolicy = (event: Event) => {
         </div>
       </div>
 
-      <div class="mt-12 md:mt-16 pt-6 border-t border-sand/10 flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4 text-[0.68rem] md:text-xs uppercase tracking-[0.14em] md:tracking-[0.16em] text-sand/50">
+      <div class="mt-12 md:mt-16 pt-6 border-t border-sand/10 flex flex-col items-center md:flex-row md:items-center md:justify-between gap-3 md:gap-4 text-[0.68rem] md:text-xs uppercase tracking-[0.14em] md:tracking-[0.16em] text-sand/50 text-center md:text-left">
         <p class="leading-relaxed">© {{ year }} Karin Boldarini · Todos os direitos reservados</p>
-        <nav class="flex items-center gap-4 md:gap-5">
-          <a href="#" @click="openTermsOfUse" class="hover:text-sand transition-colors duration-300">Termos de Uso</a>
+        <nav class="flex flex-nowrap items-center justify-center gap-3 md:gap-5 whitespace-nowrap">
+          <a href="#" @click="openTermsOfUse" class="inline-flex items-center hover:text-sand transition-colors duration-300">Termos de Uso</a>
           <span aria-hidden="true" class="text-sand/30">/</span>
-          <a href="#" @click="openPrivacyPolicy" class="hover:text-sand transition-colors duration-300">Privacidade</a>
+          <a href="#" @click="openPrivacyPolicy" class="inline-flex items-center hover:text-sand transition-colors duration-300">Privacidade</a>
         </nav>
       </div>
     </div>

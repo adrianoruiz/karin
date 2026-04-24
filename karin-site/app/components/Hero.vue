@@ -13,7 +13,7 @@ const { href: whatsappHref } = useWhatsAppLink('hero');
 
 const trustItems = [
   { label: 'Online & Presencial', detail: 'Blumenau SC' },
-  { label: 'Adultos', detail: 'Homens e mulheres 18+' },
+  { label: 'Atendemos', detail: 'Adultos' },
   { label: 'Foco clínico', detail: 'Ansiedade, TDAH, depressão, insônia' },
 ];
 </script>
@@ -32,8 +32,8 @@ const trustItems = [
           </h1>
 
           <p class="flex items-center gap-4 justify-center lg:justify-start">
-            <span class="block h-px w-10 bg-accent-crm/50" aria-hidden="true"></span>
-            <span class="text-sm tracking-[0.22em] uppercase text-accent-crm font-medium">CRM SC 26419</span>
+            <span class="block h-px w-10 bg-clay-ink/50" aria-hidden="true"></span>
+            <span class="text-sm tracking-[0.22em] uppercase text-clay-ink font-medium">CRM SC 26419</span>
           </p>
 
           <p class="text-ink/85 text-lg md:text-xl leading-relaxed max-w-[44ch] mx-auto lg:mx-0">
