@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { useWhatsAppLink } from '../../app/composables/useWhatsAppLink'
 
+type RuntimeConfigGlobal = typeof globalThis & {
+  useRuntimeConfig?: () => { public: { whatsappPhone?: string } }
+}
+
 describe('useWhatsAppLink', () => {
   it('returns wa.me URL with default phone', () => {
     const { href } = useWhatsAppLink('hero')
@@ -27,5 +31,26 @@ describe('useWhatsAppLink', () => {
     expect(a).not.toBe(b)
     expect(decodeURIComponent(a)).toContain('utm_content=hero')
     expect(decodeURIComponent(b)).toContain('utm_content=floating')
+  })
+
+  it('tracks online and presencial consultation links separately', () => {
+    const online = useWhatsAppLink('consultation').href.value
+    const presencial = useWhatsAppLink('consultation-presencial').href.value
+    expect(online).not.toBe(presencial)
+    expect(decodeURIComponent(online)).toContain('utm_content=consultation')
+    expect(decodeURIComponent(presencial)).toContain('utm_content=consultation-presencial')
+  })
+
+  it('uses public runtime config phone when available', () => {
+    const runtimeGlobal = globalThis as RuntimeConfigGlobal
+    const originalUseRuntimeConfig = runtimeGlobal.useRuntimeConfig
+    runtimeGlobal.useRuntimeConfig = () => ({ public: { whatsappPhone: '5511999999999' } })
+
+    try {
+      const { href } = useWhatsAppLink('hero')
+      expect(href.value.startsWith('https://wa.me/5511999999999?text=')).toBe(true)
+    } finally {
+      runtimeGlobal.useRuntimeConfig = originalUseRuntimeConfig
+    }
   })
 })

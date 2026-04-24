@@ -27,7 +27,8 @@ export default defineNuxtConfig({
     public: {
       appName: 'Dra. Karin Boldarini',
       appUrl: process.env.NUXT_PUBLIC_APP_URL || 'http://localhost:3000',
-      apiUrl: process.env.NUXT_PUBLIC_API_URL || 'https://api.drakarin.com.br/api/'
+      apiUrl: process.env.NUXT_PUBLIC_API_URL || 'https://api.drakarin.com.br/api/',
+      whatsappPhone: process.env.NUXT_PUBLIC_WHATSAPP_PHONE || '5547991259577'
     }
   },
 

@@ -55,7 +55,7 @@ const openPrivacyPolicy = (event: Event) => {
             <a
               :href="whatsappHref"
               target="_blank"
-              rel="noopener"
+              rel="noopener noreferrer"
               class="group inline-flex items-center gap-3 bg-sand text-ink px-5 py-3 rounded-full hover:bg-white transition-colors duration-300"
             >
               <WhatsAppIcon :size="18" />
@@ -79,7 +79,7 @@ const openPrivacyPolicy = (event: Event) => {
                 <a
                   href="https://www.instagram.com/dra.karin.alana/"
                   target="_blank"
-                  rel="noopener"
+                  rel="noopener noreferrer"
                   aria-label="Instagram Dra. Karin Boldarini"
                   class="group inline-flex items-center gap-2 text-sand/90 hover:text-sand transition-colors duration-300"
                 >

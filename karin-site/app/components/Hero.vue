@@ -3,11 +3,9 @@ import { ArrowRight } from 'lucide-vue-next';
 import WhatsAppIcon from './icons/WhatsAppIcon.vue';
 import { useWhatsAppLink } from '~/composables/useWhatsAppLink';
 
-withDefaults(defineProps<{
-  description?: string;
-}>(), {
-  description: 'Ofereço atenção em saúde mental, focada no equilíbrio entre mente, corpo e emoções.',
-});
+defineProps<{
+  description: string;
+}>();
 
 const { href: whatsappHref } = useWhatsAppLink('hero');
 
@@ -44,7 +42,7 @@ const trustItems = [
             <a
               :href="whatsappHref"
               target="_blank"
-              rel="noopener"
+              rel="noopener noreferrer"
               aria-label="Agendar consulta no WhatsApp"
               class="group inline-flex items-center gap-3 bg-ink text-sand px-8 py-4 rounded-full text-base md:text-lg font-medium hover:bg-clay-dark transition-colors duration-300"
             >

@@ -28,7 +28,7 @@
           <NuxtLink :to="`/admin/blog/${post.slug}`" class="text-sm text-primary hover:underline">
             Editar
           </NuxtLink>
-          <NuxtLink :to="`/blog/${post.slug}`" target="_blank" class="text-sm text-clay hover:underline">
+          <NuxtLink :to="`/blog/${post.slug}`" target="_blank" rel="noopener noreferrer" class="text-sm text-clay hover:underline">
             Ver
           </NuxtLink>
         </div>

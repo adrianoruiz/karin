@@ -43,7 +43,7 @@ const { href: whatsappHref } = useWhatsAppLink('about');
               <a
                 :href="whatsappHref"
                 target="_blank"
-                rel="noopener"
+                rel="noopener noreferrer"
                 class="group inline-flex items-center gap-3 bg-ink text-sand px-8 py-4 rounded-full text-base md:text-lg font-medium hover:bg-clay-dark transition-colors duration-300 w-full md:w-auto justify-center"
               >
                 <WhatsAppIcon :size="18" class="text-sand" />
