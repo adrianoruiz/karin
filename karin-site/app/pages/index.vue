@@ -2,7 +2,7 @@
   <div class="section-spacing">
     <div data-aos="fade-up">
       <Hero
-        description="Atendimento psiquiátrico humanizado para homens e mulheres adultos. Online ou presencial em Blumenau."
+        description="Ofereço atenção em saúde mental, focada no equilíbrio entre mente, corpo e emoções."
       />
     </div>
 
