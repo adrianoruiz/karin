@@ -2,8 +2,6 @@
   <div class="section-spacing">
     <div data-aos="fade-up">
       <Hero
-        name="Dra. Karin Boldarini"
-        title="CRM SC 26419 · Médica Psiquiatra"
         description="Atendimento psiquiátrico humanizado para homens e mulheres adultos. Online ou presencial em Blumenau."
       />
     </div>
