@@ -50,8 +50,10 @@ interface AdminPost {
   draft?: boolean
 }
 
+// server: false so the browser sends cookies automatically (avoids SSR auth issues)
 const { data: posts } = await useAsyncData<AdminPost[]>('admin-blog-list', () =>
-  $fetch('/api/admin/posts')
+  $fetch('/api/admin/posts'),
+  { server: false }
 )
 
 function formatDate(d: string) {

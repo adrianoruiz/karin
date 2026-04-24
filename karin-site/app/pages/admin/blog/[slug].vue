@@ -35,8 +35,10 @@ const route = useRoute()
 const router = useRouter()
 const slug = computed(() => route.params.slug as string)
 
+// server: false so cookies are sent automatically by the browser (avoids SSR auth issues)
 const { data: post, pending } = await useAsyncData(`admin-post-${slug.value}`, () =>
-  $fetch(`/api/admin/posts/${slug.value}`)
+  $fetch(`/api/admin/posts/${slug.value}`),
+  { server: false }
 )
 
 const loading = ref(false)
