@@ -3,8 +3,8 @@
     <div data-aos="fade-up">
       <Hero
         name="Dra. Karin Boldarini"
-        title="CRM XX-XXXXX - MÉDICA PSIQUIATRA"
-        description="Ofereco atenção em saúde mental, focada no equilíbrio entre mente, corpo e emoções."
+        title="CRM SC 26419 · Médica Psiquiatra"
+        description="Atendimento psiquiátrico humanizado para homens e mulheres adultos. Online ou presencial em Blumenau."
       />
     </div>
 

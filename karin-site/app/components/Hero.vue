@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { ArrowRight } from 'lucide-vue-next';
-import AppointmentModal from './AppointmentModal.vue';
 import WhatsAppIcon from './icons/WhatsAppIcon.vue';
+import { useWhatsAppLink } from '~/composables/useWhatsAppLink';
 
 defineProps<{
   name: string;
@@ -10,17 +9,7 @@ defineProps<{
   description: string;
 }>();
 
-const showAppointmentModal = ref(false);
-
-const openAppointmentModal = () => {
-  window.location.href = '/conversion/consulta-online.html';
-  return;
-  // showAppointmentModal.value = true;
-};
-
-const closeAppointmentModal = () => {
-  showAppointmentModal.value = false;
-};
+const { href: whatsappHref } = useWhatsAppLink('hero');
 </script>
 
 <template>
@@ -29,7 +18,7 @@ const closeAppointmentModal = () => {
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-end">
         <div class="lg:col-span-7 space-y-6 text-center lg:text-left lg:self-center lg:pb-20">
           <span class="inline-block text-eyebrow uppercase text-ink-muted">
-            Psiquiatria · Blumenau SC
+            Psiquiatria para adultos · Blumenau SC
           </span>
 
           <h1 class="font-aloe text-ink leading-[0.98]">
@@ -44,20 +33,26 @@ const closeAppointmentModal = () => {
             </span>
           </div>
 
+          <h2 class="font-aloe text-ink text-display-md md:text-display-lg leading-tight max-w-xl mx-auto lg:mx-0">
+            Ansiedade, insônia, depressão e TDAH têm tratamento.
+          </h2>
+
           <p class="text-ink-soft/90 text-lg md:text-xl leading-relaxed max-w-xl mx-auto lg:mx-0">
             {{ description }}
           </p>
 
           <div class="pt-2 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
-            <button
-              @click="openAppointmentModal"
-              aria-label="Agendar minha consulta via WhatsApp"
+            <a
+              :href="whatsappHref"
+              target="_blank"
+              rel="noopener"
+              aria-label="Agendar consulta no WhatsApp"
               class="group inline-flex items-center justify-center gap-3 bg-ink text-sand px-8 py-4 rounded-full text-base md:text-lg font-medium hover:bg-clay-dark transition-colors duration-300"
             >
               <WhatsAppIcon :size="18" class="text-sand" />
-              <span>Agendar minha consulta</span>
+              <span>Agendar consulta no WhatsApp</span>
               <ArrowRight :size="18" class="transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
-            </button>
+            </a>
           </div>
         </div>
 
@@ -73,10 +68,5 @@ const closeAppointmentModal = () => {
         </div>
       </div>
     </div>
-
-    <AppointmentModal
-      :is-open="showAppointmentModal"
-      @close="closeAppointmentModal"
-    />
   </section>
 </template>
