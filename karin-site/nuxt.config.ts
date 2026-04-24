@@ -27,7 +27,8 @@ export default defineNuxtConfig({
     public: {
       appName: 'Dra. Karin Boldarini',
       appUrl: process.env.NUXT_PUBLIC_APP_URL || 'http://localhost:3000',
-      apiUrl: process.env.NUXT_PUBLIC_API_URL || 'https://api.drakarin.com.br/api/'
+      apiUrl: process.env.NUXT_PUBLIC_API_URL || 'https://api.drakarin.com.br/api/',
+      whatsappPhone: process.env.NUXT_PUBLIC_WHATSAPP_PHONE || '5547991259577'
     }
   },
 
@@ -36,10 +37,17 @@ export default defineNuxtConfig({
       htmlAttrs: { lang: 'pt-BR' },
       charset: 'utf-8',
       viewport: 'width=device-width, initial-scale=1',
-      title: 'Dra. Karin Boldarini — Médica Psiquiatra',
+      title: 'Dra. Karin Boldarini — Psiquiatra em Blumenau | Ansiedade, Insônia, Depressão e TDAH',
       meta: [
-        { name: 'description', content: 'Atenção em saúde mental focada no equilíbrio entre mente, corpo e emoções.' },
-        { name: 'theme-color', content: '#8B7355' }
+        { name: 'description', content: 'Psiquiatra em Blumenau e online. Atendimento humanizado para adultos com ansiedade, insônia, depressão e TDAH. Agende sua consulta no WhatsApp.' },
+        { name: 'theme-color', content: '#8B7355' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:locale', content: 'pt_BR' },
+        { property: 'og:site_name', content: 'Dra. Karin Boldarini' },
+        { property: 'og:image', content: '/og/karin-og.jpg' },
+        { property: 'og:image:width', content: '1200' },
+        { property: 'og:image:height', content: '630' },
+        { name: 'twitter:card', content: 'summary_large_image' }
       ],
       link: [
         { rel: 'icon', type: 'image/png', href: '/favicon.png' },

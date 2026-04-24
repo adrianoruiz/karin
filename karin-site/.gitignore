@@ -36,3 +36,4 @@ server/database/migrations/meta
 
 # Playwright
 .playwright-mcp/
+pw-*.png

@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ArrowRight, MapPin } from 'lucide-vue-next';
 import WhatsAppIcon from './icons/WhatsAppIcon.vue';
+import { useWhatsAppLink } from '~/composables/useWhatsAppLink';
+
+const { href: onlineHref } = useWhatsAppLink('consultation');
+const { href: presencialHref } = useWhatsAppLink('consultation-presencial');
 </script>
 
 <template>
@@ -48,8 +52,9 @@ import WhatsAppIcon from './icons/WhatsAppIcon.vue';
 
             <div class="pt-2 text-center lg:text-left">
               <a
-                href="/conversion/consulta-online.html"
+                :href="onlineHref"
                 target="_blank"
+                rel="noopener noreferrer"
                 class="group inline-flex items-center gap-3 bg-sand text-ink-soft px-8 py-4 rounded-full text-base md:text-lg font-medium hover:bg-white transition-colors duration-300"
               >
                 <WhatsAppIcon :size="18" />
@@ -72,13 +77,14 @@ import WhatsAppIcon from './icons/WhatsAppIcon.vue';
 
             <div class="flex items-center gap-2 text-sand/80 text-sm">
               <MapPin :size="16" :stroke-width="1.5" aria-hidden="true" />
-              <span>Rua Jaraguá, 273 · Centro · Blumenau, SC</span>
+              <span>Blumenau, SC</span>
             </div>
 
             <div class="pt-2 text-center lg:text-left">
               <a
-                href="/conversion/consulta-presencial.html"
+                :href="presencialHref"
                 target="_blank"
+                rel="noopener noreferrer"
                 class="group inline-flex items-center gap-3 bg-sand text-ink-soft px-8 py-4 rounded-full text-base md:text-lg font-medium hover:bg-white transition-colors duration-300"
               >
                 <WhatsAppIcon :size="18" />
