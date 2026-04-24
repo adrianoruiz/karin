@@ -32,9 +32,13 @@
 
 <script setup lang="ts">
 useSeoMeta({
-  title: 'Dra. Karin Boldarini — Médica Psiquiatra',
-  description: 'Atenção em saúde mental focada no equilíbrio entre mente, corpo e emoções.',
-  ogTitle: 'Dra. Karin Boldarini',
-  ogDescription: 'Atenção em saúde mental focada no equilíbrio entre mente, corpo e emoções.'
+  title: 'Dra. Karin Boldarini — Psiquiatra em Blumenau | Ansiedade, Insônia, Depressão e TDAH',
+  description: 'Psiquiatra em Blumenau e online. Atendimento humanizado para adultos com ansiedade, insônia, depressão e TDAH. Agende sua consulta no WhatsApp.',
+  ogTitle: 'Dra. Karin Boldarini — Psiquiatra para Adultos',
+  ogDescription: 'Ansiedade, insônia, depressão e TDAH têm tratamento. Atendimento online ou presencial em Blumenau.',
+  ogImage: '/og/karin-og.jpg',
+  ogType: 'website',
+  ogLocale: 'pt_BR',
+  twitterCard: 'summary_large_image'
 })
 </script>
