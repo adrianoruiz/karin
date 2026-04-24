@@ -57,10 +57,10 @@ Aumentar conversão (agendamento via WhatsApp) e clareza de hierarquia, movendo 
    - 3 blocos horizontais, separados por divisor vertical `bg-clay/30 w-px`
    - Mobile: empilha vertical com divisor horizontal
    - Tipografia: `text-xs uppercase tracking-[0.12em] text-clay-dark`; números em `font-aloe text-lg text-ink`
-   - Conteúdo (a confirmar com usuário):
-     - `8+ anos` · atuação clínica
-     - `Online & Presencial` · Blumenau SC
-     - `4 focos` · ansiedade, TDAH, depressão, insônia
+   - Conteúdo (decidido — só fatos, sem números inventados, evita risco CFM):
+     - `ONLINE & PRESENCIAL` · Blumenau SC
+     - `ADULTOS` · Homens e mulheres 18+
+     - `FOCO CLÍNICO` · Ansiedade, TDAH, depressão, insônia
 
 ### Coluna direita (5 cols desktop)
 
@@ -93,8 +93,10 @@ Nenhum token novo. Reusa: `sand`, `sand-soft`, `sand-warm`, `brown-300`, `ink`, 
 
 ## Props e Lógica
 
-- Props do componente mantidas (`name`, `title`, `description`) — `title` passa a não ser usado pelo template (H1 fixo). Decisão: manter prop para compatibilidade com `index.vue` ou remover e ajustar `index.vue`? **Recomendado:** remover props não usadas, ajustar `app/pages/index.vue`.
+- Prop `title` removida (não usada após redesign). Prop `name` removida (não usada). Prop `description` mantida (usada na subheadline).
+- `app/pages/index.vue` ajustado: remover `title=` e `name=` do `<Hero>`.
 - `useWhatsAppLink('hero')` mantém inalterado.
+- Link secundário usa âncora `#metodo` (já existente em `app/components/WorkMethod.vue:36`).
 
 ## Acessibilidade
 
