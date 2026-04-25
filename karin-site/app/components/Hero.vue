@@ -31,7 +31,7 @@ const trustItems = [
             SAÚDE MENTAL · BLUMENAU SC
           </span>
 
-          <h1 class="mx-auto max-w-[12ch] font-aloe text-[clamp(3.25rem,7vw,8.5rem)] leading-[0.92] text-ink lg:mx-0 lg:max-w-[11ch]">
+          <h1 class="mx-auto max-w-[12ch] font-aloe text-[clamp(3.25rem,6.5vw,7.5rem)] leading-[0.92] text-ink lg:mx-0 lg:max-w-[18ch]">
             Dra. Karin Boldarini
           </h1>
 
