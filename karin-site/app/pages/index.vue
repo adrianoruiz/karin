@@ -68,6 +68,12 @@ useHead({
           addressCountry: CLINIC.address.country
         },
         areaServed: CLINIC.areaServed.map((name) => ({ '@type': 'City', name })),
+        openingHoursSpecification: {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: CLINIC.openingHours.days,
+          opens: CLINIC.openingHours.opens,
+          closes: CLINIC.openingHours.closes
+        },
         availableService: [
           'Ansiedade', 'Depressão', 'Transtorno Afetivo Bipolar', 'TDAH',
           'Insônia', 'Síndrome do Pânico', 'Transtornos Alimentares',

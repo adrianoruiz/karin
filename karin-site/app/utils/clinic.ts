@@ -19,5 +19,10 @@ export const CLINIC = {
     postalCode: '89036-250',
     country: 'BR'
   },
-  areaServed: ['Blumenau', 'Vale do Itajaí', 'Santa Catarina']
+  areaServed: ['Blumenau', 'Vale do Itajaí', 'Santa Catarina'],
+  openingHours: {
+    days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+    opens: '09:00',
+    closes: '20:00'
+  }
 } as const
