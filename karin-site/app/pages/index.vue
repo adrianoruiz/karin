@@ -19,6 +19,10 @@
     </div>
 
     <div data-aos="fade-up">
+      <InfoConsulta />
+    </div>
+
+    <div data-aos="fade-up">
       <Karin title="Quem é a Dra. Karin Boldarini?" />
     </div>
 

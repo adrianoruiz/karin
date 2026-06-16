@@ -24,5 +24,15 @@ export const CLINIC = {
     days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
     opens: '09:00',
     closes: '20:00'
+  },
+  // Faturamento — usado nas seções de objeção
+  billing: {
+    type: 'Particular',
+    note: 'Atendimento particular. Emito recibo para reembolso pelo seu convênio.'
+  },
+  // Perfis com avaliações reais (atualize o link do Google com o seu share/g.page)
+  reviews: {
+    google: 'https://www.google.com/maps/search/?api=1&query=Consult%C3%B3rio%20Dra.%20Karin%20Boldarini%20Blumenau',
+    doctoralia: 'https://www.doctoralia.com.br/karin-boldarini/medico-clinico-geral-psicanalista/blumenau'
   }
 } as const

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Quote } from 'lucide-vue-next';
+import { Quote, Star, Stethoscope } from 'lucide-vue-next';
+import { CLINIC } from '~/utils/clinic';
 
 interface Testimonial {
   name: string;
@@ -51,7 +52,7 @@ const testimonials: Testimonial[] = [
           Veja o que os pacientes dizem
         </h2>
         <p class="text-ink-muted text-sm md:text-base">
-          Todos os depoimentos aqui citados são originados diretamente com o paciente.
+          Avaliações reais de pacientes, publicadas no Google e no Doctoralia.
         </p>
       </div>
 
@@ -62,6 +63,9 @@ const testimonials: Testimonial[] = [
           class="relative bg-sand-soft rounded-[28px] p-8 ring-1 ring-ink/5 transition-colors duration-300 hover:bg-sand-warm"
         >
           <Quote :size="28" :stroke-width="1.5" class="text-clay-dark/50 mb-4" aria-hidden="true" />
+          <div class="mb-4 flex gap-0.5" role="img" aria-label="Nota 5 de 5 estrelas">
+            <Star v-for="s in 5" :key="s" :size="16" class="fill-amber-400 text-amber-400" aria-hidden="true" />
+          </div>
           <p class="text-ink-soft leading-relaxed mb-6 text-[0.95rem]">
             {{ testimonial.content }}
           </p>
@@ -69,11 +73,35 @@ const testimonials: Testimonial[] = [
             <div class="w-10 h-10 rounded-full bg-clay-dark text-white flex items-center justify-center font-serif text-sm">
               {{ testimonial.name.charAt(0) }}
             </div>
-            <h3 class="font-serif text-ink-soft text-base">
-              {{ testimonial.name }}
-            </h3>
+            <div class="min-w-0">
+              <h3 class="font-serif text-ink-soft text-base leading-tight">
+                {{ testimonial.name }}
+              </h3>
+              <span class="text-xs text-ink-muted">Paciente verificado</span>
+            </div>
           </div>
         </article>
+      </div>
+
+      <div class="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+        <a
+          :href="CLINIC.reviews.google"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 rounded-full bg-sand-soft px-6 py-3 text-sm font-medium text-ink-soft ring-1 ring-clay/20 transition-colors hover:bg-sand-warm"
+        >
+          <Star :size="16" class="fill-amber-400 text-amber-400" aria-hidden="true" />
+          Ver avaliações no Google
+        </a>
+        <a
+          :href="CLINIC.reviews.doctoralia"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 rounded-full bg-sand-soft px-6 py-3 text-sm font-medium text-ink-soft ring-1 ring-clay/20 transition-colors hover:bg-sand-warm"
+        >
+          <Stethoscope :size="16" class="text-clay-dark" aria-hidden="true" />
+          Ver avaliações no Doctoralia
+        </a>
       </div>
     </div>
   </section>
