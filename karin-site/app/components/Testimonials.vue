@@ -5,40 +5,52 @@ import { CLINIC } from '~/utils/clinic';
 interface Testimonial {
   name: string;
   content: string;
+  // Foto do paciente (opcional). Salve em /public/images/reviews/<arquivo>.
+  // Se o arquivo não existir, cai automaticamente para a inicial.
+  photo?: string;
 }
 
 const testimonials: Testimonial[] = [
   {
     name: "Thalia Varela",
+    photo: "/images/reviews/thalia-varela.jpg",
     content:
       "Excelente atendimento, a Dra Karin é muito prestativa e atenciosa, profissional que tem uma visão holística do paciente. Sou grata por poder me consultar com alguém tão qualificada. Em cada atendimento que tenho o cuidado é excelente, pois a Dra além de ser uma ótima psiquiatra também é como uma psicóloga que nos ajuda muito através das conversas que temos ao decorrer das consultas.",
   },
   {
     name: "Maura Lisboa",
+    photo: "/images/reviews/maura-lisboa.jpg",
     content:
       "Dra Karin é uma profissional excelente. Sempre gentil, com audição atenta e preocupada com o paciente. Agradeço muito pela eficácia do meu tratamento. Sem a Dra Karin, isso não seria possível!",
   },
   {
     name: "Caroline Souza",
+    photo: "/images/reviews/caroline-souza.jpg",
     content:
       "Excelente profissional! Ela entende de transtornos de humor, o que é bem difícil de encontrar. Faz 1 ano que estou em tratamento com ela e posso afirmar com todas as letras que foi o melhor tratamento que já tive! Recomendaria ela mil vezes.",
   },
   {
     name: "Grace Fritsch",
+    photo: "/images/reviews/grace-fritsch.jpg",
     content:
       "Uma profissional competente, que te entende e te ajuda da melhor forma possível.",
   },
   {
     name: "Thiago Lima",
+    photo: "/images/reviews/thiago-lima.jpg",
     content:
       "Muito satisfeito com o atendimento da Dra. Karin. Ela é extremamente profissional e dedicada, sempre buscando o melhor para seus pacientes. Recomendo sem hesitar.",
   },
   {
     name: "Bruno Costa",
+    photo: "/images/reviews/bruno-costa.jpg",
     content:
       "Atendimento excepcional! Dra. Karin combina conhecimento técnico com uma abordagem humanizada, tornando cada consulta muito proveitosa.",
   },
 ];
+
+// Fotos que falharem ao carregar caem para a inicial (sem imagem quebrada).
+const failedPhotos = reactive<Record<number, boolean>>({});
 </script>
 
 <template>
@@ -70,7 +82,21 @@ const testimonials: Testimonial[] = [
             {{ testimonial.content }}
           </p>
           <div class="flex items-center gap-3 pt-4 border-t border-clay/20">
-            <div class="w-10 h-10 rounded-full bg-clay-dark text-white flex items-center justify-center font-serif text-sm">
+            <img
+              v-if="testimonial.photo && !failedPhotos[index]"
+              :src="testimonial.photo"
+              :alt="`Foto de ${testimonial.name}`"
+              width="40"
+              height="40"
+              loading="lazy"
+              decoding="async"
+              class="h-10 w-10 shrink-0 rounded-full object-cover"
+              @error="failedPhotos[index] = true"
+            >
+            <div
+              v-else
+              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-clay-dark font-serif text-sm text-white"
+            >
               {{ testimonial.name.charAt(0) }}
             </div>
             <div class="min-w-0">
