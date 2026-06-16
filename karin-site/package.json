@@ -21,6 +21,7 @@
     "@headlessui/vue": "^1.7.23",
     "@nuxt/content": "^3.13.0",
     "@nuxt/image": "^2.0.0",
+    "@nuxtjs/sitemap": "^8.2.1",
     "@pinia/nuxt": "^0.11.3",
     "@tailwindcss/vite": "^4.2.4",
     "axios": "^1.8.2",

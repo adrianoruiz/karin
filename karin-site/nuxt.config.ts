@@ -12,8 +12,20 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@nuxt/image',
     '@nuxt/content',
-    '@nuxt/eslint'
+    '@nuxt/eslint',
+    '@nuxtjs/sitemap'
   ],
+
+  // URL canônica do site — usada por sitemap, schema e tags OG
+  site: {
+    url: 'https://www.drakarin.com.br',
+    name: 'Dra. Karin Boldarini'
+  },
+
+  sitemap: {
+    autoLastmod: true,
+    exclude: ['/admin/**']
+  },
 
   css: ['~/assets/css/main.css'],
 
@@ -67,7 +79,11 @@ export default defineNuxtConfig({
   },
 
   nitro: {
-    preset: process.env.NITRO_PRESET || 'node-server'
+    preset: process.env.NITRO_PRESET || 'node-server',
+    prerender: {
+      crawlLinks: true,
+      routes: ['/', '/blog', '/especialidades']
+    }
   },
 
   typescript: {

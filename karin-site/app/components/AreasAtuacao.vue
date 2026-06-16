@@ -17,22 +17,23 @@ import type { Component } from 'vue';
 
 interface Area {
   title: string;
+  slug: string;
   icon: Component;
 }
 
 const areasAtuacao: Area[] = [
-  { title: 'Ansiedade', icon: Wind },
-  { title: 'Depressão', icon: CloudRain },
-  { title: 'Transtorno Afetivo Bipolar', icon: Waves },
-  { title: 'TDAH', icon: Zap },
-  { title: 'Insônia', icon: Moon },
-  { title: 'Transtornos de Pânico', icon: HeartPulse },
-  { title: 'Transtornos Alimentares', icon: Apple },
-  { title: 'Transtornos Psicóticos', icon: Eye },
-  { title: 'TOC', icon: Repeat },
-  { title: 'TEA', icon: Puzzle },
-  { title: 'Transtorno de Personalidade', icon: UsersRound },
-  { title: 'Transtorno de Estresse Pós-Traumático', icon: ShieldAlert },
+  { title: 'Ansiedade', slug: 'ansiedade', icon: Wind },
+  { title: 'Depressão', slug: 'depressao', icon: CloudRain },
+  { title: 'Transtorno Afetivo Bipolar', slug: 'transtorno-bipolar', icon: Waves },
+  { title: 'TDAH', slug: 'tdah', icon: Zap },
+  { title: 'Insônia', slug: 'insonia', icon: Moon },
+  { title: 'Transtornos de Pânico', slug: 'sindrome-do-panico', icon: HeartPulse },
+  { title: 'Transtornos Alimentares', slug: 'transtornos-alimentares', icon: Apple },
+  { title: 'Transtornos Psicóticos', slug: 'transtornos-psicoticos', icon: Eye },
+  { title: 'TOC', slug: 'toc', icon: Repeat },
+  { title: 'TEA', slug: 'autismo-tea', icon: Puzzle },
+  { title: 'Transtorno de Personalidade', slug: 'transtorno-de-personalidade', icon: UsersRound },
+  { title: 'Transtorno de Estresse Pós-Traumático', slug: 'estresse-pos-traumatico', icon: ShieldAlert },
 ];
 </script>
 
@@ -49,9 +50,11 @@ const areasAtuacao: Area[] = [
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
-        <div
+        <NuxtLink
           v-for="area in areasAtuacao"
           :key="area.title"
+          :to="`/especialidades/${area.slug}`"
+          :aria-label="`Saiba mais sobre ${area.title} em Blumenau`"
           class="group bg-white rounded-[28px] p-6 sm:p-7 md:p-8 flex flex-col items-center text-center ring-1 ring-ink/5 transition-all duration-300 hover:ring-clay-dark/40 hover:bg-sand-soft"
         >
           <div
@@ -68,7 +71,7 @@ const areasAtuacao: Area[] = [
           <h3 class="text-base sm:text-lg font-serif text-ink-soft leading-snug">
             {{ area.title }}
           </h3>
-        </div>
+        </NuxtLink>
       </div>
     </div>
   </section>
