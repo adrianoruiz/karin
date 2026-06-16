@@ -32,7 +32,7 @@ export const CLINIC = {
   },
   // Perfis com avaliações reais (atualize o link do Google com o seu share/g.page)
   reviews: {
-    google: 'https://www.google.com/maps/search/?api=1&query=Consult%C3%B3rio%20Dra.%20Karin%20Boldarini%20Blumenau',
+    google: 'https://www.google.com/search?q=Consult%C3%B3rio+Dra.+Karin+Boldarini&kgmid=/g/11wwg4xy39',
     doctoralia: 'https://www.doctoralia.com.br/karin-boldarini/medico-clinico-geral-psicanalista/blumenau'
   }
 } as const
