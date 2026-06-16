@@ -47,7 +47,7 @@ const minutes = computed(() => readingTime(props.post))
           {{ post.category }}
         </span>
 
-        <h2 class="font-serif text-2xl leading-snug text-ink transition-colors group-hover:text-primary">
+        <h2 class="font-serif text-2xl leading-snug text-ink transition-colors group-hover:text-gold-deep">
           {{ post.title }}
         </h2>
 
@@ -61,7 +61,7 @@ const minutes = computed(() => readingTime(props.post))
           <span>{{ minutes }} min de leitura</span>
         </div>
 
-        <span class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary">
+        <span class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-gold-deep">
           Ler artigo
           <span class="transition-transform duration-300 group-hover:translate-x-1">→</span>
         </span>

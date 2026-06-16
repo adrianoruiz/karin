@@ -1,9 +1,9 @@
 <template>
   <article class="mx-auto max-w-3xl px-6 py-16">
     <nav class="text-sm text-clay-dark" aria-label="Trilha de navegação">
-      <NuxtLink to="/" class="transition-colors hover:text-primary">Início</NuxtLink>
+      <NuxtLink to="/" class="transition-colors hover:text-gold-deep">Início</NuxtLink>
       <span class="mx-1.5 text-ink-muted" aria-hidden="true">/</span>
-      <NuxtLink to="/especialidades" class="transition-colors hover:text-primary">Especialidades</NuxtLink>
+      <NuxtLink to="/especialidades" class="transition-colors hover:text-gold-deep">Especialidades</NuxtLink>
     </nav>
 
     <template v-if="page">
@@ -146,5 +146,8 @@ useHead({
 .specialty-prose :deep(ol) { list-style: decimal; margin: 1.25rem 0; padding-left: 1.5rem; }
 .specialty-prose :deep(li) { margin-bottom: 0.5rem; }
 .specialty-prose :deep(strong) { color: var(--color-ink); font-weight: 600; }
-.specialty-prose :deep(a) { color: var(--color-primary); text-decoration: underline; text-underline-offset: 2px; }
+.specialty-prose :deep(a) { color: var(--color-gold-deep); text-decoration: underline; text-underline-offset: 2px; transition: color 0.2s; }
+.specialty-prose :deep(a:hover) { color: var(--color-gold); }
+.specialty-prose :deep(h2 a), .specialty-prose :deep(h3 a) { color: inherit; text-decoration: none; }
+.specialty-prose :deep(h2 a:hover), .specialty-prose :deep(h3 a:hover) { color: var(--color-gold-deep); }
 </style>

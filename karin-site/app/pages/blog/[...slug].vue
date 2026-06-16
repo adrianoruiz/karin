@@ -1,6 +1,6 @@
 <template>
   <article class="mx-auto max-w-3xl px-6 py-16">
-    <NuxtLink to="/blog" class="text-sm text-clay transition-colors hover:text-primary">← Voltar ao blog</NuxtLink>
+    <NuxtLink to="/blog" class="text-sm text-clay transition-colors hover:text-gold-deep">← Voltar ao blog</NuxtLink>
 
     <template v-if="post">
       <header class="my-10">
@@ -138,9 +138,23 @@ useHead({
   margin-bottom: 0.5rem;
 }
 .blog-prose :deep(a) {
-  color: var(--color-primary);
+  color: var(--color-gold-deep);
   text-decoration: underline;
   text-underline-offset: 2px;
+  transition: color 0.2s;
+}
+.blog-prose :deep(a:hover) {
+  color: var(--color-gold);
+}
+/* Headings com âncora não devem ficar coloridos/sublinhados */
+.blog-prose :deep(h2 a),
+.blog-prose :deep(h3 a) {
+  color: inherit;
+  text-decoration: none;
+}
+.blog-prose :deep(h2 a:hover),
+.blog-prose :deep(h3 a:hover) {
+  color: var(--color-gold-deep);
 }
 .blog-prose :deep(blockquote) {
   border-left: 3px solid var(--color-clay);

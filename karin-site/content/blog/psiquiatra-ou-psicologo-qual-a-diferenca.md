@@ -2,6 +2,7 @@
 title: "Psiquiatra ou psicólogo: qual a diferença?"
 description: "Entenda a diferença entre psiquiatra e psicólogo, quando procurar cada um e como eles se complementam. Por Dra. Karin Boldarini, psiquiatra em Blumenau."
 category: "Saúde mental"
+cover: /images/blog/psiquiatra-ou-psicologo-qual-a-diferenca.webp
 author: Dra. Karin Boldarini
 tags: [psiquiatra, psicólogo, tratamento]
 publishedAt: 2026-06-12

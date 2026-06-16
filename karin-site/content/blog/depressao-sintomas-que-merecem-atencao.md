@@ -2,6 +2,7 @@
 title: "Depressão: sintomas que merecem atenção"
 description: "Depressão é mais do que tristeza. Conheça os sintomas que merecem atenção e quando buscar um psiquiatra. Por Dra. Karin Boldarini, em Blumenau."
 category: "Depressão"
+cover: /images/blog/depressao-sintomas-que-merecem-atencao.webp
 author: Dra. Karin Boldarini
 tags: [depressão, humor, saúde mental]
 publishedAt: 2026-05-30

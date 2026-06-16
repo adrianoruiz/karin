@@ -2,6 +2,7 @@
 title: "Sinais de TDAH em adultos: você se reconhece?"
 description: "Desorganização, esquecimentos e dificuldade de foco podem ser TDAH no adulto. Conheça os sinais e como é feito o diagnóstico. Por Dra. Karin Boldarini."
 category: "TDAH"
+cover: /images/blog/sinais-de-tdah-em-adultos.webp
 author: Dra. Karin Boldarini
 tags: [tdah, adultos, foco]
 publishedAt: 2026-05-22

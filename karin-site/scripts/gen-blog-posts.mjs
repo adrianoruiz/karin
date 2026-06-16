@@ -8,6 +8,7 @@ const posts = [
     title: 'Como saber se preciso de um psiquiatra?',
     description: 'Sinais de que é hora de buscar avaliação psiquiátrica e como funciona a primeira consulta. Orientações da Dra. Karin Boldarini, psiquiatra em Blumenau.',
     category: 'Quando procurar ajuda',
+    cover: '/images/blog/como-saber-se-preciso-de-psiquiatra.webp',
     tags: ['psiquiatra', 'saúde mental', 'primeira consulta'],
     publishedAt: '2026-05-06',
     body: `# Como saber se preciso de um psiquiatra?
@@ -43,6 +44,7 @@ A primeira consulta é uma conversa cuidadosa sobre sua história, seus sintomas
     title: 'Ansiedade ou estresse? Como diferenciar',
     description: 'Estresse e ansiedade se parecem, mas não são a mesma coisa. Entenda a diferença e quando a ansiedade merece tratamento. Por Dra. Karin Boldarini.',
     category: 'Ansiedade',
+    cover: '/images/blog/ansiedade-ou-estresse-como-diferenciar.webp',
     tags: ['ansiedade', 'estresse', 'saúde mental'],
     publishedAt: '2026-05-14',
     body: `# Ansiedade ou estresse? Como diferenciar
@@ -77,6 +79,7 @@ Se a preocupação é constante, atrapalha sua vida e não melhora sozinha, vale
     title: 'Sinais de TDAH em adultos: você se reconhece?',
     description: 'Desorganização, esquecimentos e dificuldade de foco podem ser TDAH no adulto. Conheça os sinais e como é feito o diagnóstico. Por Dra. Karin Boldarini.',
     category: 'TDAH',
+    cover: '/images/blog/sinais-de-tdah-em-adultos.webp',
     tags: ['tdah', 'adultos', 'foco'],
     publishedAt: '2026-05-22',
     body: `# Sinais de TDAH em adultos: você se reconhece?
@@ -110,6 +113,7 @@ Vale lembrar: dificuldade de foco também pode vir de [ansiedade](/especialidade
     title: 'Depressão: sintomas que merecem atenção',
     description: 'Depressão é mais do que tristeza. Conheça os sintomas que merecem atenção e quando buscar um psiquiatra. Por Dra. Karin Boldarini, em Blumenau.',
     category: 'Depressão',
+    cover: '/images/blog/depressao-sintomas-que-merecem-atencao.webp',
     tags: ['depressão', 'humor', 'saúde mental'],
     publishedAt: '2026-05-30',
     body: `# Depressão: sintomas que merecem atenção
@@ -143,6 +147,7 @@ A depressão é tratável, e a maioria das pessoas melhora com acompanhamento ad
     title: 'Insônia: quando procurar ajuda profissional',
     description: 'Noites mal dormidas viraram rotina? Saiba quando a insônia precisa de tratamento e como ela se conecta à saúde mental. Por Dra. Karin Boldarini.',
     category: 'Sono',
+    cover: '/images/blog/insonia-quando-procurar-ajuda.webp',
     tags: ['insônia', 'sono', 'saúde mental'],
     publishedAt: '2026-06-05',
     body: `# Insônia: quando procurar ajuda profissional
@@ -175,6 +180,7 @@ Nem sempre. O uso de medicação é avaliado com critério, porque alguns reméd
     title: 'Psiquiatra ou psicólogo: qual a diferença?',
     description: 'Entenda a diferença entre psiquiatra e psicólogo, quando procurar cada um e como eles se complementam. Por Dra. Karin Boldarini, psiquiatra em Blumenau.',
     category: 'Saúde mental',
+    cover: '/images/blog/psiquiatra-ou-psicologo-qual-a-diferenca.webp',
     tags: ['psiquiatra', 'psicólogo', 'tratamento'],
     publishedAt: '2026-06-12',
     body: `# Psiquiatra ou psicólogo: qual a diferença?
@@ -208,6 +214,7 @@ for (const p of posts) {
 title: ${JSON.stringify(p.title)}
 description: ${JSON.stringify(p.description)}
 category: ${JSON.stringify(p.category)}
+cover: ${p.cover}
 author: Dra. Karin Boldarini
 tags: ${tags}
 publishedAt: ${p.publishedAt}

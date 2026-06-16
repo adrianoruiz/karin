@@ -2,6 +2,7 @@
 title: "Ansiedade ou estresse? Como diferenciar"
 description: "Estresse e ansiedade se parecem, mas não são a mesma coisa. Entenda a diferença e quando a ansiedade merece tratamento. Por Dra. Karin Boldarini."
 category: "Ansiedade"
+cover: /images/blog/ansiedade-ou-estresse-como-diferenciar.webp
 author: Dra. Karin Boldarini
 tags: [ansiedade, estresse, saúde mental]
 publishedAt: 2026-05-14

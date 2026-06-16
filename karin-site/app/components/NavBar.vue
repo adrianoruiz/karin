@@ -10,6 +10,7 @@ const menuItems = [
 
 const isOpen = ref(false);
 const router = useRouter();
+const route = useRoute();
 
 const toggleMenu = () => {
   isOpen.value = !isOpen.value;
@@ -35,6 +36,11 @@ const scrollToSection = (href: string) => {
 };
 
 const scrollToTop = () => {
+  isOpen.value = false;
+  if (route.path !== '/') {
+    router.push('/');
+    return;
+  }
   window.scrollTo({
     top: 0,
     behavior: 'smooth',

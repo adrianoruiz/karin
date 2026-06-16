@@ -2,6 +2,7 @@
 title: "Insônia: quando procurar ajuda profissional"
 description: "Noites mal dormidas viraram rotina? Saiba quando a insônia precisa de tratamento e como ela se conecta à saúde mental. Por Dra. Karin Boldarini."
 category: "Sono"
+cover: /images/blog/insonia-quando-procurar-ajuda.webp
 author: Dra. Karin Boldarini
 tags: [insônia, sono, saúde mental]
 publishedAt: 2026-06-05
