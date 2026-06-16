@@ -38,14 +38,20 @@ const methods: Method[] = [
       <div class="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20 items-start">
         <div class="relative rounded-[28px] overflow-hidden">
           <img
-            src="/images/consulta.webp"
+            src="/images/opt/consulta-860.webp"
+            srcset="/images/opt/consulta-512.webp 512w, /images/opt/consulta-860.webp 860w"
+            sizes="(min-width: 768px) 512px, 100vw"
+            width="1024"
+            height="1024"
             alt="Sessão de consulta"
+            loading="lazy"
+            decoding="async"
             class="w-full h-full object-cover"
           />
         </div>
 
         <div class="relative">
-          <span class="inline-block text-eyebrow uppercase text-clay mb-4">
+          <span class="inline-block text-eyebrow uppercase text-clay-dark mb-4">
             Método
           </span>
           <h2 class="text-display-lg font-serif text-ink-soft mb-12 md:mb-16">
@@ -70,7 +76,7 @@ const methods: Method[] = [
                 <h3 class="font-serif text-xl text-ink-soft mb-2 leading-snug">
                   {{ method.title }}
                 </h3>
-                <p class="text-ink-soft/75 text-[0.95rem] leading-relaxed">
+                <p class="text-ink-soft text-[0.95rem] leading-relaxed">
                   {{ method.description }}
                 </p>
               </div>

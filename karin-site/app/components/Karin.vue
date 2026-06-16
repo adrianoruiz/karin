@@ -15,7 +15,7 @@ const { href: whatsappHref } = useWhatsAppLink('about');
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 lg:grid-cols-[60%_40%] gap-12 lg:gap-16">
         <div>
-          <span class="inline-block text-eyebrow uppercase text-clay mb-4">
+          <span class="inline-block text-eyebrow uppercase text-clay-dark mb-4">
             Sobre
           </span>
           <h2 class="font-aloe text-display-lg text-ink leading-[1.05] mb-10">
@@ -56,8 +56,14 @@ const { href: whatsappHref } = useWhatsAppLink('about');
 
         <div class="flex items-start justify-center lg:justify-end">
           <img
-            src="/images/karin-com-fundo.png"
+            src="/images/opt/karin-com-fundo-860.webp"
+            srcset="/images/opt/karin-com-fundo-480.webp 480w, /images/opt/karin-com-fundo-860.webp 860w"
+            sizes="(min-width: 1024px) 512px, 100vw"
+            width="1148"
+            height="1370"
             alt="Dra. Karin Boldarini"
+            loading="lazy"
+            decoding="async"
             class="h-auto w-full max-w-md lg:max-w-lg"
           />
         </div>

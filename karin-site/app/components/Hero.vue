@@ -49,7 +49,7 @@ const trustItems = [
               :href="whatsappHref"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Agendar consulta no WhatsApp"
+              aria-label="Agendar minha consulta no WhatsApp"
               class="group inline-flex items-center gap-4 rounded-full bg-ink px-8 py-4 text-base font-medium text-sand transition-colors duration-300 hover:bg-clay-dark md:px-9 md:text-lg"
             >
               <WhatsAppIcon :size="18" class="text-sand" />
@@ -62,9 +62,15 @@ const trustItems = [
         <div class="flex items-end justify-center lg:col-span-6 lg:h-full lg:justify-end xl:col-span-6">
           <div class="relative flex w-full flex-col items-center lg:h-full lg:items-end lg:justify-end">
             <img
-              src="/images/karin-psiq.png"
+              src="/images/opt/karin-psiq-720.webp"
+              srcset="/images/opt/karin-psiq-480.webp 480w, /images/opt/karin-psiq-720.webp 720w, /images/opt/karin-psiq-1148.webp 1148w"
+              sizes="(min-width: 1024px) 574px, 92vw"
+              width="1148"
+              height="1370"
               alt="Dra. Karin Boldarini"
-              class="relative z-10 block max-h-[520px] w-auto max-w-[92vw] object-contain object-bottom md:max-h-[640px] lg:max-h-[640px] lg:max-w-none xl:max-h-[680px]"
+              fetchpriority="high"
+              decoding="async"
+              class="relative z-10 block h-auto max-h-[520px] w-auto max-w-[92vw] object-contain object-bottom md:max-h-[640px] lg:max-h-[640px] lg:max-w-none xl:max-h-[680px]"
             >
             <div
               aria-hidden="true"
@@ -78,15 +84,15 @@ const trustItems = [
     </div>
 
     <div class="relative border-t border-clay/20 bg-sand-warm/55">
-      <dl class="mx-auto grid w-full max-w-[1540px] grid-cols-1 divide-y divide-clay/25 md:grid-cols-3 md:divide-x md:divide-y-0">
-        <div v-for="item in trustItems" :key="item.label" class="flex items-center gap-4 px-5 py-5 text-left sm:px-8 md:px-10 md:py-6 lg:px-16">
-          <component :is="item.icon" :size="38" :stroke-width="1.3" class="shrink-0 text-clay-ink" aria-hidden="true" />
+      <ul class="mx-auto grid w-full max-w-[1540px] grid-cols-1 divide-y divide-clay/25 md:grid-cols-3 md:divide-x md:divide-y-0">
+        <li v-for="item in trustItems" :key="item.label" class="flex items-center gap-4 px-5 py-5 text-left sm:px-8 md:px-10 md:py-6 lg:px-16">
+          <component :is="item.icon" :size="38" :stroke-width="1.3" class="shrink-0 text-clay-dark" aria-hidden="true" />
           <div class="min-w-0">
-            <dt class="text-[11px] font-medium uppercase tracking-wide text-clay-ink md:text-xs">{{ item.label }}</dt>
-            <dd class="mt-1 whitespace-nowrap font-aloe text-base leading-snug text-ink md:text-lg">{{ item.detail }}</dd>
+            <span class="block text-[11px] font-medium uppercase tracking-wide text-clay-ink md:text-xs">{{ item.label }}</span>
+            <span class="mt-1 block whitespace-nowrap font-aloe text-base leading-snug text-ink md:text-lg">{{ item.detail }}</span>
           </div>
-        </div>
-      </dl>
+        </li>
+      </ul>
     </div>
   </section>
 </template>

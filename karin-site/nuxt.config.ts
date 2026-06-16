@@ -53,7 +53,15 @@ export default defineNuxtConfig({
         { rel: 'icon', type: 'image/png', href: '/favicon.png' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap' }
+        // Fonte do H1 (LCP) — preload para renderizar sem atraso
+        { rel: 'preload', as: 'font', type: 'font/woff2', href: '/fonts/Aloe-Medium.woff2', crossorigin: '' },
+        // Imagem LCP do herói — preload da variante responsiva
+        { rel: 'preload', as: 'image', href: '/images/opt/karin-psiq-720.webp', imagesrcset: '/images/opt/karin-psiq-480.webp 480w, /images/opt/karin-psiq-720.webp 720w, /images/opt/karin-psiq-1148.webp 1148w', imagesizes: '(min-width: 1024px) 574px, 92vw', fetchpriority: 'high' },
+        // Google Fonts sem bloquear a renderização (carrega assíncrono)
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap', media: 'print', onload: "this.media='all'" }
+      ],
+      noscript: [
+        { children: '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap">' }
       ]
     }
   },

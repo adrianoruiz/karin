@@ -73,7 +73,8 @@ const scrollToTop = () => {
 
         <div class="md:hidden">
           <button
-            aria-label="Alternar menu"
+            :aria-label="isOpen ? 'Fechar menu' : 'Abrir menu'"
+            :aria-expanded="isOpen"
             class="rounded-md p-2 text-white transition-colors duration-300 hover:bg-white/10"
             @click="toggleMenu"
           >

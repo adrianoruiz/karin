@@ -37,10 +37,10 @@ const areasAtuacao: Area[] = [
 </script>
 
 <template>
-  <section class="py-24 md:py-32 bg-clay">
+  <section class="py-24 md:py-32 bg-clay-dark">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-16 md:mb-20">
-        <span class="inline-block text-eyebrow uppercase text-sand-soft/70 mb-4">
+        <span class="inline-block text-eyebrow uppercase text-sand-soft mb-4">
           Especialidades
         </span>
         <h2 class="text-display-lg font-serif text-white">

@@ -44,7 +44,7 @@ const testimonials: Testimonial[] = [
   <section id="feedbacks" class="py-24 md:py-32 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-16 md:mb-20 max-w-2xl mx-auto">
-        <span class="inline-block text-eyebrow uppercase text-clay mb-4">
+        <span class="inline-block text-eyebrow uppercase text-clay-dark mb-4">
           Depoimentos
         </span>
         <h2 class="font-aloe text-display-lg text-ink-soft leading-[1.05] mb-5">

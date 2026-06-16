@@ -80,7 +80,7 @@ const openPrivacyPolicy = (event: Event) => {
                   href="https://www.instagram.com/dra.karin.alana/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="Instagram Dra. Karin Boldarini"
+                  aria-label="Instagram @dra.karin.alana"
                   class="group inline-flex items-center gap-2 text-sand/90 hover:text-sand transition-colors duration-300"
                 >
                   <Instagram :size="16" :stroke-width="1.5" aria-hidden="true" />
