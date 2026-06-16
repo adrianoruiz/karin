@@ -1,6 +1,8 @@
 ---
 title: Bem-vinda ao blog da Dra. Karin Boldarini
 description: Espaço dedicado a reflexões sobre saúde mental, psiquiatria e bem-estar integral.
+category: Boas-vindas
+cover: /images/blog/bem-vinda.webp
 author: Dra. Karin Boldarini
 tags: [saúde mental, boas-vindas]
 publishedAt: 2026-04-24

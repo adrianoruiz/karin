@@ -3,14 +3,10 @@
     <header class="mb-8">
       <p class="text-eyebrow uppercase text-clay">Painel</p>
       <h1 class="font-serif text-4xl text-ink">Bem-vinda, {{ userName }}</h1>
-      <p class="text-ink-muted mt-2">Gerencie o blog, agendamentos e conteúdo do site.</p>
+      <p class="text-ink-muted mt-2">Gerencie agendamentos e conteúdo do site.</p>
     </header>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <NuxtLink to="/admin/blog" class="p-6 bg-white rounded-2xl border border-brown-200 hover:border-primary transition">
-        <h2 class="font-serif text-xl text-ink">Blog</h2>
-        <p class="text-ink-muted text-sm mt-1">Criar e editar posts.</p>
-      </NuxtLink>
       <div class="p-6 bg-white rounded-2xl border border-brown-200 opacity-60">
         <h2 class="font-serif text-xl text-ink">Agendamentos</h2>
         <p class="text-ink-muted text-sm mt-1">Em breve.</p>

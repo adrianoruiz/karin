@@ -7,7 +7,6 @@
         </NuxtLink>
         <nav class="flex items-center gap-4 text-sm">
           <NuxtLink to="/admin" class="text-ink-soft hover:text-primary">Dashboard</NuxtLink>
-          <NuxtLink to="/admin/blog" class="text-ink-soft hover:text-primary">Blog</NuxtLink>
           <button class="text-ink-muted hover:text-primary" @click="handleSignOut">Sair</button>
         </nav>
       </div>

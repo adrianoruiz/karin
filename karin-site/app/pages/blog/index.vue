@@ -1,37 +1,22 @@
 <template>
-  <section class="max-w-4xl mx-auto px-6 py-16">
-    <header class="mb-12 text-center">
-      <p class="text-eyebrow uppercase text-clay mb-3">Blog</p>
-      <h1 class="font-serif text-5xl text-ink">Saúde mental em palavras</h1>
-      <p class="text-ink-muted mt-4 max-w-xl mx-auto">
+  <section class="mx-auto max-w-6xl px-6 py-16 md:py-24">
+    <header class="mx-auto mb-14 max-w-2xl text-center">
+      <p class="text-eyebrow uppercase text-clay">Blog</p>
+      <h1 class="mt-3 font-serif text-4xl text-ink md:text-5xl">Saúde mental em palavras</h1>
+      <p class="mx-auto mt-4 max-w-xl text-ink-muted">
         Reflexões, orientações e conteúdos sobre psiquiatria, bem-estar emocional e cuidado integral.
       </p>
     </header>
 
-    <div v-if="pending" class="text-center text-ink-muted py-12">Carregando...</div>
+    <div v-if="pending" class="py-12 text-center text-ink-muted">Carregando...</div>
 
-    <div v-else-if="!posts?.length" class="text-center text-ink-muted py-12">
+    <div v-else-if="!posts?.length" class="py-12 text-center text-ink-muted">
       Nenhum post publicado ainda.
     </div>
 
-    <ul v-else class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <li v-for="post in posts" :key="post.path" class="group">
-        <NuxtLink :to="post.path" class="block rounded-2xl overflow-hidden bg-sand-soft hover:shadow-lg transition-shadow">
-          <div v-if="post.cover" class="aspect-video overflow-hidden">
-            <img :src="post.cover" :alt="post.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-          </div>
-          <div class="p-6">
-            <time class="text-xs uppercase tracking-wider text-clay">
-              {{ formatDate(post.publishedAt) }}
-            </time>
-            <h2 class="font-serif text-2xl text-ink mt-2 group-hover:text-primary transition-colors">
-              {{ post.title }}
-            </h2>
-            <p class="text-ink-muted mt-3 line-clamp-3">{{ post.description }}</p>
-          </div>
-        </NuxtLink>
-      </li>
-    </ul>
+    <div v-else class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      <BlogPostCard v-for="post in posts" :key="post.path" :post="post" />
+    </div>
   </section>
 </template>
 
@@ -43,12 +28,10 @@ const { data: posts, pending } = await useAsyncData('blog-list', () =>
     .all()
 )
 
-function formatDate(date: string) {
-  return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
-}
-
 useSeoMeta({
   title: 'Blog — Dra. Karin Boldarini',
-  description: 'Artigos e reflexões sobre saúde mental, psiquiatria e bem-estar.'
+  description: 'Artigos e reflexões sobre saúde mental, psiquiatria e bem-estar.',
+  ogTitle: 'Blog — Dra. Karin Boldarini',
+  ogDescription: 'Artigos e reflexões sobre saúde mental, psiquiatria e bem-estar.'
 })
 </script>

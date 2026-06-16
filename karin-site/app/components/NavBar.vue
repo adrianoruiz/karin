@@ -9,16 +9,17 @@ const menuItems = [
 ];
 
 const isOpen = ref(false);
+const router = useRouter();
 
 const toggleMenu = () => {
   isOpen.value = !isOpen.value;
 };
 
 const scrollToSection = (href: string) => {
+  isOpen.value = false;
   const element = document.querySelector(href);
 
   if (element) {
-    isOpen.value = false;
     const navbarHeight = window.innerWidth >= 768 ? 102 : 80;
     const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
     const offsetPosition = elementPosition - navbarHeight;
@@ -27,6 +28,9 @@ const scrollToSection = (href: string) => {
       top: offsetPosition,
       behavior: 'smooth',
     });
+  } else {
+    // Seção não existe nesta página (ex.: /blog) — vai para home + âncora
+    router.push(`/${href}`);
   }
 };
 
@@ -68,6 +72,12 @@ const scrollToTop = () => {
             >
               {{ item.name }}
             </a>
+            <NuxtLink
+              to="/blog"
+              class="relative text-sm font-medium uppercase text-white/90 transition-colors duration-300 after:absolute after:-bottom-2 after:left-0 after:h-px after:w-0 after:bg-sand after:transition-all after:duration-300 hover:text-sand hover:after:w-full"
+            >
+              Blog
+            </NuxtLink>
           </div>
         </div>
 
@@ -104,6 +114,13 @@ const scrollToTop = () => {
           >
             {{ item.name }}
           </a>
+          <NuxtLink
+            to="/blog"
+            class="text-white/90 hover:text-sand block px-3 py-2 rounded-md text-base font-medium transition-colors duration-300 hover:bg-white/5"
+            @click="isOpen = false"
+          >
+            Blog
+          </NuxtLink>
         </div>
       </div>
     </transition>
