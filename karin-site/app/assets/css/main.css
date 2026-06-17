@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+@source "../../../app/**/*.{vue,js,ts}";
+@source "../../../content/**/*.md";
+
+@plugin "daisyui" {
+  themes: light --default;
+}
+
+/* ─── Fontes locais ─────────────────────────────────────────────── */
+@font-face {
+  font-family: 'Aloe-Medium';
+  src: url('/fonts/Aloe-Medium.woff2') format('woff2'),
+       url('/fonts/Aloe-Medium.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ─── Design tokens (migrados do tailwind.config.js) ────────────── */
+@theme {
+  --font-aloe: 'Aloe-Medium', serif;
+  --font-serif: 'Playfair Display', serif;
+  --font-sans: 'Inter', sans-serif;
+
+  /* Cores do projeto */
+  --color-ink: #2D2B28;
+  --color-ink-soft: #4A4744;
+  --color-ink-muted: #6F6A64;
+
+  --color-sand: #F5E6D3;
+  --color-sand-soft: #F5F1EB;
+  --color-sand-warm: #EADFCE;
+
+  --color-clay: #8B8379;
+  --color-clay-soft: #A39B90;
+  --color-clay-dark: #635C57;
+  --color-clay-ink: #6B5E57;
+  --color-clay-mist: #B7AC9F;
+
+  --color-accent-crm: #435B87;
+
+  --color-primary: #8B7355;
+  --color-secondary: #A39081;
+
+  /* Dourado elegante da marca (acento) */
+  --color-gold: #C9A86A;
+  --color-gold-deep: #A67C32;
+
+  --color-brown-100: #F5F1EB;
+  --color-brown-200: #E8E0D5;
+  --color-brown-300: #D2C4B6;
+  --color-brown-400: #BBA797;
+  --color-brown-500: #A39081;
+  --color-brown-600: #8B7355;
+  --color-brown-700: #6D5A43;
+  --color-brown-800: #4F4132;
+  --color-brown-900: #322920;
+
+  /* Tipografia */
+  --text-display-xl: clamp(3rem, 7vw, 5.5rem);
+  --text-display-xl--line-height: 1.02;
+  --text-display-xl--letter-spacing: -0.02em;
+
+  --text-display-lg: clamp(2.25rem, 4.5vw, 3.5rem);
+  --text-display-lg--line-height: 1.1;
+  --text-display-lg--letter-spacing: -0.015em;
+
+  --text-eyebrow: 0.75rem;
+  --text-eyebrow--line-height: 1;
+  --text-eyebrow--letter-spacing: 0.18em;
+}
+
+/* ─── Fix v4: cursor pointer em botões ──────────────────────────── */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+:root {
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+/* Transições de página */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+/* ─── Globals migrados do App.vue ───────────────────────────────── */
+@keyframes pulse-slow {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s infinite;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+@media (max-width: 768px) {
+  .pt-16 {
+    padding-top: 4rem;
+  }
+  .section-spacing > * + * {
+    margin-top: 2rem;
+  }
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+body.menu-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
