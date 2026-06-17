@@ -3,7 +3,7 @@
 export const CLINIC = {
   name: 'Dra. Karin Boldarini',
   description:
-    'Psiquiatra em Blumenau (CRM SC 26419). Atendimento humanizado para adultos — ansiedade, depressão, insônia, TDAH e demais transtornos mentais. Presencial e online.',
+    'Saúde Mental em Blumenau (CRM SC 26419). Atendimento humanizado para adultos — ansiedade, depressão, insônia, TDAH e demais transtornos mentais. Presencial e online.',
   crm: 'CRM SC 26419',
   medicalSpecialty: 'Psychiatric',
   telephone: '+5547991259577',

@@ -1,7 +1,7 @@
 ---
 title: "Tratamento de Transtornos Psicóticos em Blumenau | Dra. Karin Boldarini"
 h1: "Tratamento de Transtornos Psicóticos em Blumenau"
-description: "Os transtornos psicóticos — como a esquizofrenia — afetam a forma como a pessoa percebe e interpreta a realidade. Psiquiatra em Blumenau e online — Dra. Karin"
+description: "Os transtornos psicóticos — como a esquizofrenia — afetam a forma como a pessoa percebe e interpreta a realidade. Dra. Karin"
 condition: "Transtornos Psicóticos"
 icon: Eye
 order: 8
@@ -19,7 +19,7 @@ faq:
 
 Os transtornos psicóticos — como a esquizofrenia — afetam a forma como a pessoa percebe e interpreta a realidade. Podem surgir alterações de pensamento, percepção e comportamento que exigem acompanhamento especializado.
 
-Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento psiquiátrico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
+Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento médico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
 
 ## Sinais e sintomas
 
@@ -35,7 +35,7 @@ Sentir alguns desses sintomas não fecha um diagnóstico — apenas a avaliaçã
 
 ## Como é o tratamento
 
-O acompanhamento psiquiátrico é fundamental e contínuo. O tratamento envolve medicação antipsicótica e suporte, com foco em estabilizar os sintomas, prevenir crises e preservar a autonomia e a qualidade de vida.
+O acompanhamento médico é fundamental e contínuo. O tratamento envolve medicação antipsicótica e suporte, com foco em estabilizar os sintomas, prevenir crises e preservar a autonomia e a qualidade de vida.
 
 ## Quando procurar um psiquiatra em Blumenau
 

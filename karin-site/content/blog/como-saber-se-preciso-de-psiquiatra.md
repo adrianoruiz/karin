@@ -1,6 +1,6 @@
 ---
 title: "Como saber se preciso de um psiquiatra?"
-description: "Sinais de que é hora de buscar avaliação psiquiátrica e como funciona a primeira consulta. Orientações da Dra. Karin Boldarini, psiquiatra em Blumenau."
+description: "Sinais de que é hora de buscar avaliação médica e como funciona a primeira consulta. Orientações da Dra. Karin Boldarini, médica em Blumenau."
 category: "Quando procurar ajuda"
 cover: /images/blog/como-saber-se-preciso-de-psiquiatra.webp
 author: Dra. Karin Boldarini

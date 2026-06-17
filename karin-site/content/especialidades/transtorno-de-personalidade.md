@@ -19,7 +19,7 @@ faq:
 
 Os transtornos de personalidade envolvem padrões persistentes de pensamento, emoção e comportamento que se distanciam do esperado e geram sofrimento ou dificuldades nas relações e na vida. O tratamento ajuda a desenvolver formas mais flexíveis de lidar com as situações.
 
-Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento psiquiátrico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
+Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento médico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
 
 ## Sinais e sintomas
 

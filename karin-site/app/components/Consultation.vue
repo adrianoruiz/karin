@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import { ArrowRight, MapPin } from 'lucide-vue-next';
+import { ArrowRight } from 'lucide-vue-next';
+// import { MapPin } from 'lucide-vue-next'; // presencial (desativado temporariamente)
 import WhatsAppIcon from './icons/WhatsAppIcon.vue';
 import { useWhatsAppLink } from '~/composables/useWhatsAppLink';
 
 const { href: onlineHref } = useWhatsAppLink('consultation');
-const { href: presencialHref } = useWhatsAppLink('consultation-presencial');
+// const { href: presencialHref } = useWhatsAppLink('consultation-presencial'); // presencial (desativado temporariamente)
 </script>
 
 <template>
   <section
     id="consulta"
     class="relative py-24 md:py-32 bg-cover bg-center bg-no-repeat mobile-bg-adjust"
-    style="background-image: url('/images/karin-consulta.jpg')"
+    style="background-image: url('/images/karin-consulta-v2.webp')"
   >
     <div class="absolute inset-0 bg-ink/55"></div>
 
@@ -21,16 +22,17 @@ const { href: presencialHref } = useWhatsAppLink('consultation-presencial');
           Consulta
         </span>
         <h2 class="text-display-lg font-serif text-white">
-          Escolha o tipo de consulta
+          Consulta Online
         </h2>
       </div>
 
-      <div class="lg:grid lg:grid-cols-2 lg:gap-16 space-y-12 lg:space-y-0">
+      <!--
+        Layout em 2 colunas (Online + Presencial). Reativar quando o presencial voltar:
+        trocar a div abaixo por: <div class="lg:grid lg:grid-cols-2 lg:gap-16 space-y-12 lg:space-y-0">
+      -->
+      <div class="max-w-2xl mx-auto lg:mx-0">
         <div class="relative">
           <div class="absolute -left-4 top-1 h-10 w-px bg-sand/40 hidden lg:block" aria-hidden="true"></div>
-          <h3 class="text-2xl md:text-3xl font-serif text-white mb-8 text-center lg:text-left">
-            Consulta Online
-          </h3>
           <div class="space-y-8">
             <div>
               <h4 class="text-lg font-medium text-sand mb-2 tracking-wide">
@@ -65,6 +67,9 @@ const { href: presencialHref } = useWhatsAppLink('consultation-presencial');
           </div>
         </div>
 
+        <!--
+          Atendimento Presencial (desativado temporariamente — reativar no futuro).
+          Tambem reativar: import MapPin e presencialHref no <script>, e o layout grid-cols-2 acima.
         <div class="relative">
           <div class="absolute -left-4 top-1 h-10 w-px bg-sand/40 hidden lg:block" aria-hidden="true"></div>
           <h3 class="text-2xl md:text-3xl font-serif text-white mb-8 text-center lg:text-left">
@@ -94,6 +99,7 @@ const { href: presencialHref } = useWhatsAppLink('consultation-presencial');
             </div>
           </div>
         </div>
+        -->
       </div>
     </div>
   </section>
@@ -102,7 +108,7 @@ const { href: presencialHref } = useWhatsAppLink('consultation-presencial');
 <style scoped>
 @media (max-width: 768px) {
   .mobile-bg-adjust {
-    background-position: calc(100% + 330px) center !important;
+    background-position: 45% center !important;
   }
 }
 </style>

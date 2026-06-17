@@ -1,7 +1,7 @@
 ---
 title: "Tratamento de Transtornos Alimentares em Blumenau | Dra. Karin Boldarini"
 h1: "Tratamento de Transtornos Alimentares em Blumenau"
-description: "Os transtornos alimentares — como anorexia, bulimia e compulsão alimentar — envolvem uma relação sofrida com a comida, o peso e a imagem corporal. Psiquiatra "
+description: "Os transtornos alimentares — como anorexia, bulimia e compulsão alimentar — envolvem uma relação sofrida com a comida, o peso e a imagem corporal. Dra. Karin Boldarini (CRM SC 26419)."
 condition: "Transtornos Alimentares"
 icon: Apple
 order: 7
@@ -19,7 +19,7 @@ faq:
 
 Os transtornos alimentares — como anorexia, bulimia e compulsão alimentar — envolvem uma relação sofrida com a comida, o peso e a imagem corporal. São condições sérias que afetam a saúde física e emocional.
 
-Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento psiquiátrico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
+Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento médico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
 
 ## Sinais e sintomas
 
@@ -35,7 +35,7 @@ Sentir alguns desses sintomas não fecha um diagnóstico — apenas a avaliaçã
 
 ## Como é o tratamento
 
-O tratamento é multidisciplinar e cuidadoso, com acompanhamento psiquiátrico e psicológico, muitas vezes em conjunto com nutrição. O objetivo é restabelecer a saúde e construir uma relação mais saudável com a comida.
+O tratamento é multidisciplinar e cuidadoso, com acompanhamento médico e psicológico, muitas vezes em conjunto com nutrição. O objetivo é restabelecer a saúde e construir uma relação mais saudável com a comida.
 
 ## Quando procurar um psiquiatra em Blumenau
 

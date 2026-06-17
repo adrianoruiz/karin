@@ -1,7 +1,7 @@
 ---
 title: "Tratamento de Depressão em Blumenau | Dra. Karin Boldarini"
 h1: "Tratamento de Depressão em Blumenau"
-description: "A depressão é um transtorno do humor que vai muito além da tristeza passageira. Psiquiatra em Blumenau e online — Dra. Karin Boldarini (CRM SC 26419). Agende "
+description: "A depressão é um transtorno do humor que vai muito além da tristeza passageira. Dra. Karin Boldarini (CRM SC 26419). Agende "
 condition: "Depressão"
 icon: CloudRain
 order: 2
@@ -19,7 +19,7 @@ faq:
 
 A depressão é um transtorno do humor que vai muito além da tristeza passageira. Afeta a forma de pensar, sentir e agir, podendo comprometer o sono, o apetite, a energia e o interesse pelas atividades.
 
-Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento psiquiátrico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
+Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento médico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
 
 ## Sinais e sintomas
 
@@ -35,7 +35,7 @@ Sentir alguns desses sintomas não fecha um diagnóstico — apenas a avaliaçã
 
 ## Como é o tratamento
 
-O tratamento da depressão é individualizado e costuma envolver psicoterapia e, em parte dos casos, medicação antidepressiva. O acompanhamento psiquiátrico ajusta a conduta ao longo do tempo e monitora a evolução com segurança.
+O tratamento da depressão é individualizado e costuma envolver psicoterapia e, em parte dos casos, medicação antidepressiva. O acompanhamento médico ajusta a conduta ao longo do tempo e monitora a evolução com segurança.
 
 ## Quando procurar um psiquiatra em Blumenau
 

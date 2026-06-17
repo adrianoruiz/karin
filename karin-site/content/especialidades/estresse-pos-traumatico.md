@@ -1,7 +1,7 @@
 ---
 title: "Tratamento de Transtorno de Estresse Pós-Traumático em Blumenau | Dra. Karin Boldarini"
 h1: "Tratamento de Transtorno de Estresse Pós-Traumático em Blumenau"
-description: "O TEPT pode surgir após viver ou presenciar um evento traumático. Psiquiatra em Blumenau e online — Dra. Karin Boldarini (CRM SC 26419). Agende sua consulta."
+description: "O TEPT pode surgir após viver ou presenciar um evento traumático. Dra. Karin Boldarini (CRM SC 26419). Agende sua consulta."
 condition: "Transtorno de Estresse Pós-Traumático"
 icon: ShieldAlert
 order: 12
@@ -19,7 +19,7 @@ faq:
 
 O TEPT pode surgir após viver ou presenciar um evento traumático. A pessoa revive a experiência, evita lembranças e permanece em estado de alerta, o que afeta o sono, o humor e a rotina.
 
-Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento psiquiátrico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
+Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento médico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
 
 ## Sinais e sintomas
 

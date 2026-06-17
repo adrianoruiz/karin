@@ -19,7 +19,7 @@ faq:
 
 O Transtorno do Espectro Autista (TEA) é uma condição do neurodesenvolvimento que influencia a comunicação, a interação social e os padrões de comportamento e interesses. Em adultos, o diagnóstico pode trazer compreensão e novas estratégias de vida.
 
-Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento psiquiátrico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
+Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento médico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
 
 ## Sinais e sintomas
 

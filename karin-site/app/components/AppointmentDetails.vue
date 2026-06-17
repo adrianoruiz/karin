@@ -5,9 +5,11 @@ import { useAppointmentStore } from "../stores/appointment_store";
 const store = useAppointmentStore();
 
 const appointmentTypeLabel = computed(() => {
-  return store.formData.appointmentType === "presencial"
-    ? "Consulta Presencial (Disponível somente para Blumenau SC)"
-    : "Consulta Online";
+  // Presencial desativado temporariamente — apenas online por enquanto.
+  return "Consulta Online";
+  // return store.formData.appointmentType === "presencial"
+  //   ? "Consulta Presencial (Disponível somente para Blumenau SC)"
+  //   : "Consulta Online";
 });
 </script>
 
@@ -90,6 +92,9 @@ const appointmentTypeLabel = computed(() => {
         <span>Detalhes da consulta serão enviados após a confirmação.</span>
       </div>
 
+      <!--
+        Seletor Online/Presencial desativado temporariamente (apenas online por enquanto).
+        Reativar quando o presencial voltar.
       <div class="mb-4">
         <div class="flex items-center mb-2">
           <label class="inline-flex items-center mr-4">
@@ -118,6 +123,7 @@ const appointmentTypeLabel = computed(() => {
           Disponível somente para Blumenau SC
         </p>
       </div>
+      -->
 
       <p class="text-gray-700 mb-4">
         Pronto para cuidar da sua saúde mental com uma abordagem personalizada?

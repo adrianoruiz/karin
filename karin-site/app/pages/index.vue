@@ -36,9 +36,9 @@
 import { CLINIC } from '~/utils/clinic'
 
 useSeoMeta({
-  title: 'Dra. Karin Boldarini — Psiquiatra em Blumenau | Ansiedade, Insônia, Depressão e TDAH',
-  description: 'Psiquiatra em Blumenau e online. Atendimento humanizado para adultos com ansiedade, insônia, depressão e TDAH. Agende sua consulta no WhatsApp.',
-  ogTitle: 'Dra. Karin Boldarini — Psiquiatra para Adultos',
+  title: 'Dra. Karin Boldarini — Psiquiatria em Blumenau | Ansiedade, Insônia, Depressão e TDAH',
+  description: 'Saúde Mental em Blumenau e online. Atendimento humanizado para adultos com ansiedade, insônia, depressão e TDAH. Agende sua consulta no WhatsApp.',
+  ogTitle: 'Dra. Karin Boldarini — Psiquiatria para Adultos',
   ogDescription: 'Ansiedade, insônia, depressão e TDAH têm tratamento. Atendimento online ou presencial em Blumenau.',
   ogImage: '/og/karin-og.jpg',
   ogType: 'website',

@@ -1,7 +1,7 @@
 ---
 title: "Tratamento de Ansiedade em Blumenau | Dra. Karin Boldarini"
 h1: "Tratamento de Ansiedade em Blumenau"
-description: "A ansiedade é uma reação natural do organismo diante de situações de perigo ou pressão. Psiquiatra em Blumenau e online — Dra. Karin Boldarini (CRM SC 26419)."
+description: "A ansiedade é uma reação natural do organismo diante de situações de perigo ou pressão. Dra. Karin Boldarini (CRM SC 26419)."
 condition: "Ansiedade"
 icon: Wind
 order: 1
@@ -19,7 +19,7 @@ faq:
 
 A ansiedade é uma reação natural do organismo diante de situações de perigo ou pressão. Ela se torna um transtorno quando é intensa, frequente e desproporcional, atrapalhando o trabalho, os relacionamentos e o dia a dia.
 
-Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento psiquiátrico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
+Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento médico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
 
 ## Sinais e sintomas
 

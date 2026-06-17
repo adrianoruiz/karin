@@ -19,7 +19,7 @@ faq:
 
 O TOC é caracterizado por obsessões (pensamentos intrusivos e angustiantes) e compulsões (rituais ou comportamentos repetitivos para aliviar a ansiedade). Esse ciclo consome tempo e gera sofrimento significativo.
 
-Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento psiquiátrico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
+Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento médico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
 
 ## Sinais e sintomas
 

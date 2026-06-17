@@ -1,7 +1,7 @@
 ---
 title: "Tratamento de Insônia em Blumenau | Dra. Karin Boldarini"
 h1: "Tratamento de Insônia em Blumenau"
-description: "A insônia é a dificuldade persistente de iniciar ou manter o sono, ou de ter um sono reparador, mesmo com oportunidade adequada para dormir. Psiquiatra em Blu"
+description: "A insônia é a dificuldade persistente de iniciar ou manter o sono, ou de ter um sono reparador, mesmo com oportunidade adequada para dormir. Dra. Karin Boldarini (CRM SC 26419)."
 condition: "Insônia"
 icon: Moon
 order: 5
@@ -19,7 +19,7 @@ faq:
 
 A insônia é a dificuldade persistente de iniciar ou manter o sono, ou de ter um sono reparador, mesmo com oportunidade adequada para dormir. Com o tempo, afeta o humor, a concentração e a saúde física.
 
-Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento psiquiátrico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
+Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento médico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
 
 ## Sinais e sintomas
 

@@ -1,7 +1,7 @@
 ---
 title: "Tratamento de Síndrome do Pânico em Blumenau | Dra. Karin Boldarini"
 h1: "Tratamento de Síndrome do Pânico em Blumenau"
-description: "A síndrome do pânico (transtorno de pânico) é marcada por crises súbitas e intensas de medo, acompanhadas de sintomas físicos fortes. Psiquiatra em Blumenau e"
+description: "A síndrome do pânico (transtorno de pânico) é marcada por crises súbitas e intensas de medo, acompanhadas de sintomas físicos fortes. Psiquiatria em Blumenau e"
 condition: "Transtorno de Pânico"
 icon: HeartPulse
 order: 6
@@ -19,7 +19,7 @@ faq:
 
 A síndrome do pânico (transtorno de pânico) é marcada por crises súbitas e intensas de medo, acompanhadas de sintomas físicos fortes. O medo de novas crises pode levar a evitações e limitar a vida da pessoa.
 
-Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento psiquiátrico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
+Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento médico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
 
 ## Sinais e sintomas
 

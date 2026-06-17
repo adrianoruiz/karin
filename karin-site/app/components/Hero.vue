@@ -14,7 +14,8 @@ defineProps<{
 const { href: whatsappHref } = useWhatsAppLink('hero');
 
 const trustItems = [
-  { icon: Monitor, label: 'Online & Presencial', detail: 'Blumenau SC' },
+  { icon: Monitor, label: 'Atendimento Online', detail: 'De onde você estiver' },
+  // { icon: Monitor, label: 'Online & Presencial', detail: 'Blumenau SC' }, // presencial (desativado temporariamente)
   { icon: UserRound, label: 'Atendemos', detail: 'Adultos' },
   { icon: HeartPulse, label: 'Foco clínico', detail: 'Ansiedade, TDAH, depressão, insônia' },
 ];

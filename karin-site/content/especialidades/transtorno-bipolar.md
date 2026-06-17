@@ -19,7 +19,7 @@ faq:
 
 O transtorno afetivo bipolar é caracterizado por oscilações importantes do humor, alternando períodos de depressão com fases de euforia ou agitação (mania ou hipomania). Essas variações afetam a energia, o sono e o comportamento.
 
-Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento psiquiátrico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
+Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento médico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
 
 ## Sinais e sintomas
 
@@ -35,7 +35,7 @@ Sentir alguns desses sintomas não fecha um diagnóstico — apenas a avaliaçã
 
 ## Como é o tratamento
 
-O acompanhamento psiquiátrico é essencial. O tratamento envolve estabilizadores de humor e acompanhamento contínuo para reduzir as oscilações, prevenir crises e manter a estabilidade. A psicoterapia complementa o cuidado.
+O acompanhamento médico é essencial. O tratamento envolve estabilizadores de humor e acompanhamento contínuo para reduzir as oscilações, prevenir crises e manter a estabilidade. A psicoterapia complementa o cuidado.
 
 ## Quando procurar um psiquiatra em Blumenau
 

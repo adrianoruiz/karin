@@ -3,10 +3,10 @@
     <header class="mx-auto mb-14 max-w-2xl text-center">
       <p class="text-eyebrow uppercase text-clay-dark">Especialidades</p>
       <h1 class="mt-3 font-serif text-4xl text-ink md:text-5xl">
-        Áreas de atuação — Psiquiatra em Blumenau
+        Áreas de atuação — Psiquiatria em Blumenau
       </h1>
       <p class="mx-auto mt-4 max-w-xl text-ink-soft">
-        Atendimento psiquiátrico para adultos, presencial em Blumenau e online.
+        Atendimento em saúde mental para adultos, presencial em Blumenau e online.
         Conheça as condições tratadas pela Dra. Karin Boldarini (CRM SC 26419).
       </p>
     </header>
@@ -42,9 +42,9 @@ const { data: items } = await useAsyncData('especialidades-list', () =>
 )
 
 useSeoMeta({
-  title: 'Áreas de Atuação — Psiquiatra em Blumenau | Dra. Karin Boldarini',
-  description: 'Condições tratadas pela psiquiatra Dra. Karin Boldarini em Blumenau: ansiedade, depressão, TDAH, insônia, pânico e mais. Presencial e online.',
-  ogTitle: 'Áreas de Atuação — Psiquiatra em Blumenau',
+  title: 'Áreas de Atuação — Psiquiatria em Blumenau | Dra. Karin Boldarini',
+  description: 'Condições tratadas pela Dra. Karin Boldarini em Blumenau: ansiedade, depressão, TDAH, insônia, pânico e mais. Presencial e online.',
+  ogTitle: 'Áreas de Atuação — Psiquiatria em Blumenau',
   ogDescription: 'Ansiedade, depressão, TDAH, insônia e outros transtornos. Atendimento em Blumenau e online.',
   ogType: 'website'
 })

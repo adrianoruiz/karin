@@ -1,7 +1,7 @@
 ---
 title: "Tratamento de TDAH em Blumenau | Dra. Karin Boldarini"
 h1: "Tratamento de TDAH em Blumenau"
-description: "O TDAH é um transtorno do neurodesenvolvimento que afeta a atenção, o controle de impulsos e, em parte dos casos, o nível de agitação. Psiquiatra em Blumenau "
+description: "O TDAH é um transtorno do neurodesenvolvimento que afeta a atenção, o controle de impulsos e, em parte dos casos, o nível de agitação. Psiquiatria em Blumenau "
 condition: "TDAH"
 icon: Zap
 order: 4
@@ -19,7 +19,7 @@ faq:
 
 O TDAH é um transtorno do neurodesenvolvimento que afeta a atenção, o controle de impulsos e, em parte dos casos, o nível de agitação. Em adultos, costuma se manifestar como dificuldade de organização, foco e finalização de tarefas.
 
-Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento psiquiátrico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
+Buscar ajuda especializada faz diferença. Em **Blumenau**, a Dra. Karin Boldarini oferece acompanhamento médico para adultos, de forma presencial ou online, com escuta cuidadosa e plano de tratamento individualizado.
 
 ## Sinais e sintomas
 
