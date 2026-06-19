@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {
-    Receipt,
     Monitor,
     HeartHandshake,
     ShieldCheck,
@@ -15,11 +14,6 @@ const { href: whatsappHref } = useWhatsAppLink(
 );
 
 const items = [
-    {
-        icon: Receipt,
-        title: "Particular, com recibo para reembolso",
-        text: "O atendimento é particular. Emito recibo para você solicitar reembolso ao seu convênio.",
-    },
     {
         icon: Monitor,
         title: "Online em todo o Brasil",

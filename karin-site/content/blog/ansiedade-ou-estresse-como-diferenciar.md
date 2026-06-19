@@ -23,11 +23,11 @@ A ansiedade vai além do gatilho. É uma preocupação que persiste mesmo sem mo
 
 ## Como diferenciar na prática
 
-| | Estresse | Ansiedade |
+| Aspecto | Estresse | Ansiedade |
 |---|---|---|
 | Gatilho | Claro e externo | Difuso, às vezes sem causa |
 | Duração | Passa com a situação | Persiste por semanas |
-| Foco | No problema atual | No "e se" do futuro |
+| Foco | No problema atual | Na preocupação com o futuro |
 
 ## Quando procurar ajuda
 

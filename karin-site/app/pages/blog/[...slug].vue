@@ -177,4 +177,36 @@ useHead({
   border-radius: 0.35rem;
   font-size: 0.9em;
 }
+.blog-prose :deep(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.75rem 0;
+  font-size: 1rem;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-clay);
+}
+.blog-prose :deep(thead) {
+  background: var(--color-sand-soft);
+}
+.blog-prose :deep(th) {
+  font-family: var(--font-serif);
+  color: var(--color-ink);
+  font-weight: 600;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-clay);
+}
+.blog-prose :deep(td) {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-clay) 40%, transparent);
+  vertical-align: top;
+}
+.blog-prose :deep(tbody tr:last-child td) {
+  border-bottom: none;
+}
+.blog-prose :deep(td:first-child) {
+  font-weight: 600;
+  color: var(--color-ink);
+}
 </style>

@@ -29,6 +29,6 @@ A insônia raramente vem sozinha. Ela costuma estar ligada a [ansiedade](/especi
 
 ## Remédio para dormir é a solução?
 
-Nem sempre. O uso de medicação é avaliado com critério, porque alguns remédios têm risco de dependência. Muitas vezes, mudanças de hábitos e abordagens comportamentais resolvem sem uso contínuo. Veja como funciona o [tratamento de insônia em Blumenau](/especialidades/insonia).
+Nem sempre. Embora os medicamentos possam ser necessários em alguns casos, o tratamento mais eficaz costuma envolver a identificação das causas da insônia e a adoção de estratégias que ajudam o cérebro a voltar a dormir naturalmente. Saiba mais sobre o [tratamento da insônia em Blumenau](/especialidades/insonia).
 
 > A Dra. Karin Boldarini atende em Blumenau e online. [Agende pelo WhatsApp](https://wa.me/5547991259577).

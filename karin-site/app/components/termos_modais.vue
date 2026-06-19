@@ -33,7 +33,7 @@
         <h3>1. Serviços</h3>
         <p>
           Os serviços oferecidos através deste site são consultas médicas
-          presenciais e online com a Dra. Karin Boldarini.
+          online com a Dra. Karin Boldarini.
         </p>
         <h3>2. Agendamento</h3>
         <p>
@@ -49,6 +49,12 @@
         <p>
           O paciente é responsável por fornecer informações precisas e
           verdadeiras no momento do agendamento.
+        </p>
+        <h3>5. Pagamento</h3>
+        <p>
+          Informamos que o pagamento da consulta deve ser realizado
+          antecipadamente, até o dia anterior ao atendimento, para confirmação e
+          reserva do horário agendado.
         </p>
       </div>
     </div>

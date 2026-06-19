@@ -28,7 +28,7 @@ export const CLINIC = {
   // Faturamento — usado nas seções de objeção
   billing: {
     type: 'Particular',
-    note: 'Atendimento particular. Emito recibo para reembolso pelo seu convênio.'
+    note: 'Atendimento particular.'
   },
   // Perfis com avaliações reais (atualize o link do Google com o seu share/g.page)
   reviews: {

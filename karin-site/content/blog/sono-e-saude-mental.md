@@ -25,3 +25,5 @@ Durante o sono, o cérebro organiza memórias, regula emoções e restaura o cor
 - Um ritual calmo antes de dormir
 
 Se a insônia persiste por semanas, vale investigar. Muitas vezes ela é sintoma de algo tratável — e tratar o sono melhora tudo ao redor.
+
+> A Dra. Karin Boldarini atende em Blumenau e online. [Agende pelo WhatsApp](https://wa.me/5547991259577).

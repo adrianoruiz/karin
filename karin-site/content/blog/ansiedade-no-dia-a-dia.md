@@ -27,3 +27,5 @@ Alguns sinais de que o alerta virou ruído constante:
 O primeiro passo é nomear o que se sente. Ansiedade não é fraqueza nem falta de controle — é um sintoma, e sintomas têm manejo. Estratégias de respiração, organização da rotina e sono regular ajudam. Quando isso não basta, o acompanhamento profissional faz diferença.
 
 Se a ansiedade já interfere no seu trabalho, nos seus relacionamentos ou no seu descanso, procurar ajuda é cuidado, não exagero.
+
+> A Dra. Karin Boldarini atende em Blumenau e online. [Agende pelo WhatsApp](https://wa.me/5547991259577).
