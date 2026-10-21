@@ -59,11 +59,11 @@ const trustItems = [
         <div class="flex items-end justify-center lg:col-span-6 lg:h-full lg:justify-end xl:col-span-6">
           <div class="relative flex w-full flex-col items-center lg:h-full lg:items-end lg:justify-end">
             <img
-              src="/images/opt/karin-hero-sofa-720.webp"
-              srcset="/images/opt/karin-hero-sofa-480.webp 480w, /images/opt/karin-hero-sofa-720.webp 720w, /images/opt/karin-hero-sofa-1122.webp 1122w"
+              src="/images/opt/karin-hero-rosa-720.webp"
+              srcset="/images/opt/karin-hero-rosa-480.webp 480w, /images/opt/karin-hero-rosa-720.webp 720w, /images/opt/karin-hero-rosa-1148.webp 1148w"
               sizes="(min-width: 1024px) 574px, 92vw"
-              width="1122"
-              height="1402"
+              width="1148"
+              height="1371"
               alt="Dra. Karin Boldarini"
               fetchpriority="high"
               decoding="async"

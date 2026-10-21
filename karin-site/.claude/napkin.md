@@ -21,3 +21,5 @@
    Do instead: publicar com Nitro node-server ou configurar os mesmos HTTP 301 no servidor/CDN; testar as URLs antigas, pois export estático sozinho não garante o status HTTP.
 3. **[2026-10-20] WhatsApp deve abrir com mensagem limpa**
    Do instead: incluir no parâmetro `text` somente a mensagem; nunca anexar UTMs ou rótulos técnicos visíveis ao paciente.
+4. **[2026-10-20] Foto final do hero é o retrato rosa de braços cruzados**
+   Do instead: usar `karin-hero-rosa-*`, conforme a última escolha da médica; preservar ombros, cotovelos e mãos completos e limitar a largura à coluna para evitar cortes laterais.
