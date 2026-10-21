@@ -10,30 +10,30 @@ interface Method {
 
 const methods: Method[] = [
   {
-    title: 'Dedicação e Escuta Atenta',
-    description: 'Durante as consultas, meu foco está em ouvir você com atenção e acolhimento, entendendo sua história para oferecer o melhor cuidado possível.',
+    title: 'Escuta e avaliação clínica',
+    description: 'Consulta com tempo para compreender sintomas, histórico de saúde, rotina e contexto pessoal.',
     icon: Ear,
   },
   {
-    title: 'Foco na Qualidade de Vida',
-    description: 'Mais do que tratar sintomas, busco ajudar você a recuperar bem-estar e autonomia, promovendo uma vida com mais equilíbrio e saúde.',
+    title: 'Plano individualizado',
+    description: 'As orientações são definidas de acordo com a avaliação médica e podem incluir acompanhamento, encaminhamentos e medidas terapêuticas clinicamente indicadas.',
     icon: Sparkles,
   },
   {
-    title: 'Avaliação Integral do Paciente',
-    description: 'Analiso a saúde como um todo, incluindo aspectos físicos, emocionais e hábitos de vida, para entender e cuidar de todas as suas necessidades.',
+    title: 'Acompanhamento responsável',
+    description: 'A evolução é reavaliada ao longo do tempo. Diagnósticos, prescrições, relatórios e laudos dependem de indicação clínica e das informações disponíveis.',
     icon: ClipboardList,
   },
   {
-    title: 'Tratamento Medicamentoso',
-    description: 'Quando necessário, utilizo medicamentos de forma cuidadosa, avaliando sempre o momento certo para iniciar, ajustar ou reduzir o uso.',
+    title: 'Atendimento por telemedicina',
+    description: 'Consultas médicas para adultos por vídeo, quando a modalidade for adequada ao caso e conforme as normas profissionais aplicáveis.',
     icon: Pill,
   },
 ];
 </script>
 
 <template>
-  <section id="metodo" class="py-24 md:py-32 bg-sand-soft">
+  <section id="metodo" class="py-24 md:py-32 bg-sand-soft scroll-mt-28">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20 items-start">
         <div class="relative rounded-[28px] overflow-hidden">
@@ -47,19 +47,19 @@ const methods: Method[] = [
             loading="lazy"
             decoding="async"
             class="w-full h-full object-cover"
-          />
+          >
         </div>
 
         <div class="relative">
           <span class="inline-block text-eyebrow uppercase text-clay-dark mb-4">
-            Método
+            Atendimento
           </span>
           <h2 class="text-display-lg font-serif text-ink-soft mb-12 md:mb-16">
-            Como trabalho
+            Como funciona o atendimento
           </h2>
 
           <div class="relative">
-            <div class="absolute left-6 top-6 bottom-2 w-px bg-clay/25" aria-hidden="true"></div>
+            <div class="absolute left-6 top-6 bottom-2 w-px bg-clay/25" aria-hidden="true"/>
 
             <div
               v-for="(method, index) in methods"

@@ -132,7 +132,7 @@ const appointmentTypeLabel = computed(() => {
       <p class="text-gray-700 mb-6">
         Preencha o formulário para agendar uma consulta com a Dra. Karin
         Boldarini. Durante sua consulta de 30 minutos, você receberá atenção
-        especializada para suas necessidades de saúde mental.
+        médica individualizada.
       </p>
     </div>
   </div>

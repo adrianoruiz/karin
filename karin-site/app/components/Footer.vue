@@ -4,6 +4,8 @@ import WhatsAppIcon from './icons/WhatsAppIcon.vue';
 import { useAppointmentStore } from '../stores/appointment_store';
 import { useWhatsAppLink } from '~/composables/useWhatsAppLink';
 
+defineOptions({ name: 'SiteFooter' });
+
 const store = useAppointmentStore();
 const { href: whatsappHref } = useWhatsAppLink('footer');
 
@@ -26,26 +28,26 @@ const openPrivacyPolicy = (event: Event) => {
       aria-hidden="true"
       class="pointer-events-none absolute inset-0 opacity-[0.07]"
       style="background-image: radial-gradient(circle at 20% 10%, #F5E6D3 0, transparent 55%), radial-gradient(circle at 85% 90%, #435B87 0, transparent 50%);"
-    ></div>
+    />
 
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 md:pt-20 pb-28 md:pb-10">
       <div class="grid grid-cols-12 gap-y-14 gap-x-8">
 
         <div class="col-span-12 lg:col-span-7 text-center lg:text-left">
           <span class="inline-flex items-center gap-3 text-eyebrow uppercase text-sand/60">
-            <span class="block h-px w-8 bg-sand/40" aria-hidden="true"></span>
+            <span class="block h-px w-8 bg-sand/40" aria-hidden="true"/>
             Consultório · Blumenau SC
-            <span class="block h-px w-8 bg-sand/40 lg:hidden" aria-hidden="true"></span>
+            <span class="block h-px w-8 bg-sand/40 lg:hidden" aria-hidden="true"/>
           </span>
 
-          <h2 class="mt-6 font-aloe leading-[1] text-sand text-[clamp(1.75rem,7vw,2.5rem)] whitespace-nowrap">
-            Dra. Karin Boldarini
+          <h2 class="mt-6 font-aloe leading-[1.15] text-sand text-[clamp(1.75rem,7vw,2.5rem)]">
+            Dra. Karin Alana da Rosa Boldarini
           </h2>
 
           <p class="mt-6 flex items-center justify-center lg:justify-start gap-3 text-sand/70">
-            <span class="block h-px w-8 bg-sand/40" aria-hidden="true"></span>
-            <span class="text-xs tracking-[0.22em] uppercase font-medium">CRM SC 26419 · Saúde Mental</span>
-            <span class="block h-px w-8 bg-sand/40 lg:hidden" aria-hidden="true"></span>
+            <span class="block h-px w-8 bg-sand/40" aria-hidden="true"/>
+            <span class="text-xs tracking-[0.12em] uppercase font-medium">MÉDICA — CRM-SC 26.419</span>
+            <span class="block h-px w-8 bg-sand/40 lg:hidden" aria-hidden="true"/>
           </p>
         </div>
 
@@ -95,9 +97,9 @@ const openPrivacyPolicy = (event: Event) => {
       <div class="mt-12 md:mt-16 pt-6 border-t border-sand/10 flex flex-col items-center md:flex-row md:items-center md:justify-between gap-3 md:gap-4 text-[0.68rem] md:text-xs uppercase tracking-[0.14em] md:tracking-[0.16em] text-sand/50 text-center md:text-left">
         <p class="leading-relaxed">© {{ year }} Karin Boldarini · Todos os direitos reservados</p>
         <nav class="flex flex-nowrap items-center justify-center gap-3 md:gap-5 whitespace-nowrap">
-          <a href="#" @click="openTermsOfUse" class="inline-flex items-center hover:text-sand transition-colors duration-300">Termos de Uso</a>
+          <a href="#" class="inline-flex items-center hover:text-sand transition-colors duration-300" @click="openTermsOfUse">Termos de Uso</a>
           <span aria-hidden="true" class="text-sand/30">/</span>
-          <a href="#" @click="openPrivacyPolicy" class="inline-flex items-center hover:text-sand transition-colors duration-300">Privacidade</a>
+          <a href="#" class="inline-flex items-center hover:text-sand transition-colors duration-300" @click="openPrivacyPolicy">Privacidade</a>
         </nav>
       </div>
     </div>

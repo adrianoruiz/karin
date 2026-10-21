@@ -15,9 +15,9 @@
    Do instead: use simpler `rtk find` calls or raw `find` only when compound predicates/actions are required.
 
 ## Domain Behavior Guardrails
-1. **[2026-06-16] Blog posts support `cover` frontmatter**
-   Do instead: save blog cover assets under `public/images/blog/` and reference them with root-relative `/images/blog/...` paths.
-
-## User Directives
-1. **[2026-06-16] Follow repo RTK instruction**
-   Do instead: apply `/Users/adrianoboldarini/.codex/RTK.md` and use `rtk` for shell execution.
+1. **[2026-10-20] Publicidade médica usa identificação provisória**
+   Do instead: manter MÉDICA + CRM-SC 26.419 e não anunciar pós-graduação sem confirmação documental do cadastro; consultar `docs/adequacao-crm-sc.md` antes de reativar conteúdo retirado.
+2. **[2026-10-20] Redirects dependem do servidor de publicação**
+   Do instead: publicar com Nitro node-server ou configurar os mesmos HTTP 301 no servidor/CDN; testar as URLs antigas, pois export estático sozinho não garante o status HTTP.
+3. **[2026-10-20] WhatsApp deve abrir com mensagem limpa**
+   Do instead: incluir no parâmetro `text` somente a mensagem; nunca anexar UTMs ou rótulos técnicos visíveis ao paciente.

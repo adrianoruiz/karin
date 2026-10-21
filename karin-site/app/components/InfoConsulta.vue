@@ -17,12 +17,12 @@ const items = [
     {
         icon: Monitor,
         title: "Online em todo o Brasil",
-        text: "Consulta por vídeo com o mesmo cuidado do presencial — de onde você estiver, sem deslocamento.",
+        text: "Consulta médica por vídeo, quando a modalidade for adequada ao caso, conforme critérios clínicos e regulamentares.",
     },
     {
         icon: HeartHandshake,
         title: "Primeira consulta sem pressa",
-        text: "Uma avaliação cuidadosa da sua história para construir um plano de tratamento individual.",
+        text: "Uma avaliação cuidadosa da sua história para definir orientações e acompanhamento individualizados.",
     },
     {
         icon: ShieldCheck,
@@ -48,7 +48,7 @@ const items = [
             </div>
 
             <div
-                class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 md:gap-8"
+                class="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8"
             >
                 <div
                     v-for="item in items"
@@ -73,6 +73,13 @@ const items = [
                         {{ item.text }}
                     </p>
                 </div>
+            </div>
+
+            <div class="mt-12 max-w-3xl text-ink-soft">
+                <h3 class="mb-3 font-serif text-2xl text-ink">Relatórios e laudos</h3>
+                <p class="leading-relaxed">
+                    Relatórios, atestados e outros documentos médicos são emitidos apenas quando houver indicação clínica, com base na avaliação realizada e nas normas profissionais aplicáveis. A consulta não inclui promessa prévia de diagnóstico ou de emissão de laudo.
+                </p>
             </div>
 
             <div

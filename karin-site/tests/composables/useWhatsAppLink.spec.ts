@@ -14,31 +14,30 @@ describe('useWhatsAppLink', () => {
   it('encodes default message for hero source', () => {
     const { href } = useWhatsAppLink('hero')
     const decoded = decodeURIComponent(href.value.split('?text=')[1])
-    expect(decoded).toContain('agendar uma consulta')
-    expect(decoded).toContain('utm_content=hero')
+    expect(decoded).toBe('Olá Dra. Karin, vim do site e gostaria de agendar uma consulta médica.')
   })
 
-  it('uses customMessage when provided, still appends UTMs', () => {
+  it('preserves customMessage without adding tracking text', () => {
     const { href } = useWhatsAppLink('footer', 'Mensagem custom')
     const decoded = decodeURIComponent(href.value.split('?text=')[1])
-    expect(decoded).toContain('Mensagem custom')
-    expect(decoded).toContain('utm_content=footer')
+    expect(decoded).toBe('Mensagem custom')
   })
 
-  it('produces distinct utm_content per source', () => {
-    const a = useWhatsAppLink('hero').href.value
-    const b = useWhatsAppLink('floating').href.value
-    expect(a).not.toBe(b)
-    expect(decodeURIComponent(a)).toContain('utm_content=hero')
-    expect(decodeURIComponent(b)).toContain('utm_content=floating')
+  it('keeps messages free of tracking tags for every source', () => {
+    const sources = ['hero', 'floating', 'footer', 'consultation', 'consultation-presencial', 'about', 'navbar'] as const
+    for (const source of sources) {
+      const url = new URL(useWhatsAppLink(source).href.value)
+      expect([...url.searchParams.keys()]).toEqual(['text'])
+      expect(url.searchParams.get('text')).not.toMatch(/utm_|\[|\]|\n/)
+    }
   })
 
-  it('tracks online and presencial consultation links separately', () => {
+  it('keeps the appropriate message for each consultation type', () => {
     const online = useWhatsAppLink('consultation').href.value
     const presencial = useWhatsAppLink('consultation-presencial').href.value
     expect(online).not.toBe(presencial)
-    expect(decodeURIComponent(online)).toContain('utm_content=consultation')
-    expect(decodeURIComponent(presencial)).toContain('utm_content=consultation-presencial')
+    expect(new URL(online).searchParams.get('text')).toBe('Olá Dra. Karin, gostaria de saber mais sobre as consultas médicas.')
+    expect(new URL(presencial).searchParams.get('text')).toBe('Olá Dra. Karin, gostaria de agendar uma consulta médica presencial em Blumenau.')
   })
 
   it('uses public runtime config phone when available', () => {

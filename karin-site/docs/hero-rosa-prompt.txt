@@ -1,0 +1,9 @@
+Generated with the built-in image_gen tool. References supplied by the user; image 1 is the identity/outfit reference, image 2 the pose reference. Transparent background requested.
+
+Use case: identity-preserve, background-extraction.
+Asset type: photorealistic transparent cutout portrait for an existing medical website hero.
+Edit target: Image 1 (woman in pale pink blazer, black V-neck top, gold pendant, watch). This is the only authoritative identity reference: preserve her actual face, facial proportions, eyes, nose, mouth, skin tone and natural texture, current shoulder-length light-brown hair and hairline, age, body build, earrings, necklace, pink blazer and black top. Do not beautify, rejuvenate, slim or change her facial identity.
+Supporting input: Image 2 is ONLY the reference for arms-crossed pose, slight three-quarter torso turn, upper-body framing and vertical silhouette. Do not use Image 2's face, long blonde hair, white clothing or cross necklace.
+Primary request: Put the woman from Image 1 into the relaxed arms-crossed pose of Image 2, looking directly at camera with her same calm neutral expression. Frame from just above the top of her hair to the waist below her crossed arms; keep both arms, elbows and hands fully inside the frame. Natural anatomy, believable fingers, realistic fabric folds, soft flattering photographic lighting faithful to Image 1. Upright portrait suitable for bottom alignment in a hero beside text, similar silhouette/aspect ratio to Image 2, with minimal empty margins but no clipped hair or elbows.
+Scene/backdrop: genuinely transparent alpha channel outside the person, including hair wisps. No office, no wall, no color fill, no black background, no checkerboard baked into pixels, no ground shadow, no text, no watermark.
+Change only pose and background; retain the woman's identity and pink-and-black outfit from Image 1.

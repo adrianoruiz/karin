@@ -11,7 +11,6 @@ export default defineNuxtConfig({
   modules: [
     '@pinia/nuxt',
     '@nuxt/image',
-    '@nuxt/content',
     '@nuxt/eslint',
     '@nuxtjs/sitemap'
   ],
@@ -24,7 +23,17 @@ export default defineNuxtConfig({
 
   sitemap: {
     autoLastmod: true,
-    exclude: ['/admin/**']
+    exclude: ['/admin', '/admin/**', '/especialidades', '/especialidades/**', '/blog', '/blog/**', '/conversion/**']
+  },
+
+  // O conteúdo retirado só pode voltar após revisão jurídica/regulatória.
+  routeRules: {
+    '/especialidades': { redirect: { to: '/', statusCode: 301 }, prerender: false },
+    '/especialidades/**': { redirect: { to: '/', statusCode: 301 }, prerender: false },
+    '/blog': { redirect: { to: '/', statusCode: 301 }, prerender: false },
+    '/blog/**': { redirect: { to: '/', statusCode: 301 }, prerender: false },
+    '/admin': { headers: { 'X-Robots-Tag': 'noindex, nofollow' }, prerender: false },
+    '/admin/**': { headers: { 'X-Robots-Tag': 'noindex, nofollow' }, prerender: false }
   },
 
   css: ['~/assets/css/main.css'],
@@ -49,17 +58,24 @@ export default defineNuxtConfig({
       htmlAttrs: { lang: 'pt-BR' },
       charset: 'utf-8',
       viewport: 'width=device-width, initial-scale=1',
-      title: 'Dra. Karin Boldarini — Psiquiatra em Blumenau | Ansiedade, Insônia, Depressão e TDAH',
+      title: 'Dra. Karin Boldarini | Médica em Blumenau e atendimento online',
       meta: [
-        { name: 'description', content: 'Psiquiatra em Blumenau e online. Atendimento humanizado para adultos com ansiedade, insônia, depressão e TDAH. Agende sua consulta no WhatsApp.' },
+        { name: 'description', content: 'Atendimento médico em saúde mental para adultos por telemedicina. Dra. Karin Boldarini, MÉDICA, CRM-SC 26.419, Blumenau, SC.' },
         { name: 'theme-color', content: '#8B7355' },
         { property: 'og:type', content: 'website' },
         { property: 'og:locale', content: 'pt_BR' },
         { property: 'og:site_name', content: 'Dra. Karin Boldarini' },
-        { property: 'og:image', content: '/og/karin-og.jpg' },
+        { property: 'og:title', content: 'Dra. Karin Boldarini | Atendimento médico' },
+        { property: 'og:description', content: 'Consulta médica para adultos por telemedicina. MÉDICA — CRM-SC 26.419.' },
+        { property: 'og:image', content: 'https://www.drakarin.com.br/og/atendimento-medico.jpg' },
+        { property: 'og:image:alt', content: 'Dra. Karin Alana da Rosa Boldarini — MÉDICA — CRM-SC 26.419' },
         { property: 'og:image:width', content: '1200' },
         { property: 'og:image:height', content: '630' },
-        { name: 'twitter:card', content: 'summary_large_image' }
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: 'Dra. Karin Boldarini | Atendimento médico' },
+        { name: 'twitter:description', content: 'Consulta médica para adultos por telemedicina. MÉDICA — CRM-SC 26.419.' },
+        { name: 'twitter:image', content: 'https://www.drakarin.com.br/og/atendimento-medico.jpg' },
+        { name: 'twitter:image:alt', content: 'Dra. Karin Alana da Rosa Boldarini — MÉDICA — CRM-SC 26.419' }
       ],
       link: [
         { rel: 'icon', type: 'image/png', href: '/favicon.png' },
@@ -68,12 +84,12 @@ export default defineNuxtConfig({
         // Fonte do H1 (LCP) — preload para renderizar sem atraso
         { rel: 'preload', as: 'font', type: 'font/woff2', href: '/fonts/Aloe-Medium.woff2', crossorigin: '' },
         // Imagem LCP do herói — preload da variante responsiva
-        { rel: 'preload', as: 'image', href: '/images/opt/karin-psiq-720.webp', imagesrcset: '/images/opt/karin-psiq-480.webp 480w, /images/opt/karin-psiq-720.webp 720w, /images/opt/karin-psiq-1148.webp 1148w', imagesizes: '(min-width: 1024px) 574px, 92vw', fetchpriority: 'high' },
+        { rel: 'preload', as: 'image', href: '/images/opt/karin-hero-sofa-720.webp', imagesrcset: '/images/opt/karin-hero-sofa-480.webp 480w, /images/opt/karin-hero-sofa-720.webp 720w, /images/opt/karin-hero-sofa-1122.webp 1122w', imagesizes: '(min-width: 1024px) 574px, 92vw', fetchpriority: 'high' },
         // Google Fonts sem bloquear a renderização (carrega assíncrono)
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap', media: 'print', onload: "this.media='all'" }
       ],
       noscript: [
-        { children: '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap">' }
+        { innerHTML: '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap">' }
       ]
     }
   },
@@ -82,7 +98,7 @@ export default defineNuxtConfig({
     preset: process.env.NITRO_PRESET || 'node-server',
     prerender: {
       crawlLinks: true,
-      routes: ['/', '/blog', '/especialidades']
+      routes: ['/']
     }
   },
 
@@ -93,13 +109,5 @@ export default defineNuxtConfig({
   image: {
     quality: 80,
     format: ['webp', 'avif', 'png', 'jpg']
-  },
-
-  content: {
-    build: {
-      markdown: {
-        toc: { depth: 3, searchDepth: 3 }
-      }
-    }
   }
 })

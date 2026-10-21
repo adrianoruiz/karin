@@ -7,17 +7,13 @@ defineOptions({
   name: 'HomeHero',
 });
 
-defineProps<{
-  description: string;
-}>();
-
 const { href: whatsappHref } = useWhatsAppLink('hero');
 
 const trustItems = [
   { icon: Monitor, label: 'Atendimento Online', detail: 'De onde você estiver' },
   // { icon: Monitor, label: 'Online & Presencial', detail: 'Blumenau SC' }, // presencial (desativado temporariamente)
   { icon: UserRound, label: 'Atendemos', detail: 'Adultos' },
-  { icon: HeartPulse, label: 'Foco clínico', detail: 'Ansiedade, TDAH, depressão, insônia' },
+  { icon: HeartPulse, label: 'Consulta médica', detail: 'Avaliação individual' },
 ];
 </script>
 
@@ -29,7 +25,7 @@ const trustItems = [
       <div class="grid min-h-[640px] grid-cols-1 items-end gap-8 pt-12 md:pt-16 lg:grid-cols-12 lg:gap-8 lg:pt-0">
         <div class="z-10 space-y-7 pb-8 text-center lg:col-span-6 lg:self-center lg:pb-0 lg:text-left xl:col-span-6">
           <span class="inline-block text-sm font-medium uppercase text-clay-ink md:text-base">
-            SAÚDE MENTAL · BLUMENAU SC
+            BLUMENAU SC
           </span>
 
           <h1 class="mx-auto max-w-[12ch] font-aloe text-[clamp(3.25rem,6.5vw,7.5rem)] leading-[0.92] text-ink lg:mx-0 lg:max-w-[18ch]">
@@ -38,11 +34,11 @@ const trustItems = [
 
           <p class="flex items-center gap-4 justify-center lg:justify-start">
             <span class="block h-px w-24 bg-clay-ink/60" aria-hidden="true"/>
-            <span class="text-sm font-medium uppercase text-clay-ink md:text-base">CRM SC 26419</span>
+            <span class="text-sm font-medium uppercase text-clay-ink md:text-base">MÉDICA — CRM-SC 26.419</span>
           </p>
 
           <p class="mx-auto max-w-[43ch] text-lg leading-relaxed text-ink-soft md:text-[1.35rem] lg:mx-0">
-            {{ description }}
+            Atendimento para adultos por telemedicina. Cada consulta considera a história clínica, o contexto de vida e as necessidades de cada paciente.
           </p>
 
           <div class="pt-2 flex justify-center lg:justify-start">
@@ -50,11 +46,11 @@ const trustItems = [
               :href="whatsappHref"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Agendar minha consulta no WhatsApp"
+              aria-label="Agendar consulta médica no WhatsApp"
               class="group inline-flex items-center gap-4 rounded-full bg-ink px-8 py-4 text-base font-medium text-sand transition-colors duration-300 hover:bg-clay-dark md:px-9 md:text-lg"
             >
               <WhatsAppIcon :size="18" class="text-sand" />
-              <span>Agendar minha consulta</span>
+              <span>Agendar consulta médica</span>
               <ArrowRight :size="18" class="transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
             </a>
           </div>
@@ -63,15 +59,15 @@ const trustItems = [
         <div class="flex items-end justify-center lg:col-span-6 lg:h-full lg:justify-end xl:col-span-6">
           <div class="relative flex w-full flex-col items-center lg:h-full lg:items-end lg:justify-end">
             <img
-              src="/images/opt/karin-psiq-720.webp"
-              srcset="/images/opt/karin-psiq-480.webp 480w, /images/opt/karin-psiq-720.webp 720w, /images/opt/karin-psiq-1148.webp 1148w"
+              src="/images/opt/karin-hero-sofa-720.webp"
+              srcset="/images/opt/karin-hero-sofa-480.webp 480w, /images/opt/karin-hero-sofa-720.webp 720w, /images/opt/karin-hero-sofa-1122.webp 1122w"
               sizes="(min-width: 1024px) 574px, 92vw"
-              width="1148"
-              height="1370"
+              width="1122"
+              height="1402"
               alt="Dra. Karin Boldarini"
               fetchpriority="high"
               decoding="async"
-              class="relative z-10 block h-auto max-h-[520px] w-auto max-w-[92vw] object-contain object-bottom md:max-h-[640px] lg:max-h-[640px] lg:max-w-none xl:max-h-[680px]"
+              class="relative z-10 block h-auto max-h-[520px] w-auto max-w-full object-contain object-bottom md:max-h-[640px] lg:max-h-[640px] xl:max-h-[680px]"
             >
             <div
               aria-hidden="true"
@@ -90,7 +86,7 @@ const trustItems = [
           <component :is="item.icon" :size="38" :stroke-width="1.3" class="shrink-0 text-clay-dark" aria-hidden="true" />
           <div class="min-w-0">
             <span class="block text-[11px] font-medium uppercase tracking-wide text-clay-ink md:text-xs">{{ item.label }}</span>
-            <span class="mt-1 block whitespace-nowrap font-aloe text-base leading-snug text-ink md:text-lg">{{ item.detail }}</span>
+            <span class="mt-1 block font-aloe text-base leading-snug text-ink md:text-lg">{{ item.detail }}</span>
           </div>
         </li>
       </ul>

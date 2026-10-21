@@ -4,6 +4,8 @@ import { ArrowRight } from 'lucide-vue-next';
 import WhatsAppIcon from './icons/WhatsAppIcon.vue';
 import { useWhatsAppLink } from '~/composables/useWhatsAppLink';
 
+defineOptions({ name: 'MedicalConsultation' });
+
 const { href: onlineHref } = useWhatsAppLink('consultation');
 // const { href: presencialHref } = useWhatsAppLink('consultation-presencial'); // presencial (desativado temporariamente)
 </script>
@@ -12,9 +14,9 @@ const { href: onlineHref } = useWhatsAppLink('consultation');
   <section
     id="consulta"
     class="relative py-24 md:py-32 bg-cover bg-center bg-no-repeat mobile-bg-adjust"
-    style="background-image: url('/images/karin-consulta-v2.webp')"
+    style="background-image: url('/images/karin-consulta-rosa-dourado.webp')"
   >
-    <div class="absolute inset-0 bg-ink/55"></div>
+    <div class="consultation-overlay absolute inset-0" aria-hidden="true"/>
 
     <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="mb-16 md:mb-20 text-center lg:text-left">
@@ -22,7 +24,7 @@ const { href: onlineHref } = useWhatsAppLink('consultation');
           Consulta
         </span>
         <h2 class="text-display-lg font-serif text-white">
-          Consulta Online
+          Consulta médica online
         </h2>
       </div>
 
@@ -32,7 +34,7 @@ const { href: onlineHref } = useWhatsAppLink('consultation');
       -->
       <div class="max-w-2xl mx-auto lg:mx-0">
         <div class="relative">
-          <div class="absolute -left-4 top-1 h-10 w-px bg-sand/40 hidden lg:block" aria-hidden="true"></div>
+          <div class="absolute -left-4 top-1 h-10 w-px bg-sand/40 hidden lg:block" aria-hidden="true"/>
           <div class="space-y-8">
             <div>
               <h4 class="text-lg font-medium text-sand mb-2 tracking-wide">
@@ -60,7 +62,7 @@ const { href: onlineHref } = useWhatsAppLink('consultation');
                 class="group inline-flex items-center gap-3 bg-sand text-ink-soft px-8 py-4 rounded-full text-base md:text-lg font-medium hover:bg-white transition-colors duration-300"
               >
                 <WhatsAppIcon :size="18" />
-                <span>Agendar Consulta Online</span>
+                <span>Agendar consulta médica online</span>
                 <ArrowRight :size="18" class="transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
               </a>
             </div>
@@ -106,9 +108,17 @@ const { href: onlineHref } = useWhatsAppLink('consultation');
 </template>
 
 <style scoped>
+.consultation-overlay {
+  background: linear-gradient(90deg, rgb(25 22 19 / 60%) 0%, rgb(25 22 19 / 35%) 45%, rgb(25 22 19 / 6%) 72%, transparent 100%);
+}
+
 @media (max-width: 768px) {
   .mobile-bg-adjust {
-    background-position: 45% center !important;
+    background-position: 78% center;
+  }
+
+  .consultation-overlay {
+    background: rgb(25 22 19 / 78%);
   }
 }
 </style>

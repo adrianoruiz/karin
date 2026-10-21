@@ -3,8 +3,8 @@ import { ref } from 'vue';
 import { Menu as MenuIcon, X as CloseIcon } from 'lucide-vue-next';
 
 const menuItems = [
-  { name: 'Método', href: '#metodo' },
-  { name: 'Feedbacks', href: '#feedbacks' },
+  { name: 'Atendimento', href: '#metodo' },
+  { name: 'Sobre', href: '#sobre' },
   { name: 'Consulta', href: '#consulta' },
 ];
 
@@ -62,7 +62,7 @@ const scrollToTop = () => {
               Dra. Karin Boldarini
             </p>
             <p class="mt-2 text-[0.62rem] font-medium uppercase text-[#EBC89A] md:text-[0.7rem]">
-              SAÚDE MENTAL, CORPO E EMOÇÕES
+              MÉDICA — CRM-SC 26.419
             </p>
           </div>
         </div>
@@ -78,12 +78,6 @@ const scrollToTop = () => {
             >
               {{ item.name }}
             </a>
-            <NuxtLink
-              to="/blog"
-              class="relative text-sm font-medium uppercase text-white/90 transition-colors duration-300 after:absolute after:-bottom-2 after:left-0 after:h-px after:w-0 after:bg-sand after:transition-all after:duration-300 hover:text-sand hover:after:w-full"
-            >
-              Blog
-            </NuxtLink>
           </div>
         </div>
 
@@ -120,13 +114,6 @@ const scrollToTop = () => {
           >
             {{ item.name }}
           </a>
-          <NuxtLink
-            to="/blog"
-            class="text-white/90 hover:text-sand block px-3 py-2 rounded-md text-base font-medium transition-colors duration-300 hover:bg-white/5"
-            @click="isOpen = false"
-          >
-            Blog
-          </NuxtLink>
         </div>
       </div>
     </transition>
