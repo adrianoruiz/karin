@@ -1,25 +1,13 @@
 <script setup lang="ts">
 import { MapPin, Instagram, ArrowUpRight } from 'lucide-vue-next';
 import WhatsAppIcon from './icons/WhatsAppIcon.vue';
-import { useAppointmentStore } from '../stores/appointment_store';
 import { useWhatsAppLink } from '~/composables/useWhatsAppLink';
 
 defineOptions({ name: 'SiteFooter' });
 
-const store = useAppointmentStore();
 const { href: whatsappHref } = useWhatsAppLink('footer');
 
 const year = new Date().getFullYear();
-
-const openTermsOfUse = (event: Event) => {
-  event.preventDefault();
-  store.showTermsOfUseModal = true;
-};
-
-const openPrivacyPolicy = (event: Event) => {
-  event.preventDefault();
-  store.showPrivacyPolicyModal = true;
-};
 </script>
 
 <template>
@@ -97,9 +85,9 @@ const openPrivacyPolicy = (event: Event) => {
       <div class="mt-12 md:mt-16 pt-6 border-t border-sand/10 flex flex-col items-center md:flex-row md:items-center md:justify-between gap-3 md:gap-4 text-[0.68rem] md:text-xs uppercase tracking-[0.14em] md:tracking-[0.16em] text-sand/50 text-center md:text-left">
         <p class="leading-relaxed">© {{ year }} Karin Boldarini · Todos os direitos reservados</p>
         <nav class="flex flex-nowrap items-center justify-center gap-3 md:gap-5 whitespace-nowrap">
-          <a href="#" class="inline-flex items-center hover:text-sand transition-colors duration-300" @click="openTermsOfUse">Termos de Uso</a>
+          <NuxtLink to="/termos-de-uso" class="inline-flex items-center hover:text-sand transition-colors duration-300">Termos de Uso</NuxtLink>
           <span aria-hidden="true" class="text-sand/30">/</span>
-          <a href="#" class="inline-flex items-center hover:text-sand transition-colors duration-300" @click="openPrivacyPolicy">Privacidade</a>
+          <NuxtLink to="/privacidade" class="inline-flex items-center hover:text-sand transition-colors duration-300">Privacidade</NuxtLink>
         </nav>
       </div>
     </div>

@@ -220,7 +220,7 @@ const handleConfirmation = () => {
         <span class="text-gray-700">
           Ao prosseguir, você confirma que leu e concorda com os
           <a
-            href="#"
+            href="/termos-de-uso"
             @click.prevent="
               () => {
                 store.formData.agreeToTerms = true;
