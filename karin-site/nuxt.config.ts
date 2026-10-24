@@ -84,7 +84,7 @@ export default defineNuxtConfig({
         // Fonte do H1 (LCP) — preload para renderizar sem atraso
         { rel: 'preload', as: 'font', type: 'font/woff2', href: '/fonts/Aloe-Medium.woff2', crossorigin: '' },
         // Imagem LCP do herói — preload da variante responsiva
-        { rel: 'preload', as: 'image', href: '/images/opt/karin-hero-rosa-720.webp', imagesrcset: '/images/opt/karin-hero-rosa-480.webp 480w, /images/opt/karin-hero-rosa-720.webp 720w, /images/opt/karin-hero-rosa-1148.webp 1148w', imagesizes: '(min-width: 1024px) 574px, 92vw', fetchpriority: 'high' },
+        { rel: 'preload', as: 'image', href: '/images/opt/karin-hero-poltrona-720.webp', imagesrcset: '/images/opt/karin-hero-poltrona-480.webp 480w, /images/opt/karin-hero-poltrona-720.webp 720w, /images/opt/karin-hero-poltrona-1024.webp 1024w', imagesizes: '(min-width: 1280px) 454px, (min-width: 768px) 427px, (min-width: 387px) 347px, calc(100vw - 40px)', fetchpriority: 'high' },
         // Google Fonts sem bloquear a renderização (carrega assíncrono)
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap', media: 'print', onload: "this.media='all'" }
       ],

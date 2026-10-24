@@ -13,13 +13,10 @@ const { href: onlineHref } = useWhatsAppLink('consultation');
 <template>
   <section
     id="consulta"
-    class="relative py-24 md:py-32 bg-cover bg-center bg-no-repeat mobile-bg-adjust"
-    style="background-image: url('/images/karin-consulta-rosa-dourado.webp')"
+    class="consultation-section relative scroll-mt-28 overflow-hidden py-24 md:py-32"
   >
-    <div class="consultation-overlay absolute inset-0" aria-hidden="true"/>
-
     <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="mb-16 md:mb-20 text-center lg:text-left">
+      <div class="mb-16 md:mb-20 text-center lg:max-w-[58%] lg:text-left">
         <span class="inline-block text-eyebrow uppercase text-sand/70 mb-4">
           Consulta
         </span>
@@ -32,7 +29,7 @@ const { href: onlineHref } = useWhatsAppLink('consultation');
         Layout em 2 colunas (Online + Presencial). Reativar quando o presencial voltar:
         trocar a div abaixo por: <div class="lg:grid lg:grid-cols-2 lg:gap-16 space-y-12 lg:space-y-0">
       -->
-      <div class="max-w-2xl mx-auto lg:mx-0">
+      <div class="max-w-2xl mx-auto lg:mx-0 lg:w-[55%]">
         <div class="relative">
           <div class="absolute -left-4 top-1 h-10 w-px bg-sand/40 hidden lg:block" aria-hidden="true"/>
           <div class="space-y-8">
@@ -104,21 +101,25 @@ const { href: onlineHref } = useWhatsAppLink('consultation');
         -->
       </div>
     </div>
+
+    <div class="relative mx-auto mt-12 w-full max-w-[360px] px-4 lg:absolute lg:inset-y-6 lg:right-6 lg:mt-0 lg:w-[42%] lg:max-w-none lg:px-0">
+      <img
+        src="/images/opt/karin-consulta-natural-720.webp"
+        srcset="/images/opt/karin-consulta-natural-480.webp 480w, /images/opt/karin-consulta-natural-720.webp 720w, /images/opt/karin-consulta-natural-1024.webp 1024w"
+        sizes="(min-width: 1024px) 42vw, 328px"
+        width="1024"
+        height="1536"
+        alt="Dra. Karin Boldarini sorrindo, sentada em uma poltrona rosa"
+        loading="lazy"
+        decoding="async"
+        class="mx-auto block h-auto w-full object-contain lg:h-full"
+      >
+    </div>
   </section>
 </template>
 
 <style scoped>
-.consultation-overlay {
-  background: linear-gradient(90deg, rgb(25 22 19 / 60%) 0%, rgb(25 22 19 / 35%) 45%, rgb(25 22 19 / 6%) 72%, transparent 100%);
-}
-
-@media (max-width: 768px) {
-  .mobile-bg-adjust {
-    background-position: 78% center;
-  }
-
-  .consultation-overlay {
-    background: rgb(25 22 19 / 78%);
-  }
+.consultation-section {
+  background: linear-gradient(90deg, rgb(25 22 19) 0%, var(--color-brown-900) 100%);
 }
 </style>

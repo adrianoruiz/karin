@@ -57,14 +57,14 @@ const trustItems = [
         </div>
 
         <div class="flex items-end justify-center lg:col-span-6 lg:h-full lg:justify-end xl:col-span-6">
-          <div class="relative flex w-full flex-col items-center lg:h-full lg:items-end lg:justify-end">
+          <div class="relative flex w-full flex-col items-center pb-4 lg:h-full lg:items-end lg:justify-end lg:py-5">
             <img
-              src="/images/opt/karin-hero-rosa-720.webp"
-              srcset="/images/opt/karin-hero-rosa-480.webp 480w, /images/opt/karin-hero-rosa-720.webp 720w, /images/opt/karin-hero-rosa-1148.webp 1148w"
-              sizes="(min-width: 1024px) 574px, 92vw"
-              width="1148"
-              height="1371"
-              alt="Dra. Karin Boldarini"
+              src="/images/opt/karin-hero-poltrona-720.webp"
+              srcset="/images/opt/karin-hero-poltrona-480.webp 480w, /images/opt/karin-hero-poltrona-720.webp 720w, /images/opt/karin-hero-poltrona-1024.webp 1024w"
+              sizes="(min-width: 1280px) 454px, (min-width: 768px) 427px, (min-width: 387px) 347px, calc(100vw - 40px)"
+              width="1024"
+              height="1536"
+              alt="Dra. Karin Boldarini sorrindo, sentada em uma poltrona rosa"
               fetchpriority="high"
               decoding="async"
               class="relative z-10 block h-auto max-h-[520px] w-auto max-w-full object-contain object-bottom md:max-h-[640px] lg:max-h-[640px] xl:max-h-[680px]"
