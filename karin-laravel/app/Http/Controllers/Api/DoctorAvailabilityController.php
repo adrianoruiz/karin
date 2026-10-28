@@ -69,7 +69,10 @@ class DoctorAvailabilityController extends Controller
         // Horários que serão removidos (não estão na lista enviada)
         $timesToRemove = [];
         foreach ($existingAvailabilities as $existing) {
-            if (! in_array($existing->time, $times)) {
+            $formattedTime = $existing->time instanceof \DateTimeInterface
+                ? $existing->time->format('H:i')
+                : $existing->time;
+            if (! in_array($formattedTime, $times)) {
                 $timesToRemove[] = $existing->id;
             }
         }
@@ -82,10 +85,11 @@ class DoctorAvailabilityController extends Controller
         // Adiciona novos horários que ainda não existem
         $availabilities = [];
         foreach ($times as $time) {
-            // Verifica se já existe disponibilidade para este horário
+            // Verifica se já existe disponibilidade com status 'available' para este horário
             $exists = DoctorAvailability::where('doctor_id', $request->doctor_id)
                 ->whereDate('date', $request->date)
                 ->whereTime('time', $time)
+                ->where('status', 'available')
                 ->exists();
 
             if (! $exists) {
