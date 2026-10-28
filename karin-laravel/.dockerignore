@@ -1,0 +1,43 @@
+.git
+.DS_Store
+/vendor/
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Config só por env em runtime (Dokploy): nenhum .env entra na imagem
+.env
+.env.*
+!.env.example
+
+# Estado de runtime: vem do volume / é recriado no build
+/public/storage
+/public/hot
+/public/build
+/storage/*.key
+/storage/pail
+/storage/logs/*.log
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/framework/testing/*
+/storage/app/public/*
+!/storage/app/public/.gitignore
+/bootstrap/cache/*.php
+database/*.sqlite
+
+# Não vão pra produção
+tests
+postman
+postman_tests
+tasks
+docs
+.claude
+.cursor
+.idea
+.vscode
+.phpunit.cache
+.phpunit.result.cache
+phpunit.xml
+Dockerfile
+.dockerignore
